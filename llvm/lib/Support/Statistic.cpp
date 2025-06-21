@@ -90,8 +90,12 @@ public:
 };
 } // end anonymous namespace
 
-static ManagedStatic<StatisticInfo> StatInfo;
-static ManagedStatic<sys::SmartMutex<true> > StatLock;
+// static ManagedStatic<StatisticInfo> StatInfo;
+// static ManagedStatic<sys::SmartMutex<true> > StatLock;
+
+// NICO: Change this to thread_local so that each thread collects statistics individidually
+thread_local ManagedStatic<StatisticInfo> StatInfo;
+thread_local ManagedStatic<sys::SmartMutex<true>> StatLock;
 
 /// RegisterStatistic - The first time a statistic is bumped, this method is
 /// called.
