@@ -109,9 +109,9 @@ void TrackingStatistic::RegisterStatistic() {
   // order inversion. To avoid that, we dereference the ManagedStatics first,
   // and only take StatLock afterwards.
   if (!Initialized.load(std::memory_order_relaxed)) {
-    // sys::SmartMutex<true> &Lock = *StatLock;
+    sys::SmartMutex<true> &Lock = *StatLock;
     StatisticInfo &SI = *StatInfo;
-    // sys::SmartScopedLock<true> Writer(Lock);
+    sys::SmartScopedLock<true> Writer(Lock);
     // Check Initialized again after acquiring the lock.
     if (Initialized.load(std::memory_order_relaxed))
       return;
@@ -156,7 +156,7 @@ void StatisticInfo::sort() {
 }
 
 void StatisticInfo::reset() {
-  // sys::SmartScopedLock<true> Writer(*StatLock);
+  sys::SmartScopedLock<true> Writer(*StatLock);
 
   // Tell each statistic that it isn't registered so it has to register
   // again. We're holding the lock so it won't be able to do so until we're
@@ -259,7 +259,7 @@ void llvm::PrintStatistics() {
 }
 
 std::vector<std::pair<StringRef, uint64_t>> llvm::GetStatistics() {
-  // sys::SmartScopedLock<true> Reader(*StatLock);
+  sys::SmartScopedLock<true> Reader(*StatLock);
   std::vector<std::pair<StringRef, uint64_t>> ReturnStats;
 
   for (const auto &Stat : StatInfo->statistics())
@@ -272,6 +272,7 @@ void llvm::ResetStatistics() {
 }
 
 std::unordered_map<std::string, uint64_t> llvm::GetStatisticsMap() {
+  sys::SmartScopedLock<true> Reader(*StatLock);
   // static thread_local std::unordered_map<std::string, uint64_t> StatsMap;
   std::unordered_map<std::string, uint64_t> StatsMap;
   // StatsMap.clear();
