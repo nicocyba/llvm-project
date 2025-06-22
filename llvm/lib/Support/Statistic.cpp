@@ -276,7 +276,7 @@ std::unordered_map<std::string, uint64_t> &llvm::GetStatisticsMap() {
   std::unordered_map<std::string, uint64_t> StatsMap;
   // StatsMap.clear();
   for (const auto &Stat : StatInfo->statistics()) {
-    StatsMap[std::format("{} - {}", Stat->getDebugType(), Stat->getName())] = Stat->getValue();
+    StatsMap[formatv("{} - {}", Stat->getDebugType(), Stat->getName())] = Stat->getValue();
   }
     
   return StatsMap;
