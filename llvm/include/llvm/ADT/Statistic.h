@@ -27,6 +27,7 @@
 #define LLVM_ADT_STATISTIC_H
 
 #include "llvm/Config/llvm-config.h"
+#include "llvm/Support/FormatVariadic.h"
 #include <atomic>
 #include <memory>
 #include <vector>
