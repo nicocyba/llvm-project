@@ -96,15 +96,15 @@ public:
 // NICO: Change this to thread_local so that each thread collects statistics individidually
 thread_local ManagedStatic<StatisticInfo> StatInfo;
 thread_local ManagedStatic<sys::SmartMutex<true>> StatLock;
-struct ThreadLocalStatsCleanup {
-  ~ThreadLocalStatsCleanup() {
-    if (StatInfo.isConstructed())
-      StatInfo->~StatisticInfo();
-    if (StatLock.isConstructed())
-      StatLock->~SmartMutex();
-  }
-};
-thread_local ThreadLocalStatsCleanup ThreadStatsCleanup;
+// struct ThreadLocalStatsCleanup {
+//   ~ThreadLocalStatsCleanup() {
+//     if (StatInfo.isConstructed())
+//       StatInfo->~StatisticInfo();
+//     if (StatLock.isConstructed())
+//       StatLock->~SmartMutex();
+//   }
+// };
+// thread_local ThreadLocalStatsCleanup ThreadStatsCleanup;
 
 /// RegisterStatistic - The first time a statistic is bumped, this method is
 /// called.
@@ -278,6 +278,8 @@ std::vector<std::pair<StringRef, uint64_t>> llvm::GetStatistics() {
 
 void llvm::ResetStatistics() {
   StatInfo->reset();
+  StatInfo.destroy();
+  StatLock.destroy();
 }
 
 std::unordered_map<std::string, uint64_t> llvm::GetStatisticsMap() {
