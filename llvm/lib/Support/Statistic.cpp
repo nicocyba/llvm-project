@@ -271,7 +271,7 @@ void llvm::ResetStatistics() {
   StatInfo->reset();
 }
 
-std::unordered_map<std::string, uint64_t> &llvm::GetStatisticsMap() {
+std::unordered_map<std::string, uint64_t> llvm::GetStatisticsMap() {
   // static thread_local std::unordered_map<std::string, uint64_t> StatsMap;
   std::unordered_map<std::string, uint64_t> StatsMap;
   // StatsMap.clear();
