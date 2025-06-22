@@ -200,6 +200,7 @@ void PrintStatisticsJSON(raw_ostream &OS);
 /// read. However, it will prevent new statistics from registering until it
 /// completes.
 std::vector<std::pair<StringRef, uint64_t>> GetStatistics();
+std::unordered_map<std::string, uint64_t> GetStatisticsMap();
 
 /// Reset the statistics. This can be used to zero and de-register the
 /// statistics in order to measure a compilation.
