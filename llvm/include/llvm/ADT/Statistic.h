@@ -30,6 +30,7 @@
 #include <atomic>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 // Determine whether statistics should be enabled. We must do it here rather
 // than in CMake because multi-config generators cannot determine this at
