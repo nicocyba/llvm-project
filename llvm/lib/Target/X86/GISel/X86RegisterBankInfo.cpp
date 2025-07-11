@@ -20,6 +20,7 @@
 #include "llvm/CodeGen/RegisterBankInfo.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/IR/IntrinsicsX86.h"
+#include "llvm/Support/FormatVariadic.h"
 
 #define GET_TARGET_REGBANK_IMPL
 #include "X86GenRegisterBank.inc"
@@ -161,7 +162,7 @@ X86GenRegisterBankInfo::getPartialMappingIdx(const MachineInstr &MI,
       return PMI_VEC128;
       break;
     default:
-      llvm_unreachable("Unsupported register size.");
+      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName()));
     }
   } else if (Ty.isScalar()) {
     switch (Ty.getSizeInBits()) {
@@ -174,7 +175,7 @@ X86GenRegisterBankInfo::getPartialMappingIdx(const MachineInstr &MI,
     case 80:
       return PMI_PSR80;
     default:
-      llvm_unreachable("Unsupported register size.");
+      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName()));
     }
   } else {
     switch (Ty.getSizeInBits()) {
@@ -185,7 +186,7 @@ X86GenRegisterBankInfo::getPartialMappingIdx(const MachineInstr &MI,
     case 512:
       return PMI_VEC512;
     default:
-      llvm_unreachable("Unsupported register size.");
+      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName()));
     }
   }
 
