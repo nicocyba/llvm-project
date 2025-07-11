@@ -162,7 +162,7 @@ X86GenRegisterBankInfo::getPartialMappingIdx(const MachineInstr &MI,
       return PMI_VEC128;
       break;
     default:
-      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName().str().c_str()));
+      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName()).str().c_str());
     }
   } else if (Ty.isScalar()) {
     switch (Ty.getSizeInBits()) {
@@ -175,7 +175,7 @@ X86GenRegisterBankInfo::getPartialMappingIdx(const MachineInstr &MI,
     case 80:
       return PMI_PSR80;
     default:
-      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName().str().c_str()));
+      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName()).str().c_str());
     }
   } else {
     switch (Ty.getSizeInBits()) {
@@ -186,7 +186,7 @@ X86GenRegisterBankInfo::getPartialMappingIdx(const MachineInstr &MI,
     case 512:
       return PMI_VEC512;
     default:
-      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName().str().c_str()));
+      llvm_unreachable(formatv("Unsupported register size: {} ({})", Ty.getSizeInBits(), MF->getFunction().getName()).str().c_str());
     }
   }
 
