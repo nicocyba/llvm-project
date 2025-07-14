@@ -104,7 +104,7 @@ public:
 
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
-    LLVM_DEBUG(dbgs() << "Erasing: " << MI; CreatedInstrs.remove(&MI));
+    llvm::outs() << "Erasing: " << MI; CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
     if constexpr (Lvl != Level::Basic) {
       DeferList.remove(&MI);
@@ -113,7 +113,7 @@ public:
   }
 
   void createdInstr(MachineInstr &MI) override {
-    LLVM_DEBUG(dbgs() << "Creating: " << MI; CreatedInstrs.insert(&MI));
+    llvm::outs() << "Creating: " << MI; CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else
@@ -124,7 +124,7 @@ public:
   }
 
   void changingInstr(MachineInstr &MI) override {
-    LLVM_DEBUG(dbgs() << "Changing: " << MI);
+    llvm::outs() << "Changing: " << MI;
     // Some uses might get dropped when MI is changed.
     // For now, overapproximate by assuming all uses will be dropped.
     // TODO: Is a more precise heuristic or manual tracking of use count
@@ -134,7 +134,7 @@ public:
   }
 
   void changedInstr(MachineInstr &MI) override {
-    LLVM_DEBUG(dbgs() << "Changed: " << MI);
+    llvm::outs() << "Changed: " << MI;
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else
@@ -246,7 +246,7 @@ Combiner::~Combiner() = default;
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {
   if (!isTriviallyDead(MI, MRI))
     return false;
-  LLVM_DEBUG(dbgs() << "Dead: " << MI);
+  llvm::outs() << "Dead: " << MI;
   llvm::salvageDebugInfo(MRI, MI);
   MI.eraseFromParent();
   return true;
@@ -266,7 +266,7 @@ bool Combiner::combineMachineInstrs() {
     setupMF(MF, KB);
   }
 
-  LLVM_DEBUG(dbgs() << "Generic MI Combiner for: " << MF.getName() << '\n');
+  llvm::outs() << "Generic MI Combiner for: " << MF.getName() << '\n';
 
   MachineOptimizationRemarkEmitter MORE(MF, /*MBFI=*/nullptr);
 
@@ -276,7 +276,7 @@ bool Combiner::combineMachineInstrs() {
   unsigned Iteration = 0;
   while (true) {
     ++Iteration;
-    LLVM_DEBUG(dbgs() << "\n\nCombiner iteration #" << Iteration << '\n');
+    llvm::outs() << "\n\nCombiner iteration #" << Iteration << '\n';
 
     Changed = false;
     WorkList.clear();
@@ -311,7 +311,7 @@ bool Combiner::combineMachineInstrs() {
     // Main Loop. Process the instructions here.
     while (!WorkList.empty()) {
       MachineInstr &CurrInst = *WorkList.pop_back_val();
-      LLVM_DEBUG(dbgs() << "\nTry combining " << CurrInst);
+      llvm::outs() << "\nTry combining " << CurrInst;
       bool AppliedCombine = tryCombineAll(CurrInst);
       LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
@@ -321,8 +321,8 @@ bool Combiner::combineMachineInstrs() {
     MFChanged |= Changed;
 
     if (!Changed) {
-      LLVM_DEBUG(dbgs() << "\nCombiner reached fixed-point after iteration #"
-                        << Iteration << '\n');
+      llvm::outs() << "\nCombiner reached fixed-point after iteration #"
+                        << Iteration << '\n';
       break;
     }
     // Iterate until a fixed-point is reached if MaxIterations == 0,
