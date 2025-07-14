@@ -51,11 +51,11 @@ cl::OptionCategory GICombinerOptionCategory(
 /// observer subclass will act on these events.
 class Combiner::WorkListMaintainer : public GISelChangeObserver {
 protected:
-#ifndef NDEBUG
+// #ifndef NDEBUG
   /// The instructions that have been created but we want to report once they
   /// have their operands. This is only maintained if debug output is requested.
   SmallSetVector<const MachineInstr *, 32> CreatedInstrs;
-#endif
+// #endif
   using Level = CombinerInfo::ObserverLevel;
 
 public:
