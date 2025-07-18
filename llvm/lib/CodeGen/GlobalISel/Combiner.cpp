@@ -245,7 +245,7 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
 
 // Nico
 Combiner::~Combiner() {
-  nico::CreatedInstrs = std::move(WLObserver->CreatedInstrs);
+  DataCreatedInstrs = std::move(WLObserver->CreatedInstrs);
 }
 
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {

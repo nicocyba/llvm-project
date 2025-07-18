@@ -20,11 +20,13 @@
 #include "llvm/CodeGen/GlobalISel/GISelChangeObserver.h"
 #include "llvm/CodeGen/GlobalISel/MachineIRBuilder.h"
 
-namespace nico {
-thread_local SmallSetVector<const MachineInstr *, 32> CreatedInstrs;
-} // End namespace nico 
+// #include "llvm/ADT/SetVector.h"
+// #include "llvm/Codegen/SetVector.h"
+
 
 namespace llvm {
+thread_local SmallSetVector<const MachineInstr *, 32> DataCreatedInstrs;
+
 class MachineRegisterInfo;
 class GISelCSEInfo;
 class TargetPassConfig;
