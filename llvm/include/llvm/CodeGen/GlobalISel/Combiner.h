@@ -20,8 +20,8 @@
 #include "llvm/CodeGen/GlobalISel/GISelChangeObserver.h"
 #include "llvm/CodeGen/GlobalISel/MachineIRBuilder.h"
 
-// #include "llvm/ADT/SetVector.h"
-// #include "llvm/Codegen/SetVector.h"
+#include "llvm/ADT/SetVector.h"
+#include "llvm/CodeGen/MachineInstr.h"
 
 
 namespace llvm {
