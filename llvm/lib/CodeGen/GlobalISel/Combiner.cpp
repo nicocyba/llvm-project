@@ -50,7 +50,7 @@ cl::OptionCategory GICombinerOptionCategory(
 /// modifications it makes to the MIR to the GISelChangeObserver and the
 /// observer subclass will act on these events.
 class Combiner::WorkListMaintainer : public GISelChangeObserver {
-protected:
+public:
 // #ifndef NDEBUG
   /// The instructions that have been created but we want to report once they
   /// have their operands. This is only maintained if debug output is requested.
@@ -251,7 +251,7 @@ Combiner::~Combiner() {
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {
   if (!isTriviallyDead(MI, MRI))
     return false;
-  llvm::outs() << "Combiner.cpp - Dead: " << MI;
+  llvm::outs() << __FILE__ << " - Dead: " << MI;
   llvm::salvageDebugInfo(MRI, MI);
   MI.eraseFromParent();
   return true;
