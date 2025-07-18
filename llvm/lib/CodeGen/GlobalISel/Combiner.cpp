@@ -246,6 +246,10 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
 // Nico
 Combiner::~Combiner() {
   DataCreatedInstrs = std::move(WLObserver->CreatedInstrs);
+  std::cout << "~Combiner - SizeData: " << DataCreatedInstrs.size() << "\n";
+  for (const auto& i : DataCreatedInstrs) {
+    std::cout << "\t" << *i << "\n";
+  }
 }
 
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {
