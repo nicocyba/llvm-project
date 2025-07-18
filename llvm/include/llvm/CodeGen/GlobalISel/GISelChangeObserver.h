@@ -106,6 +106,11 @@ public:
   // API for MachineFunction::Delegate
   void MF_HandleInsertion(MachineInstr &MI) override { createdInstr(MI); }
   void MF_HandleRemoval(MachineInstr &MI) override { erasingInstr(MI); }
+
+  ~GISelObserverWrapper() {
+    for (auto &O : Observers)
+      llvm::outs() << "GISelChangeObserver.h - ~GISelObserverWrapper: " << typeid(O).name() << "\n"; 
+  }
 };
 
 /// A simple RAII based Delegate installer.

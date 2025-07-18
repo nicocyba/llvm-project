@@ -233,6 +233,8 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
       ObserverWrapper(std::make_unique<GISelObserverWrapper>()), CInfo(CInfo),
       Observer(*ObserverWrapper), B(*Builder), MF(MF), MRI(MF.getRegInfo()),
       KB(KB), TPC(TPC), CSEInfo(CSEInfo) {
+
+  llvm::outs() << "Combiner\n";
   (void)this->TPC; // FIXME: Remove when used.
 
   // Setup builder.
