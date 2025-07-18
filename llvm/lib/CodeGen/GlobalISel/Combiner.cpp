@@ -104,7 +104,8 @@ public:
 
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
-    llvm::outs() << "Erasing: " << MI; CreatedInstrs.remove(&MI);
+    llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
+    CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
     if constexpr (Lvl != Level::Basic) {
       DeferList.remove(&MI);
@@ -113,7 +114,8 @@ public:
   }
 
   void createdInstr(MachineInstr &MI) override {
-    llvm::outs() << "Creating: " << MI; CreatedInstrs.insert(&MI);
+    llvm::outs() << "Combiner.cpp - Creating: " << MI; 
+    CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else
@@ -124,7 +126,7 @@ public:
   }
 
   void changingInstr(MachineInstr &MI) override {
-    llvm::outs() << "Changing: " << MI;
+    llvm::outs() << "Combiner.cpp - Changing: " << MI;
     // Some uses might get dropped when MI is changed.
     // For now, overapproximate by assuming all uses will be dropped.
     // TODO: Is a more precise heuristic or manual tracking of use count
@@ -134,7 +136,7 @@ public:
   }
 
   void changedInstr(MachineInstr &MI) override {
-    llvm::outs() << "Changed: " << MI;
+    llvm::outs() << "Combiner.cpp - Changed: " << MI;
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else
@@ -241,12 +243,15 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
   B.setChangeObserver(*ObserverWrapper);
 }
 
-Combiner::~Combiner() = default;
+// Nico
+Combiner::~Combiner() {
+  nico::CreatedInstrs = std::move(WLObserver->CreatedInstrs);
+}
 
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {
   if (!isTriviallyDead(MI, MRI))
     return false;
-  llvm::outs() << "Dead: " << MI;
+  llvm::outs() << "Combiner.cpp - Dead: " << MI;
   llvm::salvageDebugInfo(MRI, MI);
   MI.eraseFromParent();
   return true;
@@ -266,7 +271,7 @@ bool Combiner::combineMachineInstrs() {
     setupMF(MF, KB);
   }
 
-  llvm::outs() << "Generic MI Combiner for: " << MF.getName() << '\n';
+  llvm::outs() << "Combiner.cpp - Generic MI Combiner for: " << MF.getName() << '\n';
 
   MachineOptimizationRemarkEmitter MORE(MF, /*MBFI=*/nullptr);
 
@@ -276,7 +281,7 @@ bool Combiner::combineMachineInstrs() {
   unsigned Iteration = 0;
   while (true) {
     ++Iteration;
-    llvm::outs() << "\n\nCombiner iteration #" << Iteration << '\n';
+    llvm::outs() << "Combiner.cpp - \n\nCombiner iteration #" << Iteration << '\n';
 
     Changed = false;
     WorkList.clear();
@@ -311,7 +316,7 @@ bool Combiner::combineMachineInstrs() {
     // Main Loop. Process the instructions here.
     while (!WorkList.empty()) {
       MachineInstr &CurrInst = *WorkList.pop_back_val();
-      llvm::outs() << "\nTry combining " << CurrInst;
+      llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
       bool AppliedCombine = tryCombineAll(CurrInst);
       LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
@@ -321,7 +326,7 @@ bool Combiner::combineMachineInstrs() {
     MFChanged |= Changed;
 
     if (!Changed) {
-      llvm::outs() << "\nCombiner reached fixed-point after iteration #"
+      llvm::outs() << "Combiner.cpp - \nCombiner reached fixed-point after iteration #"
                         << Iteration << '\n';
       break;
     }

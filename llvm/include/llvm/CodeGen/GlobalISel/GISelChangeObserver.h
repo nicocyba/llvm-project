@@ -84,18 +84,22 @@ public:
 
   // API for Observer.
   void erasingInstr(MachineInstr &MI) override {
+    llvm::outs() << "GISelChangeObserver.h - Erasing: " << MI; 
     for (auto &O : Observers)
       O->erasingInstr(MI);
   }
   void createdInstr(MachineInstr &MI) override {
+    llvm::outs() << "GISelChangeObserver.h - Created: " << MI; 
     for (auto &O : Observers)
       O->createdInstr(MI);
   }
   void changingInstr(MachineInstr &MI) override {
+    llvm::outs() << "GISelChangeObserver.h - Changing: " << MI; 
     for (auto &O : Observers)
       O->changingInstr(MI);
   }
   void changedInstr(MachineInstr &MI) override {
+    llvm::outs() << "GISelChangeObserver.h - Changed: " << MI; 
     for (auto &O : Observers)
       O->changedInstr(MI);
   }
