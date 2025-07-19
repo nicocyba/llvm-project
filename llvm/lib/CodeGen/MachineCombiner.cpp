@@ -459,8 +459,11 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         llvm::raw_string_ostream rso(instrStr);
         InstrPtr->print(rso);
         rso.flush();
+        idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
+        instrStr += " | idx=" + std::to_string(idx);
         data.inserted.push_back(instrStr);
         // llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
+
         MBB->insert((MachineBasicBlock::iterator)&MI, InstrPtr);
     }
 
@@ -469,7 +472,10 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         llvm::raw_string_ostream rso(instrStr);
         InstrPtr->print(rso);
         rso.flush();
+        idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
+        instrStr += " | idx=" + std::to_string(idx);
         data.deleted.push_back(instrStr);
+
         // llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
         InstrPtr->eraseFromParent();
         // Erase all LiveRegs defined by the removed instruction
