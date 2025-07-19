@@ -32,6 +32,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 // #include "llvm/ADT/SetVector.h"
 
 // Determine whether statistics should be enabled. We must do it here rather
@@ -46,8 +47,8 @@
 namespace llvm {
 
 // nico
-inline thread_local std::vector<const std::string, unsigned> data_machinecombiner;
-inline thread_local std::vector<const std::string, unsigned> data_gicombiner;
+inline thread_local std::vector<std::pair<const std::string, unsigned>> data_machinecombiner;
+inline thread_local std::vector<std::pair<const std::string, unsigned>> data_gicombiner;
 
 class raw_ostream;
 class raw_fd_ostream;
