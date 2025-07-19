@@ -32,7 +32,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include "llvm/ADT/SetVector.h"
+// #include "llvm/ADT/SetVector.h"
 
 // Determine whether statistics should be enabled. We must do it here rather
 // than in CMake because multi-config generators cannot determine this at
