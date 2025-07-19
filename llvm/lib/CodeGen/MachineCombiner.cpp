@@ -455,16 +455,19 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     data.idx = idx;
 
     for (auto* InstrPtr : InsInstrs) {
+        
+        // idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
+        // instrStr += " | idx=" + std::to_string(idx);
+        
+        // llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
+
+        MBB->insert((MachineBasicBlock::iterator)&MI, InstrPtr);
+
         std::string instrStr;
         llvm::raw_string_ostream rso(instrStr);
         InstrPtr->print(rso);
         rso.flush();
-        // idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
-        // instrStr += " | idx=" + std::to_string(idx);
         data.inserted.push_back(instrStr);
-        // llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
-
-        MBB->insert((MachineBasicBlock::iterator)&MI, InstrPtr);
     }
 
     for (auto* InstrPtr : DelInstrs) {
@@ -473,7 +476,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         InstrPtr->print(rso);
         rso.flush();
         idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
-        instrStr = std::regex_replace(instrStr, std::regex("\n"), '');
+        instrStr = std::regex_replace(instrStr, std::regex("\n"), "");
         instrStr += " | idx=" + std::to_string(idx);
         data.deleted.push_back(instrStr);
 

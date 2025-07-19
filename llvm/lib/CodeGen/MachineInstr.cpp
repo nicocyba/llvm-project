@@ -1831,17 +1831,17 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
     OS << TII->getName(getOpcode());
   else {
     OS << "UNKNOWN";
-    llvm::outs() << "UNKNOWN opcode for MachineInstr!\n";
-    llvm::outs() << "  File: " << __FILE__ << ", Function: " << __func__ << "\n";
-    llvm::outs() << "  Opcode: " << getOpcode() << "\n";
-    if (const MachineFunction *MF = getMFIfAvailable(*this)) {
-      llvm::outs() << "  MachineFunction: " << MF->getName() << "\n";
-      llvm::outs() << "  Target: " << MF->getTarget().getTargetTriple().getTriple() << "\n";
-      llvm::outs() << "  Subtarget: " << MF->getSubtarget().getCPU() << "\n";
-    } else {
-      llvm::outs() << "  No MachineFunction available!: MBB: " << this->getParent()->getName() << ", MF: " << this->getParent()->getParent()->getName() << "\n";
-    }
-    llvm::outs() << "  Printing raw MachineInstr:\n";
+    // llvm::outs() << "UNKNOWN opcode for MachineInstr!\n";
+    // llvm::outs() << "  File: " << __FILE__ << ", Function: " << __func__ << "\n";
+    // llvm::outs() << "  Opcode: " << getOpcode() << "\n";
+    // if (const MachineFunction *MF = getMFIfAvailable(*this)) {
+    //   llvm::outs() << "  MachineFunction: " << MF->getName() << "\n";
+    //   llvm::outs() << "  Target: " << MF->getTarget().getTargetTriple().getTriple() << "\n";
+    //   llvm::outs() << "  Subtarget: " << MF->getSubtarget().getCPU() << "\n";
+    // } else {
+    //   llvm::outs() << "  No MachineFunction available!: MBB: " << this->getParent()->getName() << ", MF: " << this->getParent()->getParent()->getName() << "\n";
+    // }
+    // llvm::outs() << "  Printing raw MachineInstr:\n";
     // dump();
   }
     
