@@ -1839,7 +1839,7 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
       llvm::outs() << "  Target: " << MF->getTarget().getTargetTriple().getTriple() << "\n";
       llvm::outs() << "  Subtarget: " << MF->getSubtarget().getCPU() << "\n";
     } else {
-      llvm::outs() << "  No MachineFunction available!\n";
+      llvm::outs() << "  No MachineFunction available!: MBB: " << this->getParent()->getName() << ", MF: " << this->getParent()->getParent()->getName() << "\n";
     }
     llvm::outs() << "  Printing raw MachineInstr:\n";
     // dump();
