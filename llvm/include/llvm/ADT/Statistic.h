@@ -47,6 +47,9 @@
 namespace llvm {
 
 // nico
+// struct MachineCombinerData {
+//   const std::string 
+// };
 inline thread_local std::vector<std::pair<const std::string, unsigned>> data_machinecombiner;
 inline thread_local std::vector<std::pair<const std::string, unsigned>> data_gicombiner;
 
