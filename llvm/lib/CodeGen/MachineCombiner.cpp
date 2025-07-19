@@ -457,7 +457,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     for (auto* InstrPtr : InsInstrs) {
         std::string instrStr;
         llvm::raw_string_ostream rso(instrStr);
-        i->print(rso);
+        InstrPtr->print(rso);
         rso.flush();
         data.inserted.push_back(instrStr);
         // llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
@@ -467,7 +467,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     for (auto* InstrPtr : DelInstrs) {
         std::string instrStr;
         llvm::raw_string_ostream rso(instrStr);
-        i->print(rso);
+        InstrPtr->print(rso);
         rso.flush();
         data.deleted.push_back(instrStr);
         // llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
