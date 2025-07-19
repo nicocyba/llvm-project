@@ -251,9 +251,9 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
 
 // Nico
 Combiner::~Combiner() {
-  DataCreatedInstrs = std::move(WLObserver->CreatedInstrs);
-  llvm::outs() << "~Combiner - SizeData: " << DataCreatedInstrs.size() << "\n";
-  for (const auto& i : DataCreatedInstrs) {
+  llvm::data_gicombiner = std::move(WLObserver->CreatedInstrs);
+  llvm::outs() << "~Combiner - SizeData: " << llvm::data_gicombiner.size() << "\n";
+  for (const auto& i : llvm::data_gicombiner) {
     llvm::outs() << "\t" << *i << "\n";
   }
 }

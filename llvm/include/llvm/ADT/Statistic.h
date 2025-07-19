@@ -44,6 +44,10 @@
 
 namespace llvm {
 
+// nico
+inline thread_local SmallSetVector<const MachineInstr *, 32> data_machinecombiner;
+inline thread_local SmallSetVector<const MachineInstr *, 32> data_gicombiner;
+
 class raw_ostream;
 class raw_fd_ostream;
 class StringRef;

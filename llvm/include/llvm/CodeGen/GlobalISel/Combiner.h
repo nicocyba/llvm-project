@@ -25,8 +25,6 @@
 
 
 namespace llvm {
-inline thread_local SmallSetVector<const MachineInstr *, 32> DataCreatedInstrs;
-
 class MachineRegisterInfo;
 class GISelCSEInfo;
 class TargetPassConfig;
