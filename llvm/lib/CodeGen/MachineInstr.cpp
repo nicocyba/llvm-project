@@ -1829,8 +1829,22 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
   // Print the opcode name.
   if (TII)
     OS << TII->getName(getOpcode());
-  else
+  else {
     OS << "UNKNOWN";
+    llvm::outs() << "UNKNOWN opcode for MachineInstr!\n";
+    llvm::outs() << "  File: " << __FILE__ << ", Function: " << __func__ << "\n";
+    llvm::outs() << "  Opcode: " << getOpcode() << "\n";
+    if (const MachineFunction *MF = getMFIfAvailable(*this)) {
+      llvm::outs() << "  MachineFunction: " << MF->getName() << "\n";
+      llvm::outs() << "  Target: " << MF->getTarget().getName() << "\n";
+      llvm::outs() << "  Subtarget: " << MF->getSubtarget().getCPU() << "\n";
+    } else {
+      llvm::outs() << "  No MachineFunction available!\n";
+    }
+    llvm::outs() << "  Printing raw MachineInstr:\n";
+    this->dump();
+  }
+    
 
   if (SkipOpers)
     return;

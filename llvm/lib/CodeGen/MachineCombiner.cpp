@@ -456,7 +456,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     }
 
     for (auto* InstrPtr : DelInstrs) {
-        llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr << "\n";
+        llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
         InstrPtr->eraseFromParent();
         // Erase all LiveRegs defined by the removed instruction
         for (auto* I = RegUnits.begin(); I != RegUnits.end();) {
