@@ -254,7 +254,11 @@ Combiner::~Combiner() {
   // llvm::data_gicombiner = std::move(WLObserver->CreatedInstrs);
   
   for (const auto* i : WLObserver->CreatedInstrs) {
-    llvm::data_gicombiner.emplace_back(*i, 0);
+    std::string instrStr;
+    llvm::raw_string_ostream rso(instrStr);
+    i->print(rso);
+    rso.flush();
+    llvm::data_gicombiner.emplace_back(instrStr, 0);
     llvm::outs() << "\t" << *i << "\n";
   }
   llvm::outs() << "~Combiner - SizeData: " << llvm::data_gicombiner.size() << "\n";
