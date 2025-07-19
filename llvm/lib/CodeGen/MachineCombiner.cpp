@@ -448,15 +448,29 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     llvm::outs() << __FILE__ << " | " << __func__ << "| BB: " << MBB->getName() << " | idx: " << idx << "\n";
     
     TII->finalizeInsInstrs(MI, Pattern, InsInstrs);
+    
+    MachineCombinerData data;
+    data.inserted.reserve(InsInstrs.size());
+    data.deleted.reserve(DelInstrs.size());
+    data.idx = idx;
 
     for (auto* InstrPtr : InsInstrs) {
-        
-        llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
+        std::string instrStr;
+        llvm::raw_string_ostream rso(instrStr);
+        i->print(rso);
+        rso.flush();
+        data.inserted.push_back(instrStr);
+        // llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
         MBB->insert((MachineBasicBlock::iterator)&MI, InstrPtr);
     }
 
     for (auto* InstrPtr : DelInstrs) {
-        llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
+        std::string instrStr;
+        llvm::raw_string_ostream rso(instrStr);
+        i->print(rso);
+        rso.flush();
+        data.deleted.push_back(instrStr);
+        // llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
         InstrPtr->eraseFromParent();
         // Erase all LiveRegs defined by the removed instruction
         for (auto* I = RegUnits.begin(); I != RegUnits.end();) {
@@ -466,6 +480,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
                 I++;
         }
     }
+    data_machinecombiner.push_back(std::move(data));
 
     if (IncrementalUpdate)
         for (auto* InstrPtr : InsInstrs)

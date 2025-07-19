@@ -47,10 +47,23 @@
 namespace llvm {
 
 // nico
-// struct MachineCombinerData {
-//   const std::string 
-// };
-inline thread_local std::vector<std::pair<const std::string, unsigned>> data_machinecombiner;
+struct MachineCombinerData {
+  unsigned idx;
+  std::vector<std::string> inserted;
+  std::vector<std::string> deleted;
+};
+
+// Use a thread_local wrapper with a destructor to clear the vector on thread exit.
+struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
+  ~MachineCombinerDataVector() { 
+    for (auto &i : *this) {
+      i.inserted.clear();
+      i.deleted.clear();
+    }
+    this->clear(); 
+  }
+};
+inline thread_local MachineCombinerDataVector data_machinecombiner;
 inline thread_local std::vector<std::pair<const std::string, unsigned>> data_gicombiner;
 
 class raw_ostream;

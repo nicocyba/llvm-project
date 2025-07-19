@@ -1842,7 +1842,7 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
       llvm::outs() << "  No MachineFunction available!\n";
     }
     llvm::outs() << "  Printing raw MachineInstr:\n";
-    this->dump();
+    // dump();
   }
     
 
