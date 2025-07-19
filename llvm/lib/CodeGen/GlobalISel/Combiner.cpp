@@ -253,7 +253,7 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
 Combiner::~Combiner() {
   // llvm::data_gicombiner = std::move(WLObserver->CreatedInstrs);
   
-  for (const auto* i : llvm::WLObserver->CreatedInstrs) {
+  for (const auto* i : WLObserver->CreatedInstrs) {
     llvm::data_gicombiner.emplace_back({*i, 0});
     llvm::outs() << "\t" << *i << "\n";
   }
