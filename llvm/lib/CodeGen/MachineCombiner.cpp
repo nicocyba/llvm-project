@@ -444,16 +444,19 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     // entry creation here after InsInstrs is selected as better pattern.
     // Otherwise the constant pool entry created for InsInstrs will not be deleted
     // even if InsInstrs is not the better pattern.
-    llvm::outs() << __FILE__ << " | " << __func__ << "\n";
+    unsigned idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(&MI));
+    llvm::outs() << __FILE__ << " | " << __func__ << "| BB: " << *MBB->getName() << " | idx: " << idx << "\n";
+    
     TII->finalizeInsInstrs(MI, Pattern, InsInstrs);
 
     for (auto* InstrPtr : InsInstrs) {
-        llvm::outs() << "\tInsert Instruction: " << InstrPtr << "\n";
+        
+        llvm::outs() << "\tInsert Instruction: " << *InstrPtr << "\n";
         MBB->insert((MachineBasicBlock::iterator)&MI, InstrPtr);
     }
 
     for (auto* InstrPtr : DelInstrs) {
-        llvm::outs() << "\tDelete Instruction: " << InstrPtr << "\n";
+        llvm::outs() << "\tDelete Instruction: " << *InstrPtr << "\n";
         InstrPtr->eraseFromParent();
         // Erase all LiveRegs defined by the removed instruction
         for (auto* I = RegUnits.begin(); I != RegUnits.end();) {
