@@ -1836,7 +1836,7 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
     llvm::outs() << "  Opcode: " << getOpcode() << "\n";
     if (const MachineFunction *MF = getMFIfAvailable(*this)) {
       llvm::outs() << "  MachineFunction: " << MF->getName() << "\n";
-      llvm::outs() << "  Target: " << MF->getTarget().getName() << "\n";
+      llvm::outs() << "  Target: " << MF->getTarget().getTargetTriple().getTriple() << "\n";
       llvm::outs() << "  Subtarget: " << MF->getSubtarget().getCPU() << "\n";
     } else {
       llvm::outs() << "  No MachineFunction available!\n";
