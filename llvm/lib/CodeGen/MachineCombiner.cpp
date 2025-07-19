@@ -445,7 +445,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     // Otherwise the constant pool entry created for InsInstrs will not be deleted
     // even if InsInstrs is not the better pattern.
     unsigned idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(&MI));
-    llvm::outs() << __FILE__ << " | " << __func__ << "| BB: " << *MBB->getName() << " | idx: " << idx << "\n";
+    llvm::outs() << __FILE__ << " | " << __func__ << "| BB: " << MBB->getName() << " | idx: " << idx << "\n";
     
     TII->finalizeInsInstrs(MI, Pattern, InsInstrs);
 
