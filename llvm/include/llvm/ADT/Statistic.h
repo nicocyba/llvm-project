@@ -33,7 +33,6 @@
 #include <vector>
 #include <unordered_map>
 #include "llvm/ADT/SetVector.h"
-#include "llvm/CodeGen/MachineInstr.h"
 
 // Determine whether statistics should be enabled. We must do it here rather
 // than in CMake because multi-config generators cannot determine this at
@@ -47,8 +46,8 @@
 namespace llvm {
 
 // nico
-inline thread_local SmallSetVector<const MachineInstr *, 32> data_machinecombiner;
-inline thread_local SmallSetVector<const MachineInstr *, 32> data_gicombiner;
+inline thread_local std::vector<const std::string, unsigned> data_machinecombiner;
+inline thread_local std::vector<const std::string, unsigned> data_gicombiner;
 
 class raw_ostream;
 class raw_fd_ostream;

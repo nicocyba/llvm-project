@@ -251,11 +251,13 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
 
 // Nico
 Combiner::~Combiner() {
-  llvm::data_gicombiner = std::move(WLObserver->CreatedInstrs);
-  llvm::outs() << "~Combiner - SizeData: " << llvm::data_gicombiner.size() << "\n";
-  for (const auto& i : llvm::data_gicombiner) {
+  // llvm::data_gicombiner = std::move(WLObserver->CreatedInstrs);
+  
+  for (const auto* i : llvm::WLObserver->CreatedInstrs) {
+    llvm::data_gicombiner.emplace_back({*i, 0})
     llvm::outs() << "\t" << *i << "\n";
   }
+  llvm::outs() << "~Combiner - SizeData: " << llvm::data_gicombiner.size() << "\n";
 }
 
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {
