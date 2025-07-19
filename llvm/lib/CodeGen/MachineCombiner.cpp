@@ -31,7 +31,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
-
+#include <regex>
 using namespace llvm;
 
 #define DEBUG_TYPE "machine-combiner"
@@ -473,6 +473,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         InstrPtr->print(rso);
         rso.flush();
         idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
+        instrStr = std::regex_replace(instrStr, std::regex("\n"), '');
         instrStr += " | idx=" + std::to_string(idx);
         data.deleted.push_back(instrStr);
 
