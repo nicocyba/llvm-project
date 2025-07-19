@@ -108,9 +108,9 @@ public:
   void MF_HandleRemoval(MachineInstr &MI) override { erasingInstr(MI); }
 
   ~GISelObserverWrapper() {
-    llvm::outs() << "GISelChangeObserver.h - ~GISelObserverWrapper " << "\n"; 
-    for (auto &O : Observers)
-      llvm::outs() << "GISelChangeObserver.h - ~GISelObserverWrapper: obs" << "\n"; 
+    // llvm::outs() << "GISelChangeObserver.h - ~GISelObserverWrapper " << "\n"; 
+    // for (auto &O : Observers)
+    //   llvm::outs() << "GISelChangeObserver.h - ~GISelObserverWrapper: obs" << "\n"; 
   }
 };
 

@@ -59,18 +59,21 @@ public:
   using Level = CombinerInfo::ObserverLevel;
 
 public:
-  static std::unique_ptr<WorkListMaintainer>
-  create(Level Lvl, WorkListTy &WorkList, MachineRegisterInfo &MRI);
+  static std::unique_ptr<WorkListMaintainer> create(Level Lvl, WorkListTy &WorkList, MachineRegisterInfo &MRI);
 
   virtual ~WorkListMaintainer() = default;
 
   void reportFullyCreatedInstrs() {
-    LLVM_DEBUG({
-      for (auto *MI : CreatedInstrs) {
-        dbgs() << "Created: " << *MI;
-      }
-      CreatedInstrs.clear();
-    });
+    // LLVM_DEBUG({
+    //   for (auto *MI : CreatedInstrs) {
+    //     dbgs() << "Created: " << *MI;
+    //   }
+    //   CreatedInstrs.clear();
+    // });
+    for (auto *MI : CreatedInstrs) {
+      dbgs() << "Created: " << *MI;
+    }
+    CreatedInstrs.clear();
   }
 
   virtual void reset() = 0;
@@ -230,7 +233,8 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
                       : std::make_unique<MachineIRBuilder>()),
       WLObserver(WorkListMaintainer::create(CInfo.ObserverLvl, WorkList,
                                             MF.getRegInfo())),
-      ObserverWrapper(std::make_unique<GISelObserverWrapper>()), CInfo(CInfo),
+      ObserverWrapper(std::make_unique<GISelObserverWrapper>()), 
+      CInfo(CInfo),
       Observer(*ObserverWrapper), B(*Builder), MF(MF), MRI(MF.getRegInfo()),
       KB(KB), TPC(TPC), CSEInfo(CSEInfo) {
 
@@ -324,7 +328,8 @@ bool Combiner::combineMachineInstrs() {
       MachineInstr &CurrInst = *WorkList.pop_back_val();
       llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
       bool AppliedCombine = tryCombineAll(CurrInst);
-      LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
+      WLObserver->reportFullyCreatedInstrs();
+      // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
       if (AppliedCombine)
         WLObserver->appliedCombine();
