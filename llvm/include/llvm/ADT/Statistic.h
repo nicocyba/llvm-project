@@ -51,6 +51,8 @@ struct MachineCombinerData {
   unsigned idx;
   std::vector<std::string> inserted;
   std::vector<std::string> deleted;
+  std::string mf;
+  std::string mbb;
 };
 
 // Use a thread_local wrapper with a destructor to clear the vector on thread exit.
