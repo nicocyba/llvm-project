@@ -49,6 +49,10 @@ namespace llvm {
 // nico
 struct MachineCombinerData {
   unsigned idx;
+  unsigned mbb_pred;
+  unsigned mbb_succ;
+  unsigned mbb_size;
+  unsigned mf_size;
   std::vector<std::string> inserted;
   std::vector<std::string> deleted;
   std::string mf;

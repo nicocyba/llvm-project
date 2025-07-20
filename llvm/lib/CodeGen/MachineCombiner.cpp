@@ -453,8 +453,16 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     data.inserted.reserve(InsInstrs.size());
     data.deleted.reserve(DelInstrs.size());
     data.idx = idx;
+
     data.mf = MBB->getParent()->getName().str();
+    data.mf_size = MBB->getParent()->size();
+    
     data.mbb = MBB->getName().str();
+    data.mbb_size = MBB->size();
+    data.mbb_pred = MBB->pred_size();
+    data.mbb_succ = MBB->succ_size();
+    
+    
 
     for (auto* InstrPtr : InsInstrs) {
         
