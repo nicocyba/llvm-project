@@ -3988,7 +3988,6 @@ static bool checkForMustTailInVarArgFn(bool IsVarArg, const BasicBlock &BB) {
 }
 
 bool IRTranslator::runOnMachineFunction(MachineFunction &CurMF) {
-  llvm::is_globalisel = true;
   MF = &CurMF;
   const Function &F = MF->getFunction();
   GISelCSEAnalysisWrapper &Wrapper =
@@ -4093,6 +4092,8 @@ bool IRTranslator::runOnMachineFunction(MachineFunction &CurMF) {
     reportTranslationError(*MF, *TPC, *ORE, R);
     return false;
   }
+
+  llvm::is_globalisel = true;
 
   // Lower the actual args into this basic block.
   SmallVector<ArrayRef<Register>, 8> VRegArgs;
