@@ -3988,6 +3988,7 @@ static bool checkForMustTailInVarArgFn(bool IsVarArg, const BasicBlock &BB) {
 }
 
 bool IRTranslator::runOnMachineFunction(MachineFunction &CurMF) {
+  llvm::is_globalisel = true;
   MF = &CurMF;
   const Function &F = MF->getFunction();
   GISelCSEAnalysisWrapper &Wrapper =

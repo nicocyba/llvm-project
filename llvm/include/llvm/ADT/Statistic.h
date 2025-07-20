@@ -47,6 +47,7 @@
 namespace llvm {
 
 // nico
+inline thread_local bool is_globalisel = false;
 struct MachineCombinerData {
   unsigned idx;
   unsigned mbb_pred;
