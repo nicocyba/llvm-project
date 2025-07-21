@@ -9,13 +9,7 @@
 namespace llvm {
 
 
-auto logEvent = [](const std::string& Event, MachineInstr &MI) {
-  std::string InstrStr;
-  llvm::raw_string_ostream OS(InstrStr);
-  MI.print(OS);
-  OS.flush();
-  data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
-};
+
 
 
 inline thread_local bool is_globalisel = false;
@@ -43,4 +37,12 @@ struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
 };
 inline thread_local MachineCombinerDataVector data_machinecombiner;
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
+
+auto logEvent = [](const std::string& Event, MachineInstr &MI) {
+  std::string InstrStr;
+  llvm::raw_string_ostream OS(InstrStr);
+  MI.print(OS);
+  OS.flush();
+  data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
+};
 } // end namespace llvm
