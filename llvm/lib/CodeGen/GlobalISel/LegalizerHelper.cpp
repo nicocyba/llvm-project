@@ -40,6 +40,8 @@
 #include <numeric>
 #include <optional>
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "legalizer"
 
 using namespace llvm;

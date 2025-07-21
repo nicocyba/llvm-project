@@ -92,6 +92,8 @@
 #include <utility>
 #include <vector>
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "irtranslator"
 
 using namespace llvm;

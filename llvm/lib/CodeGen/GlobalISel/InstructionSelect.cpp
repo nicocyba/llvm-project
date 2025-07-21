@@ -35,6 +35,8 @@
 #include "llvm/Support/DebugCounter.h"
 #include "llvm/Target/TargetMachine.h"
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "instruction-select"
 
 using namespace llvm;

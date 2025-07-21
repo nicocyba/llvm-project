@@ -46,6 +46,8 @@
 #include <memory>
 #include <utility>
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "regbankselect"
 
 using namespace llvm;

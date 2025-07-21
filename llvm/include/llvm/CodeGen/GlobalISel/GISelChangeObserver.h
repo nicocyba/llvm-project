@@ -16,19 +16,11 @@
 
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/CodeGen/MachineFunction.h"
-#include "llvm/ADT/Statistic.h"
+// #include "llvm/ADT/Statistic.h"
 
 namespace llvm {
 class MachineInstr;
 class MachineRegisterInfo;
-
-auto logEvent = [](const std::string& Event, MachineInstr &MI) {
-  std::string InstrStr;
-  llvm::raw_string_ostream OS(InstrStr);
-  MI.print(OS);
-  OS.flush();
-  llvm::data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
-};
 
 /// Abstract class that contains various methods for clients to notify about
 /// changes. This should be the preferred way for APIs to notify changes.

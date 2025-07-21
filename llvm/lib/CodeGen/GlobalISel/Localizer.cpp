@@ -20,6 +20,8 @@
 #include "llvm/InitializePasses.h"
 #include "llvm/Support/Debug.h"
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "localizer"
 
 using namespace llvm;

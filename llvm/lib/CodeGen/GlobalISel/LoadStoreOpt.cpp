@@ -38,6 +38,8 @@
 #include "llvm/Support/ErrorHandling.h"
 #include <algorithm>
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "loadstore-opt"
 
 using namespace llvm;

@@ -30,6 +30,8 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Error.h"
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "legalizer"
 
 using namespace llvm;
