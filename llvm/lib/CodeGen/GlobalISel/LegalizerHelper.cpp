@@ -131,33 +131,33 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
         auto Step = LI.getAction(MI, MRI);
 
         // Convert the enum to a string for debugging
-        auto actionToStr = [](LegalizeAction action) {
+        auto actionToStr = [](LegalizeAction action) -> std::string {
             switch (action) {
-                case Legal:
-                    return "Legal";
-                case Libcall:
-                    return "Libcall";
-                case NarrowScalar:
-                    return "NarrowScalar";
-                case WidenScalar:
-                    return "WidenScalar";
-                case Bitcast:
-                    return "Bitcast";
-                case Lower:
-                    return "Lower";
-                case FewerElements:
-                    return "FewerElements";
-                case MoreElements:
-                    return "MoreElements";
-                case Custom:
-                    return "Custom";
-                default:
-                    return "UnableToLegalize";
+          case Legal:
+              return "Legal";
+          case Libcall:
+              return "Libcall";
+          case NarrowScalar:
+              return "NarrowScalar";
+          case WidenScalar:
+              return "WidenScalar";
+          case Bitcast:
+              return "Bitcast";
+          case Lower:
+              return "Lower";
+          case FewerElements:
+              return "FewerElements";
+          case MoreElements:
+              return "MoreElements";
+          case Custom:
+              return "Custom";
+          default:
+              return "UnableToLegalize";
             }
         };
         GlobalISelData data;
         data.caller = DEBUG_TYPE;
-        data.event = llvm::formatv("{0} - {1}", __func__, actionToStr(Step.Action)).str();
+        data.event = std::string(__func__) + " - " + actionToStr(Step.Action);
         data.mf = MI.getParent()->getParent()->getName().str();
         data.mbb = MI.getParent()->getName().str();
         data.mi_before = MI2String(MI);
