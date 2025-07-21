@@ -126,7 +126,17 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
     LegalizeResult Result = UnableToLegalize;
 
     if (isa<GIntrinsic>(MI)) {
+        GlobalISelData data;
+        data.caller = DEBUG_TYPE;
+        data.event = std::string(__func__) + " - Intrinsic";
+        data.mf = MI.getParent()->getParent()->getName().str();
+        data.mbb = MI.getParent()->getName().str();
+        data.mi_before = MI2String(MI);
         Result = LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
+        if (Result == Legalized) {
+          data.mi_after = MI2String(MI);
+          LocObserver.log2Nico(std::move(data));
+        }
     } else {
         auto Step = LI.getAction(MI, MRI);
 
