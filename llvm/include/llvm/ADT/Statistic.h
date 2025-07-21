@@ -71,7 +71,7 @@ struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
   }
 };
 inline thread_local MachineCombinerDataVector data_machinecombiner;
-inline thread_local std::vector<std::pair<const std::string, unsigned>> data_gicombiner;
+inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
 class raw_ostream;
 class raw_fd_ostream;

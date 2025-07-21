@@ -22,12 +22,12 @@ namespace llvm {
 class MachineInstr;
 class MachineRegisterInfo;
 
-auto logEvent = [](const char *Event, MachineInstr &MI) {
+auto logEvent = [](const std::string& Event, MachineInstr &MI) {
   std::string InstrStr;
   llvm::raw_string_ostream OS(InstrStr);
   MI.print(OS);
   OS.flush();
-  llvm::data_gicombiner.emplace_back(InstrStr, MI.getOpcode());
+  llvm::data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
 };
 
 /// Abstract class that contains various methods for clients to notify about
