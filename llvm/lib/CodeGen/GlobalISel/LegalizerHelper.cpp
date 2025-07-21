@@ -207,10 +207,12 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
                 Result = UnableToLegalize;
                 break;
         }
+
+        data.mi_after = MI2String(MI);
+        LocObserver.log2Nico(std::move(data));
     }
 
-    data.mi_after = MI2String(MI);
-    LocObserver.log2Nico(std::move(data));
+    
     // dbgs() << "Inspecting MI before return: " << MI << "\n";
 
     return Result;
