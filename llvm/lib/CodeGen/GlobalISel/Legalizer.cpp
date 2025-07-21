@@ -146,7 +146,7 @@ public:
     LLVM_DEBUG(NewMIs.push_back(&MI));
     createdOrChangedInstr(MI);
 
-    logEvent("legalizer - created", MI);
+    // logEvent("legalizer - created", MI);
   }
 
   void printNewInstrs() {
@@ -162,7 +162,7 @@ public:
     InstList.remove(&MI);
     ArtifactList.remove(&MI);
 
-    logEvent("legalizer - erasing", MI);
+    // logEvent("legalizer - erasing", MI);
   }
 
   void changingInstr(MachineInstr &MI) override {

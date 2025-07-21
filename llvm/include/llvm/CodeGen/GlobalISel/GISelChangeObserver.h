@@ -17,6 +17,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/CodeGen/MachineFunction.h"
 // #include "llvm/ADT/Statistic.h"
+#include "llvm/CodeGen/NicoBA.h"
 
 namespace llvm {
 class MachineInstr;
@@ -58,6 +59,10 @@ public:
   /// finished being changed.
   void finishedChangingAllUsesOfReg();
 
+
+  void log2Nico(const GlobalISelData &data) {
+    data_globalisel.emplace_back(data);
+  }
 };
 
 /// Simple wrapper observer that takes several observers, and calls
