@@ -127,6 +127,25 @@ LegalizerHelper::legalizeInstrStep(MachineInstr &MI,
   if (isa<GIntrinsic>(MI))
     return LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
   auto Step = LI.getAction(MI, MRI);
+  
+  // Convert the enum to a string for debugging
+  auto actionToStr = [](LegalizeAction action) {
+    switch (action) {
+      case Legal: return "Legal";
+      case Libcall: return "Libcall";
+      case NarrowScalar: return "NarrowScalar";
+      case WidenScalar: return "WidenScalar";
+      case Bitcast: return "Bitcast";
+      case Lower: return "Lower";
+      case FewerElements: return "FewerElements";
+      case MoreElements: return "MoreElements";
+      case Custom: return "Custom";
+      default: return "UnableToLegalize";
+    }
+  };
+
+  LLVM_DEBUG(dbgs() << ".. Action: " << actionToStr(Step.Action) << "\n");
+
   switch (Step.Action) {
   case Legal:
     LLVM_DEBUG(dbgs() << ".. Already legal\n");

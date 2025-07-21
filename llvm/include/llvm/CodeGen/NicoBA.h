@@ -14,7 +14,7 @@ auto logEvent = [](const std::string& Event, MachineInstr &MI) {
   llvm::raw_string_ostream OS(InstrStr);
   MI.print(OS);
   OS.flush();
-  llvm::data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
+  data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
 };
 
 
