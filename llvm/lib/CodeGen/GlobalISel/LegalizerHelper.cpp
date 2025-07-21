@@ -157,7 +157,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
         };
         GlobalISelData data;
         data.caller = DEBUG_TYPE;
-        data.event = std::format("{} - {}", __func__, actionToStr(Step.Action));
+        data.event = llvm::formatv("{0} - {1}", __func__, actionToStr(Step.Action)).str();
         data.mf = MI.getParent()->getParent()->getName().str();
         data.mbb = MI.getParent()->getName().str();
         data.mi_before = MI2String(MI);
