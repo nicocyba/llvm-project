@@ -16,6 +16,7 @@
 
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/ADT/Statistic.h"
 
 namespace llvm {
 class MachineInstr;
