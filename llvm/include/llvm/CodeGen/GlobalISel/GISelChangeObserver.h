@@ -21,6 +21,14 @@ namespace llvm {
 class MachineInstr;
 class MachineRegisterInfo;
 
+auto logEvent = [](const char *Event, MachineInstr &MI) {
+  std::string InstrStr;
+  llvm::raw_string_ostream OS(InstrStr);
+  MI.print(OS);
+  OS.flush();
+  llvm::data_gicombiner.emplace_back(InstrStr, MI.getOpcode());
+};
+
 /// Abstract class that contains various methods for clients to notify about
 /// changes. This should be the preferred way for APIs to notify changes.
 /// Typically calling erasingInstr/createdInstr multiple times should not affect
