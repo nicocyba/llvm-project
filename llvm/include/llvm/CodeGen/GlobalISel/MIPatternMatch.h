@@ -28,7 +28,8 @@ inline void logPattern(Args &&...args) {
 
 template <typename Reg, typename Pattern>
 [[nodiscard]] bool mi_match(Reg R, const MachineRegisterInfo &MRI, Pattern &&P) {
-  llvm::outs() << "mi_match with reg: " << R << "\n";
+  llvm::outs() << "mi_match with reg: " << R() << "\n";
+  logPattern("mi_match", R, P);
   return P.match(MRI, R);
 }
 
@@ -36,6 +37,7 @@ template <typename Pattern>
 [[nodiscard]] bool mi_match(MachineInstr &MI, const MachineRegisterInfo &MRI,
                             Pattern &&P) {
   llvm::outs() << "mi_match: " << MI << "\n";
+  logPattern("mi_match", R, P);
   return P.match(MRI, &MI);
 }
 
@@ -423,8 +425,7 @@ inline ImplicitDefMatch m_GImplicitDef() { return ImplicitDefMatch(); }
 inline bind_ty<const ConstantFP *> m_GFCst(const ConstantFP *&C) { return C; }
 
 // General helper for all the binary generic MI such as G_ADD/G_SUB etc
-template <typename LHS_P, typename RHS_P, unsigned Opcode,
-          bool Commutable = false>
+template <typename LHS_P, typename RHS_P, unsigned Opcode, bool Commutable = false>
 struct BinaryOp_match {
   LHS_P L;
   RHS_P R;

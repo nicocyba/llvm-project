@@ -107,7 +107,7 @@ public:
 
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
-    llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
+    // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
     CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
     if constexpr (Lvl != Level::Basic) {
@@ -238,7 +238,7 @@ Combiner::Combiner(MachineFunction &MF, CombinerInfo &CInfo,
       Observer(*ObserverWrapper), B(*Builder), MF(MF), MRI(MF.getRegInfo()),
       KB(KB), TPC(TPC), CSEInfo(CSEInfo) {
 
-  llvm::outs() << "Combiner\n";
+  // llvm::outs() << "Combiner\n";
   (void)this->TPC; // FIXME: Remove when used.
 
   // Setup builder.
@@ -267,7 +267,7 @@ Combiner::~Combiner() {
 bool Combiner::tryDCE(MachineInstr &MI, MachineRegisterInfo &MRI) {
   if (!isTriviallyDead(MI, MRI))
     return false;
-  llvm::outs() << __FILE__ << " - Dead: " << MI;
+  // llvm::outs() << __FILE__ << " - Dead: " << MI;
   llvm::salvageDebugInfo(MRI, MI);
   MI.eraseFromParent();
   return true;
@@ -287,7 +287,7 @@ bool Combiner::combineMachineInstrs() {
     setupMF(MF, KB);
   }
 
-  llvm::outs() << "Combiner.cpp - Generic MI Combiner for: " << MF.getName() << '\n';
+  // llvm::outs() << "Combiner.cpp - Generic MI Combiner for: " << MF.getName() << '\n';
 
   MachineOptimizationRemarkEmitter MORE(MF, /*MBFI=*/nullptr);
 
@@ -297,7 +297,7 @@ bool Combiner::combineMachineInstrs() {
   unsigned Iteration = 0;
   while (true) {
     ++Iteration;
-    llvm::outs() << "Combiner.cpp - \n\nCombiner iteration #" << Iteration << '\n';
+    // llvm::outs() << "Combiner.cpp - \n\nCombiner iteration #" << Iteration << '\n';
 
     Changed = false;
     WorkList.clear();
@@ -332,7 +332,7 @@ bool Combiner::combineMachineInstrs() {
     // Main Loop. Process the instructions here.
     while (!WorkList.empty()) {
       MachineInstr &CurrInst = *WorkList.pop_back_val();
-      llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
+      // llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
       bool AppliedCombine = tryCombineAll(CurrInst);
       WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
@@ -343,8 +343,8 @@ bool Combiner::combineMachineInstrs() {
     MFChanged |= Changed;
 
     if (!Changed) {
-      llvm::outs() << "Combiner.cpp - \nCombiner reached fixed-point after iteration #"
-                        << Iteration << '\n';
+      // llvm::outs() << "Combiner.cpp - \nCombiner reached fixed-point after iteration #"
+      //                   << Iteration << '\n';
       break;
     }
     // Iterate until a fixed-point is reached if MaxIterations == 0,
