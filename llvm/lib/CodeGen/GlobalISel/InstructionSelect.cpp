@@ -335,13 +335,18 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
     auto& TLI = *MF.getSubtarget().getTargetLowering();
     TLI.finalizeLowering(MF);
 
-    LLVM_DEBUG({
-        dbgs() << "Rules covered by selecting function: " << MF.getName() << ":";
-        for (auto RuleID : CoverageInfo.covered()) {
-            dbgs() << " id" << RuleID;
-        }
-        dbgs() << "\n\n";
-    });
+    // LLVM_DEBUG({
+    //     dbgs() << "Rules covered by selecting function: " << MF.getName() << ":";
+    //     for (auto RuleID : CoverageInfo.covered()) {
+    //         dbgs() << " id" << RuleID;
+    //     }
+    //     dbgs() << "\n\n";
+    // });
+    outs() << "Rules covered by selecting function: " << MF.getName() << ":";
+    for (auto RuleID : CoverageInfo.covered()) {
+        outs() << " id" << RuleID;
+    }
+    outs() << "\n\n";
     CoverageInfo.emit(CoveragePrefix,
         TLI.getTargetMachine().getTarget().getBackendName());
 
