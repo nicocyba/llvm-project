@@ -218,7 +218,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
                 break;
         }
 
-        if (actionToStr == "Lower") {
+        if (actionToStr(Step.Action) == "Lower") {
           llvm::outs() << "Lower - idx: " << Step.TypeIdx << ", type: " << Step.NewType << "\n";
         }
 
