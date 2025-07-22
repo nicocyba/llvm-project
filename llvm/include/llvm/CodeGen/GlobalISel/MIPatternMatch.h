@@ -21,15 +21,27 @@
 namespace llvm {
 namespace MIPatternMatch {
 
+template <typename... Args>
+inline void logPattern(Args &&...args) {
+  llvm::outs() << "\tPattern used: " << args << "\n";
+}
+
 template <typename Reg, typename Pattern>
-[[nodiscard]] bool mi_match(Reg R, const MachineRegisterInfo &MRI,
-                            Pattern &&P) {
+[[nodiscard]] bool mi_match(Reg R, const MachineRegisterInfo &MRI, Pattern &&P) {
+  llvm::outs() << "mi_match with reg: " << R << "\n";
+  if (P.hasName()) {
+    logPattern(P.getName(), P.getKind());
+  }
   return P.match(MRI, R);
 }
 
 template <typename Pattern>
 [[nodiscard]] bool mi_match(MachineInstr &MI, const MachineRegisterInfo &MRI,
                             Pattern &&P) {
+  llvm::outs() << "mi_match: " << MI << "\n";
+  if (P.hasName()) {
+    logPattern(P.getName(), P.getKind());
+  }
   return P.match(MRI, &MI);
 }
 
