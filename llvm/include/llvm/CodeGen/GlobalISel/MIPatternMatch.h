@@ -37,7 +37,7 @@ template <typename Pattern>
 [[nodiscard]] bool mi_match(MachineInstr &MI, const MachineRegisterInfo &MRI,
                             Pattern &&P) {
   llvm::outs() << "mi_match: " << MI << "\n";
-  logPattern("mi_match", R, P);
+  logPattern("mi_match",MI, P);
   return P.match(MRI, &MI);
 }
 
