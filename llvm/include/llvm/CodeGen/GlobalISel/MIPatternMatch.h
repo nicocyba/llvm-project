@@ -17,7 +17,7 @@
 #include "llvm/CodeGen/GlobalISel/Utils.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/IR/InstrTypes.h"
-
+#include "llvm/CodeGen/TargetInstrInfo.h"
 namespace llvm {
 namespace MIPatternMatch {
 
