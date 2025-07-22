@@ -28,7 +28,7 @@ inline void logPattern(Args &&...args) {
 
 template <typename Reg, typename Pattern>
 [[nodiscard]] bool mi_match(Reg R, const MachineRegisterInfo &MRI, Pattern &&P) {
-  llvm::outs() << "mi_match with reg: " << R() << "\n";
+  llvm::outs() << "mi_match with reg: " << R << "\n";
   logPattern("mi_match", R, P);
   return P.match(MRI, R);
 }
