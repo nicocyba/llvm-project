@@ -2528,6 +2528,8 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     MIB.setInstrAndDebugLoc(I);
 
     unsigned Opcode = I.getOpcode();
+
+    outs() << "AArch64 GISel: isPreISelOpcode " << TargetOpcode::getName(Opcode) << "\n";
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
@@ -2578,6 +2580,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         return false;
     }
 
+    outs() << "AArch64 GISel: preISelLower\n";
     // Try to do some lowering before we start instruction selecting. These
     // lowerings are purely transformations on the input G_MIR and so selection
     // must continue after any modification of the instruction.
@@ -2585,6 +2588,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         Opcode = I.getOpcode(); // The opcode may have been modified, refresh it.
     }
 
+    outs() << "AArch64 GISel: earlySelect\n";
     // There may be patterns where the importer can't deal with them optimally,
     // but does select it to a suboptimal sequence so our custom C++ selection
     // code later never has a chance to work on it. Therefore, we have an early
@@ -2594,8 +2598,13 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         return true;
     }
 
+    outs() << "AArch64 GISel: selectImpl\n";
     if (selectImpl(I, *CoverageInfo)) {
         return true;
+    }
+    for (const auto& cov : *CoverageInfo->covered()) {
+        outs() << "\tcoverage: " << cov.first << " covered by "
+              << cov.second << "\n";
     }
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
