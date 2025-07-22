@@ -229,7 +229,9 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
             data.mi_after += std::format("{} ; ", MI2String(*i.getInstr()));
           }
         }
+        MIRBuilder.last_mibs.clear();
         LocObserver.log2Nico(std::move(data));
+        
     }
 
     
