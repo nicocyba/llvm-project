@@ -255,7 +255,7 @@ protected:
   }
 
 public:
-  MachineInstrBuilder last_mib;
+  std::vector<MachineInstrBuilder> last_mibs;
   /// Some constructors for easy use.
   MachineIRBuilder() = default;
   MachineIRBuilder(MachineFunction &MF) { setMF(MF); }

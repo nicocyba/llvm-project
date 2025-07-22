@@ -218,9 +218,16 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
                 break;
         }
 
+        if (actionToStr == "Lower") {
+          llvm::outs() << "Lower - idx: " << Step.TypeIdx << ", type: " << Step.NewType << "\n";
+        }
+
         data.mi_after = MI2String(MI);
         if (data.mi_after.find("UNKNOWN") != std::string::npos){
-          data.mi_after = MI2String(*MIRBuilder.last_mib.getInstr());
+          data.mi_after = "";
+          for (const auto& i : MIRBuilder.last_mibs) {
+            data.mi_after += std::format("{} ; ", MI2String(*i.getInstr()));
+          }
         }
         LocObserver.log2Nico(std::move(data));
     }

@@ -1463,6 +1463,6 @@ MachineIRBuilder::buildInstr(unsigned Opc, ArrayRef<DstOp> DstOps,
   if (Flags)
     MIB->setFlags(*Flags);
 
-  last_mib = MIB;
+  last_mibs.push_back(MIB);
   return MIB;
 }
