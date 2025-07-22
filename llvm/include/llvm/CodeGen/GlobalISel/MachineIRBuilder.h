@@ -65,6 +65,7 @@ struct MachineIRBuilderState {
   GISelChangeObserver *Observer = nullptr;
 
   GISelCSEInfo *CSEInfo = nullptr;
+
 };
 
 class DstOp {
@@ -254,6 +255,7 @@ protected:
   }
 
 public:
+  MachineInstrBuilder last_mib;
   /// Some constructors for easy use.
   MachineIRBuilder() = default;
   MachineIRBuilder(MachineFunction &MF) { setMF(MF); }
