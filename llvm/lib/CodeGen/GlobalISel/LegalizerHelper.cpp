@@ -226,7 +226,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
         if (data.mi_after.find("UNKNOWN") != std::string::npos){
           data.mi_after = "";
           for (const auto& i : MIRBuilder.last_mibs) {
-            data.mi_after += std::format("{} ; ", MI2String(*i.getInstr()));
+            data.mi_after += MI2String(*i.getInstr()) + " ; ";
           }
         }
         MIRBuilder.last_mibs.clear();
