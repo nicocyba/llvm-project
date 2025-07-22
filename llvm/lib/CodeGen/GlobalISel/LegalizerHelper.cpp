@@ -220,7 +220,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
 
         data.mi_after = MI2String(MI);
         if (data.mi_after.find("UNKNOWN") != std::string::npos){
-          data.mi_after = MI2String(*(--MIRBuilder.getInsertPt().getInstrIterator()));
+          data.mi_after = MI2String(*MIRBuilder.last_mib.getInstr());
         }
         LocObserver.log2Nico(std::move(data));
     }
