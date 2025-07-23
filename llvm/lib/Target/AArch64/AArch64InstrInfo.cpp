@@ -7083,6 +7083,7 @@ AArch64InstrInfo::getCombinerObjective(unsigned Pattern) const {
 
 bool AArch64InstrInfo::getMachineCombinerPatterns(
     MachineInstr& Root, SmallVectorImpl<unsigned>& Patterns, bool DoRegPressureReduce) const {
+    outs() << __func__ << "\n";
     // Integer patterns
     if (getMaddPatterns(Root, Patterns)) {
         return true;

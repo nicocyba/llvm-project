@@ -564,7 +564,8 @@ void MachineCombiner::verifyPatternOrder(MachineBasicBlock* MBB,
 /// sequence is shorter.
 bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
     bool Changed = false;
-    LLVM_DEBUG(dbgs() << "Combining MBB " << MBB->getName() << "\n");
+    // LLVM_DEBUG(dbgs() << __func__ << " - Combining MBB " << MBB->getName() << "\n");
+    outs() << __func__ << " - Combining MBB " << MBB->getName() << "\n";
 
     bool IncrementalUpdate = false;
     auto BlockIter = MBB->begin();
