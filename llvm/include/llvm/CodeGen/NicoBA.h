@@ -6,10 +6,10 @@
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineCombinerPattern.h"
 
-namespace llvm {
+namespace nico {
 
 // AArch64 MachineCombiner patterns
-inline enum AArch64MachineCombinerPattern2 : unsigned {
+enum AArch64MachineCombinerPattern2 : unsigned {
   // These are patterns used to reduce the length of dependence chain.
   SUBADD_OP1 = MachineCombinerPattern::TARGET_PATTERN_START,
   SUBADD_OP2,
@@ -148,6 +148,9 @@ inline enum AArch64MachineCombinerPattern2 : unsigned {
 
   FNMADD,
 };
+} // end namespace nico
+namespace llvm {
+
 
 inline thread_local bool is_globalisel = false;
 
