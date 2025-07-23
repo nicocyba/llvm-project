@@ -633,7 +633,9 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
                 continue;
             }
             outs() << "MachineCombiner::combineInstructions" << " - Combining MBB " << MBB->getName() << "\n";
-            if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
+            if (P < 4U) {
+                outs() << llvm::formatv("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern>(P));
+            } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
                 outs() << llvm::formatv("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<AArch64MachineCombinerPattern>(P));
             }
             // LLVM_DEBUG(if (dump_intrs) {
