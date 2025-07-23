@@ -483,10 +483,10 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     
     if (Pattern < 4U) {
         outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", Pattern, static_cast<MachineCombinerPattern>(Pattern));
-        data.pattern = llvm::formatv("{:s}",static_cast<MachineCombinerPattern>(Pattern));
+        data.pattern = std::format("{:s}",static_cast<MachineCombinerPattern>(Pattern));
     } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
         outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", Pattern, static_cast<nico::AArch64MachineCombinerPattern2>(Pattern));
-        data.pattern = llvm::formatv("{:s}",static_cast<nico::AArch64MachineCombinerPattern2>(Pattern));
+        data.pattern = std::format("{:s}",static_cast<nico::AArch64MachineCombinerPattern2>(Pattern));
     } else {
         data.pattern = "unknown";
     }
