@@ -1472,4 +1472,4 @@ if (XCODE)
 endif()
 
 # Nico
-add_subdirectory(lib/Target/AArch64)
+# add_subdirectory(lib/Target/AArch64)  # Removed to avoid CMake directory conflict
