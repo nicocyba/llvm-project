@@ -453,7 +453,9 @@ bool MachineCombiner::preservesResourceLen(
 /// \param IncrementalUpdate if true, compute instruction depths incrementally,
 ///                          otherwise invalidate the trace
 static void
-insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorImpl<MachineInstr*>& InsInstrs, SmallVectorImpl<MachineInstr*>& DelInstrs, MachineTraceMetrics::Ensemble* TraceEnsemble, SparseSet<LiveRegUnit>& RegUnits, const TargetInstrInfo* TII, unsigned Pattern, bool IncrementalUpdate) {
+insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorImpl<MachineInstr*>& InsInstrs, 
+    SmallVectorImpl<MachineInstr*>& DelInstrs, MachineTraceMetrics::Ensemble* TraceEnsemble, SparseSet<LiveRegUnit>& RegUnits, 
+    const TargetInstrInfo* TII, unsigned Pattern, bool IncrementalUpdate) {
     // If we want to fix up some placeholder for some target, do it now.
     // We need this because in genAlternativeCodeSequence, we have not decided the
     // better pattern InsInstrs or DelInstrs, so we don't want generate some
@@ -478,6 +480,17 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     data.mbb_size = MBB->size();
     data.mbb_pred = MBB->pred_size();
     data.mbb_succ = MBB->succ_size();
+    
+    if (Pattern < 4U) {
+        outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", Pattern, static_cast<MachineCombinerPattern>(Pattern));
+        data.pattern = llvm::formatv("{:s}",static_cast<MachineCombinerPattern>(Pattern));
+    } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
+        outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", Pattern, static_cast<AArch64MachineCombinerPattern>(Pattern));
+        data.pattern = llvm::formatv("{:s}",static_cast<AArch64MachineCombinerPattern2>(Pattern));
+    } else {
+        data.pattern = "unknown";
+    }
+    
 
     for (auto* InstrPtr : InsInstrs) {
 
@@ -636,12 +649,12 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
             if (InsInstrs.empty()) {
                 continue;
             }
-            outs() << "MachineCombiner::combineInstructions" << " - Combining MBB " << MBB->getName() << "\n";
-            if (P < 4U) {
-                outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern>(P));
-            } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
-                outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", P, static_cast<AArch64MachineCombinerPattern>(P));
-            }
+            // outs() << "MachineCombiner::combineInstructions" << " - Combining MBB " << MBB->getName() << "\n";
+            // if (P < 4U) {
+            //     outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern>(P));
+            // } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
+            //     outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", P, static_cast<AArch64MachineCombinerPattern2>(P));
+            // }
             // LLVM_DEBUG(if (dump_intrs) {
             //     dbgs() << "\tFor the Pattern (" << (int)P
             //            << ") these instructions could be removed\n";
@@ -658,15 +671,15 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
             // std::format("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern(P))
             
             // outs() << "\tFor the Pattern (" << (int)P << " - " << static_cast<MachineCombinerPattern>(P) << ") these instructions could be removed\n";
-            for (auto const* InstrPtr : DelInstrs) {
-                InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
-                    /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
-            }
-            outs() << "\tThese instructions could replace the removed ones\n";
-            for (auto const* InstrPtr : InsInstrs) {
-                InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
-                    /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
-            }
+            // for (auto const* InstrPtr : DelInstrs) {
+            //     InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
+            //         /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
+            // }
+            // outs() << "\tThese instructions could replace the removed ones\n";
+            // for (auto const* InstrPtr : InsInstrs) {
+            //     InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
+            //         /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
+            // }
 
             if (IncrementalUpdate && LastUpdate != BlockIter) {
                 // Update depths since the last incremental update.
