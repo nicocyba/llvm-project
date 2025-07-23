@@ -647,7 +647,7 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
             //     }
             // });
             // std::format("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern(P))
-            outs() << "\tFor the Pattern (" << (int)P << " - " << static_cast<MachineCombinerPattern(P) << ") these instructions could be removed\n";
+            outs() << "\tFor the Pattern (" << (int)P << " - " << static_cast<MachineCombinerPattern>(P) << ") these instructions could be removed\n";
             for (auto const* InstrPtr : DelInstrs) {
                 InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
                     /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
