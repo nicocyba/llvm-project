@@ -1470,3 +1470,10 @@ if (XCODE)
     set_target_properties(${target} PROPERTIES XCODE_GENERATE_SCHEME ON)
   endforeach()
 endif()
+
+# Nico
+foreach(t ${LLVM_TARGETS_TO_BUILD})
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${t})
+    add_subdirectory(${t})
+  endif()
+endforeach()
