@@ -133,15 +133,17 @@ MachineInstr*
 MachineCombiner::getOperandDef(const MachineOperand& MO) {
     MachineInstr* DefInstr = nullptr;
     // We need a virtual register definition.
-    if (MO.isReg() && MO.getReg().isVirtual())
+    if (MO.isReg() && MO.getReg().isVirtual()) {
         DefInstr = MRI->getUniqueVRegDef(MO.getReg());
+    }
     return DefInstr;
 }
 
 /// Return true if MI is unlikely to generate an actual target instruction.
 bool MachineCombiner::isTransientMI(const MachineInstr* MI) {
-    if (!MI->isCopy())
+    if (!MI->isCopy()) {
         return MI->isTransient();
+    }
 
     // If MI is a COPY, check if its src and dst registers can be coalesced.
     Register Dst = MI->getOperand(0).getReg();
@@ -149,8 +151,9 @@ bool MachineCombiner::isTransientMI(const MachineInstr* MI) {
 
     if (!MI->isFullCopy()) {
         // If src RC contains super registers of dst RC, it can also be coalesced.
-        if (MI->getOperand(0).getSubReg() || Src.isPhysical() || Dst.isPhysical())
+        if (MI->getOperand(0).getSubReg() || Src.isPhysical() || Dst.isPhysical()) {
             return false;
+        }
 
         auto SrcSub = MI->getOperand(1).getSubReg();
         auto SrcRC = MRI->getRegClass(Src);
@@ -158,8 +161,9 @@ bool MachineCombiner::isTransientMI(const MachineInstr* MI) {
         return TRI->getMatchingSuperRegClass(SrcRC, DstRC, SrcSub) != nullptr;
     }
 
-    if (Src.isPhysical() && Dst.isPhysical())
+    if (Src.isPhysical() && Dst.isPhysical()) {
         return Src == Dst;
+    }
 
     if (Src.isVirtual() && Dst.isVirtual()) {
         auto SrcRC = MRI->getRegClass(Src);
@@ -167,8 +171,9 @@ bool MachineCombiner::isTransientMI(const MachineInstr* MI) {
         return SrcRC->hasSuperClassEq(DstRC) || SrcRC->hasSubClassEq(DstRC);
     }
 
-    if (Src.isVirtual())
+    if (Src.isVirtual()) {
         std::swap(Src, Dst);
+    }
 
     // Now Src is physical register, Dst is virtual register.
     auto DstRC = MRI->getRegClass(Dst);
@@ -196,8 +201,9 @@ MachineCombiner::getDepth(SmallVectorImpl<MachineInstr*>& InsInstrs,
         unsigned IDepth = 0;
         for (const MachineOperand& MO : InstrPtr->all_uses()) {
             // Check for virtual register operand.
-            if (!MO.getReg().isVirtual())
+            if (!MO.getReg().isVirtual()) {
                 continue;
+            }
             unsigned DepthOp = 0;
             unsigned LatencyOp = 0;
             DenseMap<unsigned, unsigned>::iterator II = InstrIdxForVirtReg.find(MO.getReg());
@@ -215,7 +221,7 @@ MachineCombiner::getDepth(SmallVectorImpl<MachineInstr*>& InsInstrs,
                 MachineInstr* DefInstr = getOperandDef(MO);
                 if (DefInstr && (TII->getMachineCombinerTraceStrategy() != MachineTraceStrategy::TS_Local || DefInstr->getParent() == &MBB)) {
                     DepthOp = BlockTrace.getInstrCycles(*DefInstr).Depth;
-                    if (!isTransientMI(DefInstr))
+                    if (!isTransientMI(DefInstr)) {
                         LatencyOp = TSchedModel.computeOperandLatency(
                             DefInstr,
                             DefInstr->findRegisterDefOperandIdx(MO.getReg(),
@@ -223,6 +229,7 @@ MachineCombiner::getDepth(SmallVectorImpl<MachineInstr*>& InsInstrs,
                             InstrPtr,
                             InstrPtr->findRegisterUseOperandIdx(MO.getReg(),
                                 /*TRI=*/nullptr));
+                    }
                 }
             }
             IDepth = std::max(IDepth, DepthOp + LatencyOp);
@@ -248,13 +255,15 @@ unsigned MachineCombiner::getLatency(MachineInstr* Root, MachineInstr* NewRoot, 
 
     for (const MachineOperand& MO : NewRoot->all_defs()) {
         // Check for virtual register operand.
-        if (!MO.getReg().isVirtual())
+        if (!MO.getReg().isVirtual()) {
             continue;
+        }
         // Get the first instruction that uses MO
         MachineRegisterInfo::reg_iterator RI = MRI->reg_begin(MO.getReg());
         RI++;
-        if (RI == MRI->reg_end())
+        if (RI == MRI->reg_end()) {
             continue;
+        }
         MachineInstr* UseMO = RI->getParent();
         unsigned LatencyOp = 0;
         if (UseMO && BlockTrace.isDepInTrace(*Root, *UseMO)) {
@@ -295,13 +304,15 @@ std::pair<unsigned, unsigned> MachineCombiner::getLatenciesForInstrSequences(
     unsigned NewRootLatency = 0;
     // NewRoot is the last instruction in the \p InsInstrs vector.
     MachineInstr* NewRoot = InsInstrs.back();
-    for (unsigned i = 0; i < InsInstrs.size() - 1; i++)
+    for (unsigned i = 0; i < InsInstrs.size() - 1; i++) {
         NewRootLatency += TSchedModel.computeInstrLatency(InsInstrs[i]);
+    }
     NewRootLatency += getLatency(&MI, NewRoot, BlockTrace);
 
     unsigned RootLatency = 0;
-    for (auto* I : DelInstrs)
+    for (auto* I : DelInstrs) {
         RootLatency += TSchedModel.computeInstrLatency(I);
+    }
 
     return {NewRootLatency, RootLatency};
 }
@@ -388,8 +399,9 @@ void MachineCombiner::instr2instrSC(
 /// True when the new instructions do not increase resource length
 bool MachineCombiner::preservesResourceLen(
     MachineBasicBlock* MBB, MachineTraceMetrics::Trace BlockTrace, SmallVectorImpl<MachineInstr*>& InsInstrs, SmallVectorImpl<MachineInstr*>& DelInstrs) {
-    if (!TSchedModel.hasInstrSchedModel())
+    if (!TSchedModel.hasInstrSchedModel()) {
         return true;
+    }
 
     // Compute current resource length
 
@@ -437,9 +449,7 @@ bool MachineCombiner::preservesResourceLen(
 /// \param IncrementalUpdate if true, compute instruction depths incrementally,
 ///                          otherwise invalidate the trace
 static void
-insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorImpl<MachineInstr*>& InsInstrs, 
-  SmallVectorImpl<MachineInstr*>& DelInstrs, MachineTraceMetrics::Ensemble* TraceEnsemble, SparseSet<LiveRegUnit>& RegUnits, 
-  const TargetInstrInfo* TII, unsigned Pattern, bool IncrementalUpdate) {
+insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorImpl<MachineInstr*>& InsInstrs, SmallVectorImpl<MachineInstr*>& DelInstrs, MachineTraceMetrics::Ensemble* TraceEnsemble, SparseSet<LiveRegUnit>& RegUnits, const TargetInstrInfo* TII, unsigned Pattern, bool IncrementalUpdate) {
     // If we want to fix up some placeholder for some target, do it now.
     // We need this because in genAlternativeCodeSequence, we have not decided the
     // better pattern InsInstrs or DelInstrs, so we don't want generate some
@@ -449,9 +459,9 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     // even if InsInstrs is not the better pattern.
     unsigned idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(&MI));
     // llvm::outs() << __FILE__ << " | " << __func__ << "| BB: " << MBB->getName() << " | idx: " << idx << "\n";
-    
+
     TII->finalizeInsInstrs(MI, Pattern, InsInstrs);
-    
+
     MachineCombinerData data;
     data.inserted.reserve(InsInstrs.size());
     data.deleted.reserve(DelInstrs.size());
@@ -459,19 +469,17 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
 
     data.mf = MBB->getParent()->getName().str();
     data.mf_size = MBB->getParent()->size();
-    
+
     data.mbb = MBB->getName().str();
     data.mbb_size = MBB->size();
     data.mbb_pred = MBB->pred_size();
     data.mbb_succ = MBB->succ_size();
-    
-    
 
     for (auto* InstrPtr : InsInstrs) {
-        
+
         // idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
         // instrStr += " | idx=" + std::to_string(idx);
-        
+
         // llvm::outs() << "\tInsert Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
 
         MBB->insert((MachineBasicBlock::iterator)&MI, InstrPtr);
@@ -498,19 +506,22 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         InstrPtr->eraseFromParent();
         // Erase all LiveRegs defined by the removed instruction
         for (auto* I = RegUnits.begin(); I != RegUnits.end();) {
-            if (I->MI == InstrPtr)
+            if (I->MI == InstrPtr) {
                 I = RegUnits.erase(I);
-            else
+            } else {
                 I++;
+            }
         }
     }
     data_machinecombiner.push_back(std::move(data));
 
-    if (IncrementalUpdate)
-        for (auto* InstrPtr : InsInstrs)
+    if (IncrementalUpdate) {
+        for (auto* InstrPtr : InsInstrs) {
             TraceEnsemble->updateDepth(MBB, *InstrPtr, RegUnits);
-    else
+        }
+    } else {
         TraceEnsemble->invalidate(MBB);
+    }
 
     NumInstCombined++;
 }
@@ -531,8 +542,9 @@ void MachineCombiner::verifyPatternOrder(MachineBasicBlock* MBB,
         // Found pattern, but did not generate alternative sequence.
         // This can happen e.g. when an immediate could not be materialized
         // in a single instruction.
-        if (InsInstrs.empty() || !TSchedModel.hasInstrSchedModelOrItineraries())
+        if (InsInstrs.empty() || !TSchedModel.hasInstrSchedModelOrItineraries()) {
             continue;
+        }
 
         unsigned NewRootLatency, RootLatency;
         std::tie(NewRootLatency, RootLatency) = getLatenciesForInstrSequences(
@@ -559,8 +571,9 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
     decltype(BlockIter) LastUpdate;
     // Check if the block is in a loop.
     const MachineLoop* ML = MLI->getLoopFor(MBB);
-    if (!TraceEnsemble)
+    if (!TraceEnsemble) {
         TraceEnsemble = Traces->getEnsemble(TII->getMachineCombinerTraceStrategy());
+    }
 
     SparseSet<LiveRegUnit> RegUnits;
     RegUnits.setUniverse(TRI->getNumRegUnits());
@@ -599,35 +612,51 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
         // machine-combiner-verify-pattern-order is enabled, all patterns are
         // checked to ensure later patterns do not provide better latency savings.
 
-        if (!TII->getMachineCombinerPatterns(MI, Patterns, DoRegPressureReduce))
+        if (!TII->getMachineCombinerPatterns(MI, Patterns, DoRegPressureReduce)) {
             continue;
+        }
 
-        if (VerifyPatternOrder)
+        if (VerifyPatternOrder) {
             verifyPatternOrder(MBB, MI, Patterns);
+        }
 
         for (const auto P : Patterns) {
             SmallVector<MachineInstr*, 16> InsInstrs;
             SmallVector<MachineInstr*, 16> DelInstrs;
             DenseMap<unsigned, unsigned> InstrIdxForVirtReg;
-            TII->genAlternativeCodeSequence(MI, P, InsInstrs, DelInstrs,
-                InstrIdxForVirtReg);
+            TII->genAlternativeCodeSequence(MI, P, InsInstrs, DelInstrs, InstrIdxForVirtReg);
+
             // Found pattern, but did not generate alternative sequence.
             // This can happen e.g. when an immediate could not be materialized
             // in a single instruction.
-            if (InsInstrs.empty())
+            if (InsInstrs.empty()) {
                 continue;
+            }
 
-            LLVM_DEBUG(if (dump_intrs) {
-                dbgs() << "\tFor the Pattern (" << (int)P
-                       << ") these instructions could be removed\n";
-                for (auto const* InstrPtr : DelInstrs)
-                    InstrPtr->print(dbgs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
-                        /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
-                dbgs() << "\tThese instructions could replace the removed ones\n";
-                for (auto const* InstrPtr : InsInstrs)
-                    InstrPtr->print(dbgs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
-                        /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
-            });
+            // LLVM_DEBUG(if (dump_intrs) {
+            //     dbgs() << "\tFor the Pattern (" << (int)P
+            //            << ") these instructions could be removed\n";
+            //     for (auto const* InstrPtr : DelInstrs) {
+            //         InstrPtr->print(dbgs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
+            //             /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
+            //     }
+            //     dbgs() << "\tThese instructions could replace the removed ones\n";
+            //     for (auto const* InstrPtr : InsInstrs) {
+            //         InstrPtr->print(dbgs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
+            //             /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
+            //     }
+            // });
+            outs() << "\tFor the Pattern (" << (int)P
+                    << ") these instructions could be removed\n";
+            for (auto const* InstrPtr : DelInstrs) {
+                InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
+                    /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
+            }
+            outs() << "\tThese instructions could replace the removed ones\n";
+            for (auto const* InstrPtr : InsInstrs) {
+                InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
+                    /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);
+            }
 
             if (IncrementalUpdate && LastUpdate != BlockIter) {
                 // Update depths since the last incremental update.
@@ -643,8 +672,7 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
                 }
                 if (reduceRegisterPressure(MI, MBB, InsInstrs, DelInstrs, P)) {
                     // Replace DelInstrs with InsInstrs.
-                    insertDeleteInstructions(MBB, MI, InsInstrs, DelInstrs, TraceEnsemble,
-                        RegUnits, TII, P, IncrementalUpdate);
+                    insertDeleteInstructions(MBB, MI, InsInstrs, DelInstrs, TraceEnsemble, RegUnits, TII, P, IncrementalUpdate);
                     Changed |= true;
 
                     // Go back to previous instruction as it may have ILP reassociation
@@ -698,15 +726,17 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
                 // Cleanup instructions of the alternative code sequence. There is no
                 // use for them.
                 MachineFunction* MF = MBB->getParent();
-                for (auto* InstrPtr : InsInstrs)
+                for (auto* InstrPtr : InsInstrs) {
                     MF->deleteMachineInstr(InstrPtr);
+                }
             }
             InstrIdxForVirtReg.clear();
         }
     }
 
-    if (Changed && IncrementalUpdate)
+    if (Changed && IncrementalUpdate) {
         Traces->invalidate(MBB);
+    }
     return Changed;
 }
 
@@ -735,8 +765,9 @@ bool MachineCombiner::runOnMachineFunction(MachineFunction& MF) {
     bool Changed = false;
 
     // Try to combine instructions.
-    for (auto& MBB : MF)
+    for (auto& MBB : MF) {
         Changed |= combineInstructions(&MBB);
+    }
 
     return Changed;
 }
