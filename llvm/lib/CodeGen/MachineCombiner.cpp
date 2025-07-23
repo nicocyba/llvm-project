@@ -33,9 +33,9 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/CodeGen/NicoBA.h"
-#include "llvm/Support/TargetSelect.h"
-#include "AArch64Subtarget.h"
-#include "AArch64TargetMachine.h"
+// #include "llvm/Support/TargetSelect.h"
+// #include "AArch64Subtarget.h"
+// #include "AArch64TargetMachine.h"
 #include "AArch64InstrInfo.h"
 
 #include <regex>
@@ -638,9 +638,9 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
             }
             outs() << "MachineCombiner::combineInstructions" << " - Combining MBB " << MBB->getName() << "\n";
             if (P < 4U) {
-                outs() << llvm::formatv("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern>(P));
+                outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern>(P));
             } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
-                outs() << llvm::formatv("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<AArch64MachineCombinerPattern>(P));
+                outs() << llvm::formatv("\tFor the pattern {} - {:s} these instructions could be removed\n", P, static_cast<AArch64MachineCombinerPattern>(P));
             }
             // LLVM_DEBUG(if (dump_intrs) {
             //     dbgs() << "\tFor the Pattern (" << (int)P
