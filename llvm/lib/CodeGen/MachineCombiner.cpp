@@ -33,9 +33,9 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/CodeGen/NicoBA.h"
-// #include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/TargetSelect.h"
 // #include "AArch64Subtarget.h"
-#include "AArch64TargetMachine.h"
+// #include "AArch64TargetMachine.h"
 
 #include <regex>
 using namespace llvm;
