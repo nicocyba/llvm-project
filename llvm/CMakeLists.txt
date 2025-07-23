@@ -1472,8 +1472,4 @@ if (XCODE)
 endif()
 
 # Nico
-foreach(t ${LLVM_TARGETS_TO_BUILD})
-  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${t})
-    add_subdirectory(${t})
-  endif()
-endforeach()
+add_subdirectory(lib/Target/AArch64)
