@@ -565,7 +565,6 @@ void MachineCombiner::verifyPatternOrder(MachineBasicBlock* MBB,
 bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
     bool Changed = false;
     // LLVM_DEBUG(dbgs() << __func__ << " - Combining MBB " << MBB->getName() << "\n");
-    outs() << __func__ << " - Combining MBB " << MBB->getName() << "\n";
 
     bool IncrementalUpdate = false;
     auto BlockIter = MBB->begin();
@@ -633,7 +632,10 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
             if (InsInstrs.empty()) {
                 continue;
             }
-
+            outs() << "MachineCombiner::combineInstructions" << " - Combining MBB " << MBB->getName() << "\n";
+            if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
+                outs() << llvm::formatv("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<AArch64MachineCombinerPattern>(P));
+            }
             // LLVM_DEBUG(if (dump_intrs) {
             //     dbgs() << "\tFor the Pattern (" << (int)P
             //            << ") these instructions could be removed\n";
@@ -648,7 +650,8 @@ bool MachineCombiner::combineInstructions(MachineBasicBlock* MBB) {
             //     }
             // });
             // std::format("For the pattern {} - {:s} these instructions could be removed\n", P, static_cast<MachineCombinerPattern(P))
-            outs() << "\tFor the Pattern (" << (int)P << " - " << static_cast<MachineCombinerPattern>(P) << ") these instructions could be removed\n";
+            
+            // outs() << "\tFor the Pattern (" << (int)P << " - " << static_cast<MachineCombinerPattern>(P) << ") these instructions could be removed\n";
             for (auto const* InstrPtr : DelInstrs) {
                 InstrPtr->print(outs(), /*IsStandalone*/ false, /*SkipOpers*/ false,
                     /*SkipDebugLoc*/ false, /*AddNewLine*/ true, TII);

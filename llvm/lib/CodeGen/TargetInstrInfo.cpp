@@ -921,7 +921,7 @@ bool TargetInstrInfo::isReassociationCandidate(const MachineInstr &Inst,
 //    instruction is known to not increase the critical path, then don't match
 //    that pattern.
 bool TargetInstrInfo::getMachineCombinerPatterns(MachineInstr &Root, SmallVectorImpl<unsigned> &Patterns, bool DoRegPressureReduce) const {
-  outs() << __func__ << "\n";
+  outs() << "TargetInstrInfo::getMachineCombinerPatterns" << "\n";
   bool Commute;
   if (isReassociationCandidate(Root, Commute)) {
     // We found a sequence of instructions that may be suitable for a
