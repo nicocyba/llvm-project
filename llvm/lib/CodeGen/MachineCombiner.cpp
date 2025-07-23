@@ -36,7 +36,7 @@
 // #include "llvm/Support/TargetSelect.h"
 // #include "AArch64Subtarget.h"
 // #include "AArch64TargetMachine.h"
-#include "lib/Target/AArch64/AArch64InstrInfo.h"
+#include "../Target/AArch64/AArch64InstrInfo.h"
 
 #include <regex>
 using namespace llvm;
