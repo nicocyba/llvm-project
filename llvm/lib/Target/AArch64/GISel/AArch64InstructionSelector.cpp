@@ -2603,8 +2603,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         return true;
     }
     for (const auto& cov : CoverageInfo->covered()) {
-        outs() << "\tcoverage: " << cov.first << " covered by "
-              << cov.second << "\n";
+        outs() << "\tcoverage: " << cov<< "\n";
     }
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
