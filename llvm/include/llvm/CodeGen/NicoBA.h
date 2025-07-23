@@ -9,7 +9,7 @@
 namespace llvm {
 
 // AArch64 MachineCombiner patterns
-enum AArch64MachineCombinerPattern2 : unsigned {
+inline enum AArch64MachineCombinerPattern2 : unsigned {
   // These are patterns used to reduce the length of dependence chain.
   SUBADD_OP1 = MachineCombinerPattern::TARGET_PATTERN_START,
   SUBADD_OP2,
