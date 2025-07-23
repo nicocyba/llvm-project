@@ -2529,7 +2529,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
 
     unsigned Opcode = I.getOpcode();
 
-    outs() << "AArch64 GISel: isPreISelOpcode " << TargetOpcode::getName(Opcode) << "\n";
+    outs() << "AArch64 GISel: isPreISelOpcode " << Opcode << "\n";
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
@@ -2602,7 +2602,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     if (selectImpl(I, *CoverageInfo)) {
         return true;
     }
-    for (const auto& cov : *CoverageInfo->covered()) {
+    for (const auto& cov : CoverageInfo->covered()) {
         outs() << "\tcoverage: " << cov.first << " covered by "
               << cov.second << "\n";
     }
