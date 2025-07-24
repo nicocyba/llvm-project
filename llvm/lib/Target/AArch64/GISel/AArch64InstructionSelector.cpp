@@ -2528,11 +2528,11 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
 
     unsigned Opcode = I.getOpcode();
 
-    outs() << "AArch64 GISel: isPreISelOpcode " << Opcode << "\n";
+    
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
-         outs() << "\ttrue\n";
+        outs() << "AArch64 GISel: isPreISelOpcode " << Opcode << "\n";
         if (Opcode == TargetOpcode::LOAD_STACK_GUARD) {
             return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
         }
@@ -2579,29 +2579,29 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         return false;
     }
 
-    outs() << "AArch64 GISel: preISelLower\n";
+    
     // Try to do some lowering before we start instruction selecting. These
     // lowerings are purely transformations on the input G_MIR and so selection
     // must continue after any modification of the instruction.
     if (preISelLower(I)) {
-        outs() << "\ttrue\n";
+        outs() << "AArch64 GISel: preISelLower\n";
         Opcode = I.getOpcode(); // The opcode may have been modified, refresh it.
     }
 
-    outs() << "AArch64 GISel: earlySelect\n";
+    
     // There may be patterns where the importer can't deal with them optimally,
     // but does select it to a suboptimal sequence so our custom C++ selection
     // code later never has a chance to work on it. Therefore, we have an early
     // selection attempt here to give priority to certain selection routines
     // over the imported ones.
     if (earlySelect(I)) {
-        outs() << "\ttrue\n";
+        outs() << "AArch64 GISel: earlySelect\n";
         return true;
     }
 
-    outs() << "AArch64 GISel: selectImpl\n";
+    
     if (selectImpl(I, *CoverageInfo)) {
-        outs() << "\ttrue\n";
+        outs() << "AArch64 GISel: selectImpl\n";
         return true;
     }
     for (const auto& cov : CoverageInfo->covered()) {
@@ -2609,7 +2609,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     }
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
-
+    outs() << "AArch64 GISel: switch\n";
     switch (Opcode) {
         case TargetOpcode::G_SBFX:
         case TargetOpcode::G_UBFX: {
