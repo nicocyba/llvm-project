@@ -496,7 +496,8 @@ struct BinaryOpc_match {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 llvm::outs() << "[MIPatternMatch]" << nico::to_string(current_stage) << " BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << TmpMI->print(llvm::outs());
+                       << " matched on MI: ";
+                TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
                 //     const MachineOperand &Op = TmpMI->getOperand(i);
