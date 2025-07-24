@@ -483,10 +483,10 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
     data.mbb_succ = MBB->succ_size();
     
     if (Pattern < 4U) {
-        outs() << llvm::formatv("\tFor the pattern {} - {} these instructions could be removed\n", Pattern, static_cast<int>(static_cast<MachineCombinerPattern>(Pattern)));
-        data.pattern = std::to_string(static_cast<int>(static_cast<MachineCombinerPattern>(Pattern)));
+        // outs() << llvm::formatv("\tFor the pattern {} - {} these instructions could be removed\n", Pattern, static_cast<int>(static_cast<MachineCombinerPattern>(Pattern)));
+        data.pattern = nico::to_string(static_cast<nico::MachineCombinerPattern2>(Pattern));
     } else if (MBB->getParent()->getTarget().getTargetTriple().isAArch64()) {
-        outs() << llvm::formatv("\tFor the pattern {} - {} these instructions could be removed\n", Pattern, static_cast<int>(static_cast<nico::AArch64MachineCombinerPattern2>(Pattern)));
+        // outs() << llvm::formatv("\tFor the pattern {} - {} these instructions could be removed\n", Pattern, static_cast<int>(static_cast<nico::AArch64MachineCombinerPattern2>(Pattern)));
         data.pattern = nico::to_string(static_cast<nico::AArch64MachineCombinerPattern2>(Pattern)); //std::to_string(static_cast<int>(static_cast<nico::AArch64MachineCombinerPattern2>(Pattern)));
     } else {
         data.pattern = "unknown";

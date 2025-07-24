@@ -8,10 +8,32 @@
 
 namespace nico {
 
+enum MachineCombinerPattern2 : unsigned {
+  // These are commutative variants for reassociating a computation chain. See
+  // the comments before getMachineCombinerPatterns() in TargetInstrInfo.cpp.
+  REASSOC_AX_BY,
+  REASSOC_AX_YB,
+  REASSOC_XA_BY,
+  REASSOC_XA_YB,
+
+  TARGET_PATTERN_START
+};
+
+inline std::string to_string(MachineCombinerPattern2 pattern) {
+  switch (pattern) {
+    case REASSOC_AX_BY: return "REASSOC_AX_BY";
+    case REASSOC_AX_YB: return "REASSOC_AX_YB";
+    case REASSOC_XA_BY: return "REASSOC_XA_BY";
+    case REASSOC_XA_YB: return "REASSOC_XA_YB";
+    case TARGET_PATTERN_START: return "TARGET_PATTERN_START";
+    default: return "<unknown>";
+  }
+}
+
 // AArch64 MachineCombiner patterns
 enum AArch64MachineCombinerPattern2 : unsigned {
   // These are patterns used to reduce the length of dependence chain.
-  SUBADD_OP1 = llvm::MachineCombinerPattern::TARGET_PATTERN_START,
+  SUBADD_OP1 = MachineCombinerPattern2::TARGET_PATTERN_START,
   SUBADD_OP2,
 
   // These are multiply-add patterns matched by the AArch64 machine combiner.
