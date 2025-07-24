@@ -2255,6 +2255,7 @@ void GlobalISelEmitter::emitAdditionalImpl(raw_ostream &OS) {
      << "  const PredicateBitset AvailableFeatures = "
         "getAvailableFeatures();\n"
      << "  MachineIRBuilder B(I);\n"
+     << "  outs() << \"selectImpl -> SPECIAL\";\n"
      << "  State.MIs.clear();\n"
      << "  State.MIs.push_back(&I);\n\n"
      << "  if (executeMatchTable(*this, State, ExecInfo, B"

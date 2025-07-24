@@ -355,14 +355,7 @@ inline thread_local MachineCombinerDataVector data_machinecombiner;
 inline thread_local GlobalISelDataVector data_globalisel;
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
-auto logEvent = [](const std::string& Event, MachineInstr &MI) {
-  std::string InstrStr;
-  llvm::raw_string_ostream OS(InstrStr);
-  MI.print(OS);
-  OS.flush();
-  InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
-  data_gicombiner.emplace_back(Event, InstrStr, MI.getOpcode());
-};
+
 
 auto MI2String = [](MachineInstr &MI) {
   std::string InstrStr;
@@ -371,5 +364,9 @@ auto MI2String = [](MachineInstr &MI) {
   OS.flush();
   InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
   return InstrStr;
+};
+
+auto logEvent = [](const std::string& Event, MachineInstr &MI) {
+  data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 };
 } // end namespace llvm

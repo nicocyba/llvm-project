@@ -342,13 +342,12 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
     //     }
     //     dbgs() << "\n\n";
     // });
-    outs() << "Rules covered by selecting function: " << MF.getName() << ":";
-    for (auto RuleID : CoverageInfo.covered()) {
-        outs() << " id" << RuleID;
-    }
-    outs() << "\n\n";
-    CoverageInfo.emit(CoveragePrefix,
-        TLI.getTargetMachine().getTarget().getBackendName());
+    // outs() << "Rules covered by selecting function: " << MF.getName() << ":";
+    // for (auto RuleID : CoverageInfo.covered()) {
+    //     outs() << " id" << RuleID;
+    // }
+    // outs() << "\n\n";
+    CoverageInfo.emit(CoveragePrefix, TLI.getTargetMachine().getTarget().getBackendName());
 
     // If we successfully selected the function nothing is going to use the vreg
     // types after us (otherwise MIRPrinter would need them). Make sure the types

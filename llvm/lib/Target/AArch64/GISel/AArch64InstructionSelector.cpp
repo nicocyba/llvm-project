@@ -2426,8 +2426,7 @@ bool AArch64InstructionSelector::earlySelect(MachineInstr& I) {
                 // We model scalar compares using 32-bit destinations right now.
                 // If it's a 64-bit compare, it'll have 64-bit sources.
                 Register ZExt;
-                if (!mi_match(Reg, MRI,
-                        m_OneNonDBGUse(m_GZExt(m_OneNonDBGUse(m_Reg(ZExt)))))) {
+                if (!mi_match(Reg, MRI, m_OneNonDBGUse(m_GZExt(m_OneNonDBGUse(m_Reg(ZExt)))))) {
                     return nullptr;
                 }
                 auto* Cmp = getOpcodeDef(TargetOpcode::G_ICMP, ZExt, MRI);
@@ -2533,7 +2532,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
-
+         outs() << "\ttrue\n";
         if (Opcode == TargetOpcode::LOAD_STACK_GUARD) {
             return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
         }
@@ -2585,6 +2584,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // lowerings are purely transformations on the input G_MIR and so selection
     // must continue after any modification of the instruction.
     if (preISelLower(I)) {
+        outs() << "\ttrue\n";
         Opcode = I.getOpcode(); // The opcode may have been modified, refresh it.
     }
 
@@ -2595,11 +2595,13 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // selection attempt here to give priority to certain selection routines
     // over the imported ones.
     if (earlySelect(I)) {
+        outs() << "\ttrue\n";
         return true;
     }
 
     outs() << "AArch64 GISel: selectImpl\n";
     if (selectImpl(I, *CoverageInfo)) {
+        outs() << "\ttrue\n";
         return true;
     }
     for (const auto& cov : CoverageInfo->covered()) {
