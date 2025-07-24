@@ -313,10 +313,13 @@ Legalizer::legalizeMachineFunction(MachineFunction &MF, const LegalizerInfo &LI,
 }
 
 bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
+
   // If the ISel pipeline failed, do not bother running that pass.
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
+  current_stage = LEGALIZER;
+  outs() << "Running Legalizer on function: " << MF.getFunction().getName() << "\n";
   LLVM_DEBUG(dbgs() << "Legalize Machine IR for: " << MF.getName() << '\n');
   init(MF);
   const TargetPassConfig &TPC = getAnalysis<TargetPassConfig>();

@@ -305,6 +305,32 @@ inline std::string to_string(AArch64MachineCombinerPattern2 pattern) {
 } // end namespace nico
 namespace llvm {
 
+enum CurrentBackendStage : unsigned {
+  // These are commutative variants for reassociating a computation chain. See
+  // the comments before getMachineCombinerPatterns() in TargetInstrInfo.cpp.
+  NONE,
+  IRTRANSLATOR,
+  LEGALIZER,
+  REGBANKSELECT,
+  INSTRUCTIONSELECT,
+  COMBINER,
+  MACHINECOMBINER
+};
+
+inline std::string to_string(CurrentBackendStage stage) {
+  switch (stage) {
+    case NONE: return "none";
+    case IRTRANSLATOR: return "irtranslator";
+    case LEGALIZER: return "legalizer";
+    case REGBANKSELECT: return "regbankselect";
+    case INSTRUCTIONSELECT: return "instructionselect";
+    case COMBINER: return "combiner";
+    case MACHINECOMBINER: return "machinecombiner";
+    default: return "unknown";
+  } 
+}
+
+inline thread_local CurrentBackendStage current_stage = NONE;
 
 inline thread_local bool is_globalisel = false;
 
@@ -328,6 +354,7 @@ struct GlobalISelData {
   std::string mbb; // mbb name
   std::string mi_before; // mi name
   std::string mi_after; // mi name
+  std::string pattern; // MIPattern
 };
 
 // Use a thread_local wrapper with a destructor to clear the vector on thread exit.

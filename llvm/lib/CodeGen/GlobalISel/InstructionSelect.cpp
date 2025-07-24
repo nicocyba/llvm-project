@@ -133,6 +133,8 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
             MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
+    current_stage = INSTRUCTIONSELECT;
+    outs() << "Running InstructionSelect on function: " << MF.getFunction().getName() << "\n";
 
     ISel = MF.getSubtarget().getInstructionSelector();
     ISel->TPC = &getAnalysis<TargetPassConfig>();

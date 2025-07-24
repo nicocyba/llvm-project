@@ -2602,11 +2602,12 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     
     if (selectImpl(I, *CoverageInfo)) {
         outs() << "AArch64 GISel: selectImpl\n";
+        for (const auto& cov : CoverageInfo->covered()) {
+            outs() << "\tcoverage: " << cov<< "\n";
+        }
         return true;
     }
-    for (const auto& cov : CoverageInfo->covered()) {
-        outs() << "\tcoverage: " << cov<< "\n";
-    }
+    
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
     outs() << "AArch64 GISel: switch\n";

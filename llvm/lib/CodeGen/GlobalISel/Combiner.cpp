@@ -117,7 +117,7 @@ public:
   }
 
   void createdInstr(MachineInstr &MI) override {
-    llvm::outs() << "Combiner.cpp - Creating: " << MI; 
+    // llvm::outs() << "Combiner.cpp - Creating: " << MI; 
     CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
@@ -129,7 +129,7 @@ public:
   }
 
   void changingInstr(MachineInstr &MI) override {
-    llvm::outs() << "Combiner.cpp - Changing: " << MI;
+    // llvm::outs() << "Combiner.cpp - Changing: " << MI;
     // Some uses might get dropped when MI is changed.
     // For now, overapproximate by assuming all uses will be dropped.
     // TODO: Is a more precise heuristic or manual tracking of use count
@@ -139,7 +139,7 @@ public:
   }
 
   void changedInstr(MachineInstr &MI) override {
-    llvm::outs() << "Combiner.cpp - Changed: " << MI;
+    // llvm::outs() << "Combiner.cpp - Changed: " << MI;
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else

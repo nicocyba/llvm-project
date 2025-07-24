@@ -455,16 +455,16 @@ struct BinaryOp_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "[MIPatternMatch] BinaryOp_match: op="
+                llvm::outs() << "[MIPatternMatch]" << nico::to_string(current_stage) << " BinaryOp_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
                        << " matched on MI: ";
                 TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
-                for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
-                    const MachineOperand &Op = TmpMI->getOperand(i);
-                    Op.print(llvm::outs());
-                    llvm::outs() << " ";
-                }
+                // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
+                //     const MachineOperand &Op = TmpMI->getOperand(i);
+                //     Op.print(llvm::outs());
+                //     llvm::outs() << " ";
+                // }
                 llvm::outs() << "\n";
                 return (L.match(MRI, TmpMI->getOperand(1).getReg()) && R.match(MRI, TmpMI->getOperand(2).getReg())) ||
                     // NOTE: When trying the alternative operand ordering
@@ -494,16 +494,15 @@ struct BinaryOpc_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opc && TmpMI->getNumDefs() == 1 && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "[MIPatternMatch] BinaryOpc_match: op="
+                llvm::outs() << "[MIPatternMatch]" << nico::to_string(current_stage) << " BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: ";
-                TmpMI->print(llvm::outs());
+                       << " matched on MI: " << TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
-                for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
-                    const MachineOperand &Op = TmpMI->getOperand(i);
-                    Op.print(llvm::outs());
-                    llvm::outs() << " ";
-                }
+                // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
+                //     const MachineOperand &Op = TmpMI->getOperand(i);
+                //     Op.print(llvm::outs());
+                //     llvm::outs() << " ";
+                // }
                 llvm::outs() << "\n";
                 return (L.match(MRI, TmpMI->getOperand(1).getReg()) && R.match(MRI, TmpMI->getOperand(2).getReg())) ||
                     // NOTE: When trying the alternative operand ordering

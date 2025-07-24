@@ -739,6 +739,9 @@ bool RegBankSelect::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
 
+  current_stage = REGBANKSELECT;
+  outs() << "Running RegBankSelect on function: " << MF.getFunction().getName() << "\n";
+
   LLVM_DEBUG(dbgs() << "Assign register banks for: " << MF.getName() << '\n');
   const Function &F = MF.getFunction();
   Mode SaveOptMode = OptMode;

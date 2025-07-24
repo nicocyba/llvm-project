@@ -4032,6 +4032,9 @@ static bool checkForMustTailInVarArgFn(bool IsVarArg, const BasicBlock& BB) {
 }
 
 bool IRTranslator::runOnMachineFunction(MachineFunction& CurMF) {
+    current_stage = IRTRANSLATOR;
+    outs() << "Running IRTranslator on function: " << CurMF.getFunction().getName() << "\n";
+    
     MF = &CurMF;
     const Function& F = MF->getFunction();
     GISelCSEAnalysisWrapper& Wrapper = getAnalysis<GISelCSEAnalysisWrapperPass>().getCSEWrapper();
