@@ -485,16 +485,17 @@ struct BinaryOpc_match {
     unsigned Opc;
     LHS_P L;
     RHS_P R;
+    std::string_view FuncName;
 
-    BinaryOpc_match(unsigned Opcode, const LHS_P& LHS, const RHS_P& RHS)
-        : Opc(Opcode), L(LHS), R(RHS) {}
+    BinaryOpc_match(unsigned Opcode, const LHS_P& LHS, const RHS_P& RHS, std::string_view FuncName)
+        : Opc(Opcode), L(LHS), R(RHS), FuncName(FuncName) {}
     template <typename OpTy>
     bool match(const MachineRegisterInfo& MRI, OpTy&& Op) {
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opc && TmpMI->getNumDefs() == 1 && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "[MIPatternMatch]" << to_string(current_stage) << " BinaryOpc_match: op="
+                llvm::outs() << "[MIPatternMatch]" << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
                        << " matched on MI: ";
                 TmpMI->print(llvm::outs());
@@ -521,13 +522,13 @@ struct BinaryOpc_match {
 template <typename LHS, typename RHS>
 inline BinaryOpc_match<LHS, RHS, false> 
 m_BinOp(unsigned Opcode, const LHS& L, const RHS& R) {
-    return BinaryOpc_match<LHS, RHS, false>(Opcode, L, R);
+    return BinaryOpc_match<LHS, RHS, false>(Opcode, L, R, __func__);
 }
 
 template <typename LHS, typename RHS>
 inline BinaryOpc_match<LHS, RHS, true>
 m_CommutativeBinOp(unsigned Opcode, const LHS& L, const RHS& R) {
-    return BinaryOpc_match<LHS, RHS, true>(Opcode, L, R);
+    return BinaryOpc_match<LHS, RHS, true>(Opcode, L, R, __func__);
 }
 
 template <typename LHS, typename RHS>
