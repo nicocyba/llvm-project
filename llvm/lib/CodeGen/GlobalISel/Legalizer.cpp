@@ -318,7 +318,7 @@ bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
-  current_stage = LEGALIZER;
+  current_stage = CurrentBackendStage::LEGALIZER;
   outs() << "Running Legalizer on function: " << MF.getFunction().getName() << "\n";
   LLVM_DEBUG(dbgs() << "Legalize Machine IR for: " << MF.getName() << '\n');
   init(MF);

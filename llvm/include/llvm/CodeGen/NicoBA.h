@@ -330,7 +330,7 @@ inline std::string to_string(CurrentBackendStage stage) {
   } 
 }
 
-inline thread_local CurrentBackendStage current_stage = NONE;
+inline thread_local CurrentBackendStage current_stage = CurrentBackendStage::NONE;
 
 inline thread_local bool is_globalisel = false;
 

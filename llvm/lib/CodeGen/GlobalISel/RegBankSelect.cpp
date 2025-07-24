@@ -739,7 +739,7 @@ bool RegBankSelect::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  current_stage = REGBANKSELECT;
+  current_stage = CurrentBackendStage::REGBANKSELECT;
   outs() << "Running RegBankSelect on function: " << MF.getFunction().getName() << "\n";
 
   LLVM_DEBUG(dbgs() << "Assign register banks for: " << MF.getName() << '\n');
