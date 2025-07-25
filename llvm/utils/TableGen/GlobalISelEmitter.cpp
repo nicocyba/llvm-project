@@ -2252,7 +2252,7 @@ void GlobalISelEmitter::emitAdditionalImpl(raw_ostream &OS) {
   OS << "bool " << getClassName()
      << "::selectImpl(MachineInstr &I, CodeGenCoverage "
         "&CoverageInfo) const {\n"
-     << "  outs() << \"\\t\\t\" << getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << I << \"\\n\";\n"
+     << "  outs() << \"\\t\\t\" << getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << I;\n"
      << "  const PredicateBitset AvailableFeatures = "
         "getAvailableFeatures();\n"
      << "  MachineIRBuilder B(I);\n"

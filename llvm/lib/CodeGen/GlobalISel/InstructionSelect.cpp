@@ -362,7 +362,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 
 bool InstructionSelect::selectInstr(MachineInstr& MI) {
     MachineRegisterInfo& MRI = ISel->MF->getRegInfo();
-    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MI << "\n";
+    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MI;
     // We could have folded this instruction away already, making it dead.
     // If so, erase it.
     if (isTriviallyDead(MI, MRI)) {

@@ -2513,7 +2513,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     assert(I.getParent() && "Instruction should be in a basic block!");
     assert(I.getParent()->getParent() && "Instruction should be in a function!");
 
-    outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << I << "\n";
+    outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << I;
     MachineBasicBlock& MBB = *I.getParent();
     MachineFunction& MF = *MBB.getParent();
     MachineRegisterInfo& MRI = MF.getRegInfo();
