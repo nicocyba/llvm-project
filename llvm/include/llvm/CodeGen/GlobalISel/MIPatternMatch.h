@@ -658,11 +658,9 @@ struct UnaryOp_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 2) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "[MIPatternMatch] UnaryOp_match: op=" 
-                            << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                            << " matched on MI: ";
-                TmpMI->print(llvm::outs());
-                llvm::outs() << "\n";
+                llvm::outs() << "\t\t\t[MIPatternMatch]" << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
+                       << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
+                       << " matched on MI: " << *TmpMI << ", operand type: " << TmpMI->getOperand(0).getType();
                 return L.match(MRI, TmpMI->getOperand(1).getReg());
             }
         }
