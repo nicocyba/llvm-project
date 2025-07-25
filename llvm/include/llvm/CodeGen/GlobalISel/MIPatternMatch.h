@@ -457,15 +457,15 @@ struct BinaryOp_match {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 llvm::outs() << "\t\t\t[MIPatternMatch]" << to_string(current_stage) << " BinaryOp_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: ";
-                TmpMI->print(llvm::outs());
+                       << " matched on MI: " << *TmpMI;
+                // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
                 //     const MachineOperand &Op = TmpMI->getOperand(i);
                 //     Op.print(llvm::outs());
                 //     llvm::outs() << " ";
                 // }
-                llvm::outs() << "\n";
+                // llvm::outs() << "\n";
                 return (L.match(MRI, TmpMI->getOperand(1).getReg()) && R.match(MRI, TmpMI->getOperand(2).getReg())) ||
                     // NOTE: When trying the alternative operand ordering
                     // with a commutative operation, it is imperative to always run
@@ -497,15 +497,15 @@ struct BinaryOpc_match {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 llvm::outs() << "\t\t\t[MIPatternMatch]" << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: ";
-                TmpMI->print(llvm::outs());
+                       << " matched on MI: " << *TmpMI;
+                // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
                 //     const MachineOperand &Op = TmpMI->getOperand(i);
                 //     Op.print(llvm::outs());
                 //     llvm::outs() << " ";
                 // }
-                llvm::outs() << "\n";
+                // llvm::outs() << "\n";
                 return (L.match(MRI, TmpMI->getOperand(1).getReg()) && R.match(MRI, TmpMI->getOperand(2).getReg())) ||
                     // NOTE: When trying the alternative operand ordering
                     // with a commutative operation, it is imperative to always run
