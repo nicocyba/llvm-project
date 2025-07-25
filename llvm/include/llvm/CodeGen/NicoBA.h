@@ -319,18 +319,18 @@ enum CurrentBackendStage : unsigned {
 
 inline std::string to_string(CurrentBackendStage stage) {
   switch (stage) {
-    case NONE: return "none";
-    case IRTRANSLATOR: return "irtranslator";
-    case LEGALIZER: return "legalizer";
-    case REGBANKSELECT: return "regbankselect";
-    case INSTRUCTIONSELECT: return "instructionselect";
-    case COMBINER: return "combiner";
-    case MACHINECOMBINER: return "machinecombiner";
+    case llvm::CurrentBackendStage::NONE: return "none";
+    case llvm::CurrentBackendStage::IRTRANSLATOR: return "irtranslator";
+    case llvm::CurrentBackendStage::LEGALIZER: return "legalizer";
+    case llvm::CurrentBackendStage::REGBANKSELECT: return "regbankselect";
+    case llvm::CurrentBackendStage::INSTRUCTIONSELECT: return "instructionselect";
+    case llvm::CurrentBackendStage::COMBINER: return "combiner";
+    case llvm::CurrentBackendStage::MACHINECOMBINER: return "machinecombiner";
     default: return "unknown";
   } 
 }
 
-inline thread_local CurrentBackendStage current_stage = CurrentBackendStage::NONE;
+inline thread_local CurrentBackendStage current_stage = llvm::CurrentBackendStage::NONE;
 
 inline thread_local bool is_globalisel = false;
 
