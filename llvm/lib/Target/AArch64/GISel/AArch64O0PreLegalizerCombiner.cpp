@@ -74,11 +74,11 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 #include "AArch64GenO0PreLegalizeGICombiner.inc"
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
 {
-  outs() << "\tAArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl\n";
+//   outs() << "\tAArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl\n";
 }
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI << "\n";
+    outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI << "\n";
     if (tryCombineAllImpl(MI)) {
         return true;
     }
