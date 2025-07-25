@@ -2533,7 +2533,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
-        outs() << "\t!isPreISelOpcode " << Opcode << "\n";
+        outs() << "\t\t\t!isPreISelOpcode " << Opcode << "\n";
         if (Opcode == TargetOpcode::LOAD_STACK_GUARD) {
             return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
         }
@@ -2585,7 +2585,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // lowerings are purely transformations on the input G_MIR and so selection
     // must continue after any modification of the instruction.
     if (preISelLower(I)) {
-        outs() << "\tpreISelLower\n";
+        outs() << "\t\t\tpreISelLower\n";
         Opcode = I.getOpcode(); // The opcode may have been modified, refresh it.
     }
 
@@ -2596,22 +2596,22 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // selection attempt here to give priority to certain selection routines
     // over the imported ones.
     if (earlySelect(I)) {
-        outs() << "\tearlySelect\n";
+        outs() << "\t\t\tearlySelect\n";
         return true;
     }
 
     
     if (selectImpl(I, *CoverageInfo)) {
-        outs() << "\tselectImpl\n";
+        outs() << "\t\t\tselectImpl\n";
         for (const auto& cov : CoverageInfo->covered()) {
-            outs() << "\t\tcoverage: " << cov<< "\n";
+            outs() << "\t\t\t\tcoverage: " << cov<< "\n";
         }
         return true;
     }
     
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
-    outs() << "\tswitch\n";
+    outs() << "\t\t\tswitch\n";
     switch (Opcode) {
         case TargetOpcode::G_SBFX:
         case TargetOpcode::G_UBFX: {
