@@ -762,9 +762,13 @@ AArch64PreLegalizerCombinerImpl::AArch64PreLegalizerCombinerImpl(
 #include "AArch64GenPreLegalizeGICombiner.inc"
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
 {
+  LLVM_DEBUG(outs() << "\t" << __PRETTY_FUNCTION__ << " - "
+                    << "RuleConfig: " << RuleConfig << "\n");
 }
 
 bool AArch64PreLegalizerCombinerImpl::tryCombineAll(MachineInstr &MI) const {
+  LLVM_DEBUG(outs() << "\t" << __PRETTY_FUNCTION__ << " - "
+                    << "MI: " << MI << "\n");
   if (tryCombineAllImpl(MI))
     return true;
 
@@ -835,12 +839,17 @@ AArch64PreLegalizerCombiner::AArch64PreLegalizerCombiner()
 
   if (!RuleConfig.parseCommandLineOption())
     report_fatal_error("Invalid rule identifier");
+
+  outs() << "\t" << __PRETTY_FUNCTION__ << " - "
+         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
 }
 
 bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
+  outs() << "\t" << __PRETTY_FUNCTION__ << " - "
+         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
   auto &TPC = getAnalysis<TargetPassConfig>();
 
   // Enable CSE.

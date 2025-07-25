@@ -74,11 +74,11 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 #include "AArch64GenO0PreLegalizeGICombiner.inc"
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
 {
-  outs() << "AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl\n";
+  outs() << "\tAArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl\n";
 }
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "AArch64O0PreLegalizerCombinerImpl::tryCombineAll\n";
+    outs() << "\tAArch64O0PreLegalizerCombinerImpl::tryCombineAll\n";
     if (tryCombineAllImpl(MI)) {
         return true;
     }
@@ -153,6 +153,8 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
             MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
+    outs() << "\t" << __PRETTY_FUNCTION__ << " - "
+         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
     auto& TPC = getAnalysis<TargetPassConfig>();
 
     const Function& F = MF.getFunction();
