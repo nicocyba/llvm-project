@@ -24,6 +24,8 @@
 #include "llvm/CodeGen/MachineOptimizationRemarkEmitter.h"
 #include "llvm/Support/Debug.h"
 
+#include "llvm/CodeGen/NicoBA.h"
+
 #define DEBUG_TYPE "gi-combiner"
 
 using namespace llvm;
@@ -279,7 +281,7 @@ bool Combiner::combineMachineInstrs() {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
-
+  outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
   // We can't call this in the constructor because the derived class is
   // uninitialized at that time.
   if (!HasSetupMF) {
@@ -373,5 +375,8 @@ bool Combiner::combineMachineInstrs() {
     }
   }
 #endif
+  outs() << "\t\tIterations - NumOneIteration: " << NumOneIteration <<  "\n";
+  outs() << "\t\tIterations - NumTwoIterations: " << NumTwoIterations <<  "\n";
+  outs() << "\t\tIterations - NumThreeOrMoreIterations: " << NumThreeOrMoreIterations <<  "\n";
   return MFChanged;
 }

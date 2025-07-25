@@ -328,6 +328,13 @@ inline std::string to_string(CurrentBackendStage stage) {
   } 
 }
 
+// write function that extracts classname and function name from a string which is __PRETTY_FUNCTION__
+inline std::string getFunctionName(const std::string& prettyFunction) {
+  size_t start = prettyFunction.find("::") + 2; // Skip to the first "::"
+  size_t end = prettyFunction.find('(', start);
+  return prettyFunction.substr(start, end - start);
+}
+
 inline thread_local CurrentBackendStage current_stage = INIT;
 
 inline thread_local bool is_globalisel = false;

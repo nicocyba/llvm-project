@@ -154,8 +154,8 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
             MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
-    outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-         << "MF: " << MF.getName() << "\n";
+    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
+    outs() << "\t\tBefore Instructions: " << MF.getInstructionCount() << "\n";
     auto& TPC = getAnalysis<TargetPassConfig>();
 
     const Function& F = MF.getFunction();
@@ -163,16 +163,21 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
 
     const AArch64Subtarget& ST = MF.getSubtarget<AArch64Subtarget>();
 
-    CombinerInfo CInfo(/*AllowIllegalOps*/ true, /*ShouldLegalizeIllegal*/ false,
-        /*LegalizerInfo*/ nullptr, /*EnableOpt*/ false,
-        F.hasOptSize(), F.hasMinSize());
+    CombinerInfo CInfo(/*AllowIllegalOps*/ true, /*ShouldLegalizeIllegal*/ false, /*LegalizerInfo*/ nullptr, /*EnableOpt*/ false, F.hasOptSize(), F.hasMinSize());
+
     // Disable fixed-point iteration in the Combiner. This improves compile-time
     // at the cost of possibly missing optimizations. See PR#94291 for details.
     CInfo.MaxIterations = 1;
 
-    AArch64O0PreLegalizerCombinerImpl Impl(MF, CInfo, &TPC, *KB,
-        /*CSEInfo*/ nullptr, RuleConfig, ST);
-    return Impl.combineMachineInstrs();
+    AArch64O0PreLegalizerCombinerImpl Impl(MF, CInfo, &TPC, *KB, /*CSEInfo*/ nullptr, RuleConfig, ST);
+    bool res = Impl.combineMachineInstrs();
+    outs() << "\t\tAfter Instructions: " << MF.getInstructionCount();
+    if (res) {
+        outs() << " (changed)\n";
+    } else {
+        outs() << " (no changes)\n";
+    }
+    return res;
 }
 
 char AArch64O0PreLegalizerCombiner::ID = 0;
