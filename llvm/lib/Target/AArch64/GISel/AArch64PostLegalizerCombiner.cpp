@@ -480,43 +480,7 @@ AArch64PostLegalizerCombinerImpl::AArch64PostLegalizerCombinerImpl(
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
 {
   // outs() << "\tAArch64PostLegalizerCombinerImpl::AArch64PostLegalizerCombinerImpl\n";
-  outs() << "\t" << __PRETTY_FUNCTION__ << "\n";
-  // if (RuleConfig.getRuleName().empty())
-  //   report_fatal_error("No rule identifier specified for "
-  //                      "AArch64PostLegalizerCombinerImpl");
-  // if (RuleConfig.getRuleName() == "default")
-  //   RuleConfig.setRuleName("AArch64PostLegalizerCombinerImplDefault");
-  // else if (RuleConfig.getRuleName() == "default-legalize")
-  //   RuleConfig.setRuleName("AArch64PostLegalizerCombinerImplDefaultLegalize");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse")
-  //   RuleConfig.setRuleName("AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSE");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOpt");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCE");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalize");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize-no-legalizer-info")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalizeNoLegalizerInfo");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize-no-legalizer-info-no-mdt")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalizeNoLegalizerInfoNoMDT");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize-no-legalizer-info-no-mdt-no-cse")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalizeNoLegalizerInfoNoMDTNoCSE");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize-no-legalizer-info-no-mdt-no-cse-no-dce")  
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalizeNoLegalizerInfoNoMDTNoCSENoDCE");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize-no-legalizer-info-no-mdt-no-cse-no-dce-no-legalize")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalizeNoLegalizerInfoNoMDTNoCSENoDCE");
-  // else if (RuleConfig.getRuleName() == "default-legalize-no-cse-no-opt-no-dce-no-legalize-no-legalizer-info-no-mdt-no-cse-no-dce-no-legalize-no-legalizer-info")
-  //   RuleConfig.setRuleName(
-  //       "AArch64PostLegalizerCombinerImplDefaultLegalizeNoCSENoOptNoDCENoLegalizeNoLegalizerInfoNoMDTNoCSENoDCE");  
+  // outs() << "\t" << __PRETTY_FUNCTION__ << "\n";
 }
 
 class AArch64PostLegalizerCombiner : public MachineFunctionPass {

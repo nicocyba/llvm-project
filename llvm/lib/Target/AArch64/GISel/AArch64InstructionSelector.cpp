@@ -2513,6 +2513,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     assert(I.getParent() && "Instruction should be in a basic block!");
     assert(I.getParent()->getParent() && "Instruction should be in a function!");
 
+    outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << I << "\n";
     MachineBasicBlock& MBB = *I.getParent();
     MachineFunction& MF = *MBB.getParent();
     MachineRegisterInfo& MRI = MF.getRegInfo();
@@ -2532,7 +2533,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
-        outs() << "\tisPreISelOpcode " << Opcode << "\n";
+        outs() << "\t!isPreISelOpcode " << Opcode << "\n";
         if (Opcode == TargetOpcode::LOAD_STACK_GUARD) {
             return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
         }
