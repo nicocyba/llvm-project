@@ -2252,10 +2252,11 @@ void GlobalISelEmitter::emitAdditionalImpl(raw_ostream &OS) {
   OS << "bool " << getClassName()
      << "::selectImpl(MachineInstr &I, CodeGenCoverage "
         "&CoverageInfo) const {\n"
+     << "  outs() << \"\\t\" << getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << MI << \"\\n\";\n"
      << "  const PredicateBitset AvailableFeatures = "
         "getAvailableFeatures();\n"
      << "  MachineIRBuilder B(I);\n"
-     << "  outs() << \"selectImpl -> SPECIAL\\n\";\n"
+     << "  // outs() << \"\\tselectImpl -> SPECIAL\\n\";\n"
      << "  State.MIs.clear();\n"
      << "  State.MIs.push_back(&I);\n\n"
      << "  if (executeMatchTable(*this, State, ExecInfo, B"

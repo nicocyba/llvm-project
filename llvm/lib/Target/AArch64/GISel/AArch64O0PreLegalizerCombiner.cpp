@@ -78,8 +78,7 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 }
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-           << "MI: " << MI << "\n";
+    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI << "\n";
     if (tryCombineAllImpl(MI)) {
         return true;
     }
