@@ -480,8 +480,7 @@ AArch64PostLegalizerCombinerImpl::AArch64PostLegalizerCombinerImpl(
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
 {
   // outs() << "\tAArch64PostLegalizerCombinerImpl::AArch64PostLegalizerCombinerImpl\n";
-  outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
+  outs() << "\t" << __PRETTY_FUNCTION__ << "\n";
   // if (RuleConfig.getRuleName().empty())
   //   report_fatal_error("No rule identifier specified for "
   //                      "AArch64PostLegalizerCombinerImpl");
@@ -583,7 +582,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
   outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
+         << "MF: " << MF.getName() << "\n";
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&
          "Expected a legalized function?");

@@ -78,7 +78,8 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 }
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "\tAArch64O0PreLegalizerCombinerImpl::tryCombineAll\n";
+    outs() << "\t" << __PRETTY_FUNCTION__ << " - "
+           << "MI: " << MI << "\n";>>
     if (tryCombineAllImpl(MI)) {
         return true;
     }
@@ -154,7 +155,7 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
     outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
+         << "MF: " << MF.getName() << "\n";
     auto& TPC = getAnalysis<TargetPassConfig>();
 
     const Function& F = MF.getFunction();

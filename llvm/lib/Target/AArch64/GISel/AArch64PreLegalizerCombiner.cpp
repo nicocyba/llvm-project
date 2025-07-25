@@ -840,8 +840,7 @@ AArch64PreLegalizerCombiner::AArch64PreLegalizerCombiner()
   if (!RuleConfig.parseCommandLineOption())
     report_fatal_error("Invalid rule identifier");
 
-  outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
+  outs() << "\t" << __PRETTY_FUNCTION__ << "\n";
 }
 
 bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
@@ -849,7 +848,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
   outs() << "\t" << __PRETTY_FUNCTION__ << " - "
-         << "RuleConfig: " << RuleConfig.getRuleName() << "\n";
+         << "MF: " << MF.getName() << "\n";
   auto &TPC = getAnalysis<TargetPassConfig>();
 
   // Enable CSE.

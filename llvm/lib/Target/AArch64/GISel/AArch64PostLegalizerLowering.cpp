@@ -1293,6 +1293,7 @@ AArch64PostLegalizerLoweringImpl::AArch64PostLegalizerLoweringImpl(
 #include "AArch64GenPostLegalizeGILowering.inc"
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
 {
+  LLVM_DEBUG(outs() << "\t" << __PRETTY_FUNCTION__ << "\n");
 }
 
 class AArch64PostLegalizerLowering : public MachineFunctionPass {
@@ -1332,6 +1333,8 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
+  LLVM_DEBUG(outs() << "\t" << __PRETTY_FUNCTION__ << " on " << MF.getName()
+                    << "\n");
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&
          "Expected a legalized function?");
