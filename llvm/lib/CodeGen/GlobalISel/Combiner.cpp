@@ -281,7 +281,7 @@ bool Combiner::combineMachineInstrs() {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
-  outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
+  outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   // We can't call this in the constructor because the derived class is
   // uninitialized at that time.
   if (!HasSetupMF) {

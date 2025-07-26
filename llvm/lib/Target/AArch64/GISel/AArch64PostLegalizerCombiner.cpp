@@ -545,7 +545,9 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
-  outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << "MF: " << MF.getName() << "\n";
+
+  outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&
          "Expected a legalized function?");
