@@ -455,9 +455,9 @@ struct BinaryOp_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t[MIPatternMatch]" << to_string(current_stage) << " BinaryOp_match: op="
+                llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " BinaryOp_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << *TmpMI;
+                       << " matched on MI: " << MI2String(*TmpMI);
                 // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
@@ -495,9 +495,9 @@ struct BinaryOpc_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opc && TmpMI->getNumDefs() == 1 && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t[MIPatternMatch]" << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
+                llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << *TmpMI;
+                       << " matched on MI: " << MI2String(*TmpMI);
                 // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
@@ -658,9 +658,9 @@ struct UnaryOp_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 2) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t[MIPatternMatch]" << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
+                llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << *TmpMI << ", operand type: " << TmpMI->getOperand(0).getType();
+                       << " matched on MI: " << MI2String(*TmpMI) << ", operand type: " << TmpMI->getOperand(0).getType();
                 return L.match(MRI, TmpMI->getOperand(1).getReg());
             }
         }
