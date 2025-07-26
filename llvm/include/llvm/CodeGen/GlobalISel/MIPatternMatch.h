@@ -457,7 +457,7 @@ struct BinaryOp_match {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " BinaryOp_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << MI2String(*TmpMI);
+                       << " matched on MI: " << MI2String(*TmpMI) << "\n";
                 // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
@@ -497,7 +497,7 @@ struct BinaryOpc_match {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << MI2String(*TmpMI);
+                       << " matched on MI: " << MI2String(*TmpMI) << "\n";
                 // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
@@ -658,7 +658,7 @@ struct UnaryOp_match {
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 2) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
+                llvm::outs() << "\t\t\t" << getFunctionName(__func__) << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
                        << " matched on MI: " << MI2String(*TmpMI) << ", operand type: " << TmpMI->getOperand(0).getType();
                 return L.match(MRI, TmpMI->getOperand(1).getReg());
