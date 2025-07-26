@@ -357,6 +357,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
     MRI.clearVirtRegTypes();
 
     // FIXME: Should we accurately track changes?
+    
     return true;
 }
 
@@ -394,6 +395,7 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         MI.eraseFromParent();
         return true;
     }
-
-    return ISel->select(MI);
+    bool status = ISel->select(MI);
+    outs() << "\t\tStatus: " << (status ? "Success" : "Failure") << " | " << MI2String(MI) << "\n";
+    return status;
 }
