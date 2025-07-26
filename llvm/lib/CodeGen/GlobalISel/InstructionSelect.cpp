@@ -134,7 +134,7 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
     current_stage = CurrentBackendStage::INSTRUCTIONSELECT;
-    outs() << "\tRunning InstructionSelect on function: " << MF.getName() << "\n";
+    outs() << "Running InstructionSelect on function: " << MF.getName() << "\n";
 
     ISel = MF.getSubtarget().getInstructionSelector();
     ISel->TPC = &getAnalysis<TargetPassConfig>();
