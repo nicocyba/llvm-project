@@ -844,8 +844,7 @@ AArch64PreLegalizerCombiner::AArch64PreLegalizerCombiner()
 }
 
 bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
-  if (MF.getProperties().hasProperty(
-          MachineFunctionProperties::Property::FailedISel))
+  if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
   outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   auto &TPC = getAnalysis<TargetPassConfig>();
