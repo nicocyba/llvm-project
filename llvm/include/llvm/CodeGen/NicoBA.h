@@ -308,7 +308,9 @@ namespace llvm {
 enum CurrentBackendStage : unsigned {
   INIT,
   IRTRANSLATOR,
+  PRELEGALIZERCOMBINER,
   LEGALIZER,
+  POSTLEGALIZERCOMBINER,
   REGBANKSELECT,
   INSTRUCTIONSELECT,
   COMBINER,
@@ -319,7 +321,9 @@ inline std::string to_string(CurrentBackendStage stage) {
   switch (stage) {
     case INIT: return "init";
     case IRTRANSLATOR: return "irtranslator";
+    case PRELEGALIZERCOMBINER: return "prelegalizercombiner";
     case LEGALIZER: return "legalizer";
+    case POSTLEGALIZERCOMBINER: return "postlegalizercombiner";
     case REGBANKSELECT: return "regbankselect";
     case INSTRUCTIONSELECT: return "instructionselect";
     case COMBINER: return "combiner";

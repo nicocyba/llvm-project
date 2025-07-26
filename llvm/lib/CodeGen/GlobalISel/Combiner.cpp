@@ -376,8 +376,8 @@ bool Combiner::combineMachineInstrs() {
   }
 #endif
   outs() << "\t\t\tIterations - Iteration: " << Iteration <<  "\n";
-  outs() << "\t\t\tIterations - NumOneIteration: " << NumOneIteration <<  "\n";
-  outs() << "\t\t\tIterations - NumTwoIterations: " << NumTwoIterations <<  "\n";
-  outs() << "\t\t\tIterations - NumThreeOrMoreIterations: " << NumThreeOrMoreIterations <<  "\n";
+  // outs() << "\t\t\tIterations - NumOneIteration: " << NumOneIteration <<  "\n";
+  // outs() << "\t\t\tIterations - NumTwoIterations: " << NumTwoIterations <<  "\n";
+  // outs() << "\t\t\tIterations - NumThreeOrMoreIterations: " << NumThreeOrMoreIterations <<  "\n";
   return MFChanged;
 }
