@@ -153,8 +153,8 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
             MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
-    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
-    outs() << "\t\tBefore Instructions: " << MF.getInstructionCount() << "\n";
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
+    outs() << "\tBefore Instructions: " << MF.getInstructionCount() << "\n";
     auto& TPC = getAnalysis<TargetPassConfig>();
 
     const Function& F = MF.getFunction();
@@ -170,7 +170,7 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
 
     AArch64O0PreLegalizerCombinerImpl Impl(MF, CInfo, &TPC, *KB, /*CSEInfo*/ nullptr, RuleConfig, ST);
     bool res = Impl.combineMachineInstrs();
-    outs() << "\t\tAfter Instructions: " << MF.getInstructionCount();
+    outs() << "\tAfter Instructions: " << MF.getInstructionCount();
     if (res) {
         outs() << " (changed)\n";
     } else {
