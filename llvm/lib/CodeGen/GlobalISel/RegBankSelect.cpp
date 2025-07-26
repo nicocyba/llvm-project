@@ -740,7 +740,7 @@ bool RegBankSelect::runOnMachineFunction(MachineFunction &MF) {
     return false;
 
   current_stage = CurrentBackendStage::REGBANKSELECT;
-  outs() << "Running RegBankSelect on function: " << MF.getFunction().getName() << "\n";
+  outs() << "\tRunning RegBankSelect on function: " << MF.getFunction().getName() << "\n";
 
   LLVM_DEBUG(dbgs() << "Assign register banks for: " << MF.getName() << '\n');
   const Function &F = MF.getFunction();

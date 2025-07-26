@@ -4033,7 +4033,8 @@ static bool checkForMustTailInVarArgFn(bool IsVarArg, const BasicBlock& BB) {
 
 bool IRTranslator::runOnMachineFunction(MachineFunction& CurMF) {
     current_stage = CurrentBackendStage::IRTRANSLATOR;
-    outs() << "\nRunning IRTranslator on function: " << CurMF.getFunction().getName() << "\n";
+    outs() << "------------------------------------\n";
+    outs() << "\tRunning IRTranslator on function: " << CurMF.getName() << "\n";
 
     MF = &CurMF;
     const Function& F = MF->getFunction();
