@@ -66,16 +66,16 @@ public:
   virtual ~WorkListMaintainer() = default;
 
   void reportFullyCreatedInstrs() {
-    // LLVM_DEBUG({
-    //   for (auto *MI : CreatedInstrs) {
-    //     dbgs() << "Created: " << *MI;
-    //   }
-    //   CreatedInstrs.clear();
-    // });
-    for (auto *MI : CreatedInstrs) {
-      dbgs() << "Created: " << *MI;
-    }
-    CreatedInstrs.clear();
+    LLVM_DEBUG({
+      for (auto *MI : CreatedInstrs) {
+        dbgs() << "Created: " << *MI;
+      }
+      CreatedInstrs.clear();
+    });
+    // for (auto *MI : CreatedInstrs) {
+    //   dbgs() << "Created: " << *MI;
+    // }
+    // CreatedInstrs.clear();
   }
 
   virtual void reset() = 0;

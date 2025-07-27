@@ -557,7 +557,8 @@ m_GPtrAdd(const LHS& L, const RHS& R) {
 }
 
 template <typename LHS, typename RHS>
-inline BinaryOp_match<LHS, RHS, TargetOpcode::G_SUB> m_GSub(const LHS& L,
+inline BinaryOp_match<LHS, RHS, TargetOpcode::G_SUB> 
+m_GSub(const LHS& L,
     const RHS& R) {
     return BinaryOp_match<LHS, RHS, TargetOpcode::G_SUB>(L, R);
 }
