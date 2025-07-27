@@ -660,7 +660,7 @@ struct UnaryOp_match {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 llvm::outs() << "\t\t\t" << getFunctionName(__func__) << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
                        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << MI2String(*TmpMI) << ", operand type: " << TmpMI->getOperand(0).getType();
+                       << " matched on MI: " << MI2String(*TmpMI) << "\n"; //", operand type: " << TmpMI->getOperand(0).getType();
                 return L.match(MRI, TmpMI->getOperand(1).getReg());
             }
         }
