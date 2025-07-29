@@ -28,6 +28,8 @@ namespace MIPatternMatch {
 
 template <typename Reg, typename Pattern>
 [[nodiscard]] bool mi_match(Reg R, const MachineRegisterInfo& MRI, Pattern&& P) {
+    llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
+    mi_match_wrapper2(R, MRI, P);
     // llvm::outs() << "mi_match with reg: " << R << "\n";
     // logPattern("mi_match", R, P);
     return P.match(MRI, R);
@@ -35,6 +37,8 @@ template <typename Reg, typename Pattern>
 
 template <typename Pattern>
 [[nodiscard]] bool mi_match(MachineInstr& MI, const MachineRegisterInfo& MRI, Pattern&& P) {
+    llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
+    mi_match_wrapper2(MI, MRI, P);
     // llvm::outs() << "mi_match: " << MI << "\n";
     // logPattern("mi_match", MI, P);
     return P.match(MRI, &MI);

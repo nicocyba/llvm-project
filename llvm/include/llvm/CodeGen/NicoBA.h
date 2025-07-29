@@ -412,4 +412,10 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c) {
     llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
     return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
+
+template <typename T1, typename T2, typename T3>
+inline void mi_match_wrapper2(T1&& _, T2&& _, T3&& _) {
+    llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
+    // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
+}
 } // end namespace llvm
