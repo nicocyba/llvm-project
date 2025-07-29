@@ -582,6 +582,10 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
     if (flag) {
         if (auto result = extractT3Type(__PRETTY_FUNCTION__)) {
             std::string t3type = *result;
+            t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
+            t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
+            t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
+            t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
             // if (t3type.find("MachineInstr") != std::string::npos) {
             //   t3type = "MachineInstr";
             // } else if (t3type.find("MachineOperand") != std::string::npos) {
