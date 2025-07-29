@@ -2112,7 +2112,7 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
         auto S2 = B.buildShl(SrcTy, C1, ShiftReg);
         B.buildInstr(SrcDef->getOpcode(), {DstReg}, {S1, S2});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(PRETTY_FUNCTION) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2126,7 +2126,7 @@ bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI,
 
     ShiftVal = MaybeImmVal->Value.exactLogBase2();
     if (static_cast<int32_t>(ShiftVal) != -1) {
-        outs() << "\t\t\t\t\t" << getFunctionName(PRETTY_FUNCTION) << "\n";
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2171,7 +2171,7 @@ bool CombinerHelper::matchCombineSubToAdd(MachineInstr& MI,
         MI.clearFlag(MachineInstr::MIFlag::NoUWrap);
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(PRETTY_FUNCTION) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2290,6 +2290,7 @@ bool CombinerHelper::matchCombineUnmergeMergeToPlainValues(
     for (unsigned Idx = 0; Idx < SrcInstr->getNumSources(); ++Idx) {
         Operands.push_back(SrcInstr->getSourceReg(Idx));
     }
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2344,7 +2345,7 @@ bool CombinerHelper::matchCombineUnmergeConstant(
         Csts.emplace_back(Val.trunc(ShiftAmt));
         Val = Val.lshr(ShiftAmt);
     }
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2373,7 +2374,11 @@ bool CombinerHelper::matchCombineUnmergeUndef(
             B.buildUndef(DstReg);
         }
     };
-    return isa<GImplicitDef>(MRI.getVRegDef(SrcReg));
+    if (isa<GImplicitDef>(MRI.getVRegDef(SrcReg))) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchCombineUnmergeWithDeadLanesToTrunc(
@@ -2388,6 +2393,7 @@ bool CombinerHelper::matchCombineUnmergeWithDeadLanesToTrunc(
             return false;
         }
     }
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2424,7 +2430,11 @@ bool CombinerHelper::matchCombineUnmergeZExtToZExt(MachineInstr& MI) const {
     // a zext of the source if the definition is big enough to hold
     // all of ZExtSrc bits.
     LLT ZExtSrcTy = MRI.getType(ZExtSrcReg);
-    return ZExtSrcTy.getSizeInBits() <= Dst0Ty.getSizeInBits();
+    if (ZExtSrcTy.getSizeInBits() <= Dst0Ty.getSizeInBits()) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineUnmergeZExtToZExt(MachineInstr& MI) const {
@@ -2478,7 +2488,11 @@ bool CombinerHelper::matchCombineShiftToUnmerge(MachineInstr& MI,
     }
 
     ShiftVal = MaybeImmVal->Value.getSExtValue();
-    return ShiftVal >= Size / 2 && ShiftVal < Size;
+    if (ShiftVal >= Size / 2 && ShiftVal < Size) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineShiftToUnmerge(
@@ -2572,8 +2586,11 @@ bool CombinerHelper::matchCombineI2PToP2I(MachineInstr& MI,
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
     Register SrcReg = MI.getOperand(1).getReg();
-    return mi_match(SrcReg, MRI,
-        m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg))));
+    if (mi_match(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg)))) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineI2PToP2I(MachineInstr& MI,
@@ -2608,6 +2625,7 @@ bool CombinerHelper::matchCombineAddP2IToPtrAdd(
             // pointer width.
             LLT PtrTy = MRI.getType(PtrReg.first);
             if (PtrTy.getScalarSizeInBits() == IntTy.getScalarSizeInBits()) {
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -2651,6 +2669,7 @@ bool CombinerHelper::matchCombineConstPtrAddToI2P(MachineInstr& MI,
             // G_INTTOPTR uses zero-extension
             NewCst = Cst.zextOrTrunc(DstTy.getSizeInBits());
             NewCst += RHSCst->sextOrTrunc(DstTy.getSizeInBits());
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -2677,8 +2696,11 @@ bool CombinerHelper::matchCombineAnyExtTrunc(MachineInstr& MI,
         SrcReg = OriginalSrcReg;
     }
     LLT DstTy = MRI.getType(DstReg);
-    return mi_match(SrcReg, MRI,
-        m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))));
+    if (mi_match(SrcReg, MRI, m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchCombineZextTrunc(MachineInstr& MI,
@@ -2691,7 +2713,10 @@ bool CombinerHelper::matchCombineZextTrunc(MachineInstr& MI,
             m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
         unsigned DstSize = DstTy.getScalarSizeInBits();
         unsigned SrcSize = MRI.getType(SrcReg).getScalarSizeInBits();
-        return KB->getKnownBits(Reg).countMinLeadingZeros() >= DstSize - SrcSize;
+        if (KB->getKnownBits(Reg).countMinLeadingZeros() >= DstSize - SrcSize) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
     }
     return false;
 }
@@ -2778,6 +2803,7 @@ bool CombinerHelper::matchCombineTruncOfShift(
     }
 
     MatchInfo = std::make_pair(SrcMI, NewShiftTy);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2807,21 +2833,33 @@ void CombinerHelper::applyCombineTruncOfShift(
 }
 
 bool CombinerHelper::matchAnyExplicitUseIsUndef(MachineInstr& MI) const {
-    return any_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
+    if (any_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
         return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
-    });
+    })) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchAllExplicitUsesAreUndef(MachineInstr& MI) const {
-    return all_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
+    if (all_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
         return !MO.isReg() || getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
-    });
+    })) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchUndefShuffleVectorMask(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR);
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
-    return all_of(Mask, [](int Elt) { return Elt < 0; });
+    if (all_of(Mask, [](int Elt) { return Elt < 0; })) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchUndefStore(MachineInstr& MI) const {
