@@ -193,7 +193,9 @@ void GlobalISelMatchTableExecutorEmitter::emitExecutorImpl(
   emitMatchTable(OS, Table);
 
   OS << "#endif // ifdef " << IfDefName << "\n\n";
-  outs() << OS.str();
+  
+  // please print the content of OS to stdout
+  // outs() << OS.str();
 }
 
 void GlobalISelMatchTableExecutorEmitter::emitPredicateBitset(
