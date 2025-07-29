@@ -308,9 +308,7 @@ namespace llvm {
 enum CurrentBackendStage : unsigned {
   INIT,
   IRTRANSLATOR,
-  PRELEGALIZERCOMBINER,
   LEGALIZER,
-  POSTLEGALIZERCOMBINER,
   REGBANKSELECT,
   INSTRUCTIONSELECT,
   COMBINER,
@@ -321,9 +319,7 @@ inline std::string to_string(CurrentBackendStage stage) {
   switch (stage) {
     case INIT: return "init";
     case IRTRANSLATOR: return "irtranslator";
-    case PRELEGALIZERCOMBINER: return "prelegalizercombiner";
     case LEGALIZER: return "legalizer";
-    case POSTLEGALIZERCOMBINER: return "postlegalizercombiner";
     case REGBANKSELECT: return "regbankselect";
     case INSTRUCTIONSELECT: return "instructionselect";
     case COMBINER: return "combiner";
@@ -361,8 +357,8 @@ struct GlobalISelData {
   std::string event; // created, deleted, special
   std::string mf; //mf name
   std::string mbb; // mbb name
-  std::string mi_before; // mi
-  std::string mi_after; // mi
+  std::string mi_before; // mi name
+  std::string mi_after; // mi name
   std::string pattern; // MIPattern
 };
 
@@ -399,23 +395,35 @@ auto MI2String = [](MachineInstr &MI) {
   MI.print(OS);
   OS.flush();
   InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
-  InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask...>");
   return InstrStr;
 };
 
 auto logEvent = [](const std::string& Event, MachineInstr &MI) {
   data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 };
+} // end namespace llvm...
+
+// template <typename T1, typename T2, typename T3>
+// inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c) {
+//     llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
+//     return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
+// }
 
 template <typename T1, typename T2, typename T3>
-inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c) {
+inline void mi_match_wrapper2(T1&&, T2&&, T3&&) {
     llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
-    return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
-}
-
-template <typename T1, typename T2, typename T3>
-inline void mi_match_wrapper2(T1&& _, T2&& _, T3&& _) {
-    llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
+    std::string pretty = __PRETTY_FUNCTION__;
+    std::string t3type;
+    std::smatch match;
+    std::regex re("T3 =([^\]]+)]");
+    if (std::regex_search(pretty, match, re)) {
+        t3type = match[1].str();
+        // Trim whitespace
+        size_t first = t3type.find_first_not_of(" \t");
+        size_t last = t3type.find_last_not_of(" \t");
+        if (first != std::string::npos && last != std::string::npos)
+            t3type = t3type.substr(first, last - first + 1);
+    }
+    llvm::outs() << "\t\t\t\t\tPattern: " << t3type << "\n";
     // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
-} // end namespace llvm
