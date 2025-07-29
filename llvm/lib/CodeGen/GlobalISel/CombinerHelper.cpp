@@ -3022,7 +3022,11 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         // %5:_(s8), %6:_(s8), %7:_(s8), %8:_(s8) = G_UNMERGE_VALUES %4:_(<4 x s8>)
         // I1 and I2 are different instructions but produce same values,
         // %1 and %6 are same, %1 and %7 are not the same value.
-        return I1->findRegisterDefOperandIdx(InstAndDef1->Reg, /*TRI=*/nullptr) == I2->findRegisterDefOperandIdx(InstAndDef2->Reg, /*TRI=*/nullptr);
+        if (I1->findRegisterDefOperandIdx(InstAndDef1->Reg, /*TRI=*/nullptr) == I2->findRegisterDefOperandIdx(InstAndDef2->Reg, /*TRI=*/nullptr)) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false
     }
     return false;
 }
@@ -3034,7 +3038,11 @@ bool CombinerHelper::matchConstantOp(const MachineOperand& MOP,
     }
     auto* MI = MRI.getVRegDef(MOP.getReg());
     auto MaybeCst = isConstantOrConstantSplatVector(*MI, MRI);
-    return MaybeCst && MaybeCst->getBitWidth() <= 64 && MaybeCst->getSExtValue() == C;
+    if (MaybeCst && MaybeCst->getBitWidth() <= 64 && MaybeCst->getSExtValue() == C) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchConstantFPOp(const MachineOperand& MOP,
@@ -3047,7 +3055,11 @@ bool CombinerHelper::matchConstantFPOp(const MachineOperand& MOP,
         return false;
     }
 
-    return MaybeCst->Value.isExactlyValue(C);
+    if (MaybeCst->Value.isExactlyValue(C)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::replaceSingleDefInstWithOperand(MachineInstr& MI,
@@ -3081,7 +3093,11 @@ bool CombinerHelper::matchConstantLargerBitWidth(MachineInstr& MI,
     }
 
     // Return true of shift amount >= Bitwidth
-    return (VRegAndVal->Value.uge(DstTy.getSizeInBits()));
+    if (VRegAndVal->Value.uge(DstTy.getSizeInBits())) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyFunnelShiftConstantModulo(MachineInstr& MI) const {
