@@ -854,7 +854,7 @@ AArch64PreLegalizerCombiner::AArch64PreLegalizerCombiner()
 bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
-  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   auto &TPC = getAnalysis<TargetPassConfig>();
 
   // Enable CSE.

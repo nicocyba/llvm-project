@@ -1381,7 +1381,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&

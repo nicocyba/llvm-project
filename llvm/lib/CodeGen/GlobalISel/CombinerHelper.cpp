@@ -464,7 +464,7 @@ bool CombinerHelper::matchCombineShuffleConcat(
                 {MRI.getType(MI.getOperand(0).getReg()), ConcatSrcTy}})) {
         return false;
     }
- 
+
     if (!Ops.empty()) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
@@ -1709,8 +1709,8 @@ bool CombinerHelper::matchOptBrCondByInvertingCond(
     // that it isn't the same as the G_BR's target (otherwise, this will loop.)
     MachineBasicBlock* BrCondTarget = BrCond->getOperand(1).getMBB();
     if (BrCondTarget != MI.getOperand(0).getMBB() && MBB->isLayoutSuccessor(BrCondTarget)) {
-      outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
-      return true;
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
     }
     return false;
 }
@@ -2834,8 +2834,8 @@ void CombinerHelper::applyCombineTruncOfShift(
 
 bool CombinerHelper::matchAnyExplicitUseIsUndef(MachineInstr& MI) const {
     if (any_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
-        return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
-    })) {
+            return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
+        })) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2844,8 +2844,8 @@ bool CombinerHelper::matchAnyExplicitUseIsUndef(MachineInstr& MI) const {
 
 bool CombinerHelper::matchAllExplicitUsesAreUndef(MachineInstr& MI) const {
     if (all_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
-        return !MO.isReg() || getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
-    })) {
+            return !MO.isReg() || getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
+        })) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2865,7 +2865,7 @@ bool CombinerHelper::matchUndefShuffleVectorMask(MachineInstr& MI) const {
 bool CombinerHelper::matchUndefStore(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_STORE);
     if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(0).getReg(),
-        MRI)) {
+            MRI)) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2875,7 +2875,7 @@ bool CombinerHelper::matchUndefStore(MachineInstr& MI) const {
 bool CombinerHelper::matchUndefSelectCmp(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
     if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(1).getReg(),
-        MRI)) {
+            MRI)) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2944,7 +2944,6 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
             return true;
         }
         return false;
-
     }
 
     // If we have an instruction which loads or stores, we can't guarantee that
@@ -3883,7 +3882,6 @@ bool CombinerHelper::matchXorOfAndWithSameReg(
     if (Y == SharedReg) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
-
     }
     return false;
 }
@@ -3995,8 +3993,8 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
     }
 
     if (isConstantOrConstantVector(*MRI.getVRegDef(OtherOperandReg), MRI,
-        /*AllowFP*/ true,
-        /*AllowOpaqueConstants*/ false)) {
+            /*AllowFP*/ true,
+            /*AllowOpaqueConstants*/ false)) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -4617,7 +4615,11 @@ bool CombinerHelper::matchExtractAllEltsFromBuildVector(
             std::make_pair(MI.getOperand(Idx + 1).getReg(), &II));
     }
     // Match if every element was extracted.
-    return ExtractedElts.all();
+    if (ExtractedElts.all()) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyExtractAllEltsFromBuildVector(
@@ -4695,6 +4697,7 @@ bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
     MatchInfo = [=](MachineIRBuilder& B) {
         B.buildInstr(FshOpc, {Dst}, {ShlSrc, LShrSrc, Amt});
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4708,7 +4711,11 @@ bool CombinerHelper::matchFunnelShiftToRotate(MachineInstr& MI) const {
         return false;
     }
     unsigned RotateOpc = Opc == TargetOpcode::G_FSHL ? TargetOpcode::G_ROTL : TargetOpcode::G_ROTR;
-    return isLegalOrBeforeLegalizer({RotateOpc, {MRI.getType(X), MRI.getType(Y)}});
+    if (isLegalOrBeforeLegalizer({RotateOpc, {MRI.getType(X), MRI.getType(Y)}})) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyFunnelShiftToRotate(MachineInstr& MI) const {
@@ -4734,7 +4741,11 @@ bool CombinerHelper::matchRotateOutOfRange(MachineInstr& MI) const {
         }
         return true;
     };
-    return matchUnaryPredicate(MRI, AmtReg, MatchOutOfRange) && OutOfRange;
+    if (matchUnaryPredicate(MRI, AmtReg, MatchOutOfRange) && OutOfRange) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyRotateOutOfRange(MachineInstr& MI) const {
@@ -4792,6 +4803,7 @@ bool CombinerHelper::matchICmpToTrueFalseKnownBits(MachineInstr& MI,
               MRI.getType(MI.getOperand(0).getReg()).isVector(),
               /* IsFP = */ false)
         : 0;
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4842,6 +4854,7 @@ bool CombinerHelper::matchICmpToLHSKnownBits(
         return false;
     }
     MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(Op, {Dst}, {LHS}); };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4882,6 +4895,7 @@ bool CombinerHelper::matchAndOrDisjointMask(
         MI.getOperand(1).setReg(Src);
         Observer.changedInstr(MI);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4915,6 +4929,7 @@ bool CombinerHelper::matchBitfieldExtractFromSExtInReg(
         auto Cst2 = B.buildConstant(ExtractTy, Width);
         B.buildSbfx(Dst, ShiftSrc, Cst1, Cst2);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4957,6 +4972,7 @@ bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
         auto LSBCst = B.buildConstant(ExtractTy, LSBImm);
         B.buildInstr(TargetOpcode::G_UBFX, {Dst}, {ShiftSrc, LSBCst, WidthCst});
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5011,6 +5027,7 @@ bool CombinerHelper::matchBitfieldExtractFromShr(
         auto PosCst = B.buildConstant(ExtractTy, Pos);
         B.buildInstr(ExtrOpcode, {Dst}, {ShlSrc, PosCst, WidthCst});
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5048,6 +5065,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
         MatchInfo = [=](MachineIRBuilder& B) {
             B.buildConstant(Dst, 0);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -5074,6 +5092,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
         auto PosCst = B.buildConstant(ExtractTy, Pos);
         B.buildInstr(TargetOpcode::G_UBFX, {Dst}, {AndSrc, PosCst, WidthCst});
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5171,7 +5190,11 @@ bool CombinerHelper::matchReassocConstantInnerRHS(GPtrAdd& MI,
         MI.getOperand(2).setReg(RHS->getOperand(2).getReg());
         Observer.changedInstr(MI);
     };
-    return !reassociationCanBreakAddressingModePattern(MI);
+    if (!reassociationCanBreakAddressingModePattern(MI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI,
@@ -5203,7 +5226,11 @@ bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI,
         LHSPtrAdd->getOperand(2).setReg(RHSReg);
         Observer.changedInstr(*LHSPtrAdd);
     };
-    return !reassociationCanBreakAddressingModePattern(MI);
+    if (!reassociationCanBreakAddressingModePattern(MI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchReassocFoldConstantsInSubTree(
@@ -5233,7 +5260,11 @@ bool CombinerHelper::matchReassocFoldConstantsInSubTree(
         MI.getOperand(2).setReg(NewCst.getReg(0));
         Observer.changedInstr(MI);
     };
-    return !reassociationCanBreakAddressingModePattern(MI);
+    if (!reassociationCanBreakAddressingModePattern(MI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchReassocPtrAdd(MachineInstr& MI,
@@ -5256,16 +5287,19 @@ bool CombinerHelper::matchReassocPtrAdd(MachineInstr& MI,
 
     // Try to match example 2.
     if (matchReassocFoldConstantsInSubTree(PtrAdd, LHS, RHS, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Try to match example 3.
     if (matchReassocConstantInnerLHS(PtrAdd, LHS, RHS, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Try to match example 1.
     if (matchReassocConstantInnerRHS(PtrAdd, RHS, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -5320,9 +5354,11 @@ bool CombinerHelper::matchReassocCommBinOp(MachineInstr& MI,
     Register RHSReg = MI.getOperand(2).getReg();
 
     if (tryReassocBinOp(Opc, DstReg, LHSReg, RHSReg, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     if (tryReassocBinOp(Opc, DstReg, RHSReg, LHSReg, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -5335,6 +5371,7 @@ bool CombinerHelper::matchConstantFoldCastOp(MachineInstr& MI,
 
     if (auto MaybeCst = ConstantFoldCastOp(MI.getOpcode(), DstTy, SrcOp, MRI)) {
         MatchInfo = *MaybeCst;
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -5350,6 +5387,7 @@ bool CombinerHelper::matchConstantFoldBinOp(MachineInstr& MI,
         return false;
     }
     MatchInfo = *MaybeCst;
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5362,6 +5400,7 @@ bool CombinerHelper::matchConstantFoldFPBinOp(MachineInstr& MI,
         return false;
     }
     MatchInfo = ConstantFP::get(MI.getMF()->getFunction().getContext(), *MaybeCst);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5389,6 +5428,7 @@ bool CombinerHelper::matchConstantFoldFMA(MachineInstr& MI,
     Op1F.fusedMultiplyAdd(Op2Cst->getValueAPF(), Op3Cst->getValueAPF(),
         APFloat::rmNearestTiesToEven);
     MatchInfo = ConstantFP::get(MI.getMF()->getFunction().getContext(), Op1F);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5484,6 +5524,7 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
         MI.getOperand(1).setReg(Ext.getReg(0));
         Observer.changedInstr(MI);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5504,6 +5545,7 @@ bool CombinerHelper::matchMulOBy2(MachineInstr& MI,
         MI.getOperand(3).setReg(MI.getOperand(2).getReg());
         Observer.changedInstr(MI);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5523,6 +5565,7 @@ bool CombinerHelper::matchMulOBy0(MachineInstr& MI,
         B.buildConstant(Dst, 0);
         B.buildConstant(Carry, 0);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5555,6 +5598,7 @@ bool CombinerHelper::matchAddEToAddO(MachineInstr& MI,
         MI.removeOperand(4);
         Observer.changedInstr(MI);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5575,6 +5619,7 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
         }
         if (ReplaceReg) {
             MatchInfo = [=](MachineIRBuilder& B) { B.buildCopy(Dst, ReplaceReg); };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -5594,6 +5639,7 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
                 auto Zero = B.buildConstant(MRI.getType(Dst), 0);
                 B.buildSub(Dst, Zero, ReplaceReg);
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -5663,7 +5709,11 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
             Res = MIB.buildLShr(Ty, Res, Shift, MachineInstr::IsExact).getReg(0);
         }
 
-        return MIB.buildMul(Ty, Res, Factor);
+        if (MIB.buildMul(Ty, Res, Factor)) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
     }
 
     unsigned KnownLeadingZeros = KB ? KB->getKnownBits(LHS).countMinLeadingZeros() : 0;
@@ -5756,7 +5806,11 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
     auto IsOne = MIB.buildICmp(
         CmpInst::Predicate::ICMP_EQ,
         Ty.isScalar() ? LLT::scalar(1) : Ty.changeElementSize(1), RHS, One);
-    return MIB.buildSelect(Ty, IsOne, LHS, Q);
+    if (MIB.buildSelect(Ty, IsOne, LHS, Q)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchUDivByConst(MachineInstr& MI) const {
@@ -5805,8 +5859,11 @@ bool CombinerHelper::matchUDivByConst(MachineInstr& MI) const {
         }
     }
 
-    return matchUnaryPredicate(
-        MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); });
+    if (matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); })) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyUDivByConst(MachineInstr& MI) const {
@@ -5836,8 +5893,11 @@ bool CombinerHelper::matchSDivByConst(MachineInstr& MI) const {
 
     // If the sdiv has an 'exact' flag we can use a simpler lowering.
     if (MI.getFlag(MachineInstr::MIFlag::IsExact)) {
-        return matchUnaryPredicate(
-            MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); });
+        if (matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); })) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
     }
 
     // Don't support the general case for now.
@@ -5922,7 +5982,12 @@ bool CombinerHelper::matchDivByPow2(MachineInstr& MI, bool IsSigned) const {
         auto* CI = dyn_cast<ConstantInt>(C);
         return CI && (CI->getValue().isPowerOf2() || (IsSigned && CI->getValue().isNegatedPowerOf2()));
     };
-    return matchUnaryPredicate(MRI, RHS, MatchPow2, /*AllowUndefs=*/false);
+    if (matchUnaryPredicate(MRI, RHS, MatchPow2, /*AllowUndefs=*/false)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
+
 }
 
 void CombinerHelper::applySDivByPow2(MachineInstr& MI) const {
@@ -6011,7 +6076,11 @@ bool CombinerHelper::matchUMulHToLShr(MachineInstr& MI) const {
     if (!matchUnaryPredicate(MRI, RHS, MatchPow2ExceptOne, false)) {
         return false;
     }
-    return isLegalOrBeforeLegalizer({TargetOpcode::G_LSHR, {Ty, ShiftAmtTy}});
+    if (isLegalOrBeforeLegalizer({TargetOpcode::G_LSHR, {Ty, ShiftAmtTy}})) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyUMulHToLShr(MachineInstr& MI) const {
@@ -6066,6 +6135,7 @@ bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI,
         MI.getOperand(2).setReg(Y);
         Observer.changedInstr(MI);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -6086,12 +6156,17 @@ bool CombinerHelper::matchFsubToFneg(MachineInstr& MI,
 
     // -0.0 is always allowed
     if (LHSCst->Value.isNegZero()) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // +0.0 is only allowed if nsz is set.
     if (LHSCst->Value.isPosZero()) {
-        return MI.getFlag(MachineInstr::FmNsz);
+        if (MI.getFlag(MachineInstr::FmNsz)) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
     }
 
     return false;
@@ -6186,6 +6261,7 @@ bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(
                 {LHS.MI->getOperand(1).getReg(),
                     LHS.MI->getOperand(2).getReg(), RHS.Reg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6196,6 +6272,7 @@ bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(
                 {RHS.MI->getOperand(1).getReg(),
                     RHS.MI->getOperand(2).getReg(), LHS.Reg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6238,6 +6315,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FpExtX.getReg(0), FpExtY.getReg(0), RHS.Reg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6250,6 +6328,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FpExtX.getReg(0), FpExtY.getReg(0), LHS.Reg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6308,6 +6387,7 @@ bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {X, Y, InnerFMA});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6366,6 +6446,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 LHS.MI->getOperand(1).getReg(),
                 LHS.MI->getOperand(2).getReg(), B);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6385,7 +6466,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 buildMatchInfo(FMulMI->getOperand(1).getReg(),
                     FMulMI->getOperand(2).getReg(), RHS.Reg, X, Y, B);
             };
-
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -6399,6 +6480,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 RHS.MI->getOperand(1).getReg(),
                 RHS.MI->getOperand(2).getReg(), B);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6418,6 +6500,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 buildMatchInfo(FMulMI->getOperand(1).getReg(),
                     FMulMI->getOperand(2).getReg(), LHS.Reg, X, Y, B);
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -6458,6 +6541,7 @@ bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(
                 {LHS.MI->getOperand(1).getReg(),
                     LHS.MI->getOperand(2).getReg(), NegZ});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     // fold (fsub x, (fmul y, z)) -> (fma -y, z, x)
@@ -6467,6 +6551,7 @@ bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {NegY, RHS.MI->getOperand(2).getReg(), LHS.Reg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6498,6 +6583,7 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {NegX, FMulMI->getOperand(2).getReg(), NegZ});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6508,6 +6594,7 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
                 {FMulMI->getOperand(1).getReg(),
                     FMulMI->getOperand(2).getReg(), LHSReg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6540,6 +6627,7 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FpExtX, FpExtY, NegZ});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6552,6 +6640,7 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {NegY, FpExtZ, LHSReg});
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6594,6 +6683,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
                 FMulMI->getOperand(2).getReg(), RHSReg, B);
             B.buildFNeg(MI.getOperand(0).getReg(), FMAReg);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6604,6 +6694,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
             buildMatchInfo(MI.getOperand(0).getReg(), FMulMI->getOperand(1).getReg(),
                 FMulMI->getOperand(2).getReg(), LHSReg, B);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6633,10 +6724,15 @@ bool CombinerHelper::matchCombineFMinMaxNaN(MachineInstr& MI,
             return false;
         }
         IdxToPropagate = PropagateNaN ? Idx : (Idx == 1 ? 2 : 1);
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     };
 
-    return MatchNaN(1) || MatchNaN(2);
+    if (MatchNaN(1) || MatchNaN(2)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchAddSubSameReg(MachineInstr& MI, Register& Src) const {
@@ -6651,7 +6747,11 @@ bool CombinerHelper::matchAddSubSameReg(MachineInstr& MI, Register& Src) const {
         Register Reg;
         return mi_match(MaybeSub, MRI, m_GSub(m_Reg(Src), m_Reg(Reg))) && Reg == MaybeSameReg;
     };
-    return CheckFold(LHS, RHS) || CheckFold(RHS, LHS);
+    if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
@@ -6677,11 +6777,13 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
 
     Register Lo, Hi;
 
-    if (mi_match(
-            MI, MRI,
-            m_GBuildVector(m_GTrunc(m_GBitcast(m_Reg(Lo))), m_GImplicitDef()))) {
+    if (mi_match(MI, MRI, m_GBuildVector(m_GTrunc(m_GBitcast(m_Reg(Lo))), m_GImplicitDef()))) {
         MatchInfo = Lo;
-        return MRI.getType(MatchInfo) == DstVecTy;
+        if (MRI.getType(MatchInfo) == DstVecTy) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
     }
 
     std::optional<ValueAndVReg> ShiftAmount;
@@ -6693,7 +6795,11 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
                 m_GBuildVector(m_GTrunc(LoPattern), m_GTrunc(HiPattern))))) {
         if (Lo == Hi && ShiftAmount->Value == DstEltTy.getSizeInBits()) {
             MatchInfo = Lo;
-            return MRI.getType(MatchInfo) == DstVecTy;
+            if (MRI.getType(MatchInfo) == DstVecTy) {
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                return true;
+            }
+            return false;
         }
     }
 
@@ -6709,7 +6815,11 @@ bool CombinerHelper::matchTruncBuildVectorFold(MachineInstr& MI,
         return false;
     }
 
-    return MRI.getType(MatchInfo) == MRI.getType(MI.getOperand(0).getReg());
+    if (MRI.getType(MatchInfo) == MRI.getType(MI.getOperand(0).getReg())) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchTruncLshrBuildVectorFold(MachineInstr& MI,
@@ -6724,7 +6834,11 @@ bool CombinerHelper::matchTruncLshrBuildVectorFold(MachineInstr& MI,
     }
 
     LLT MatchTy = MRI.getType(MatchInfo);
-    return ShiftAmt->Value.getZExtValue() == MatchTy.getSizeInBits() && MatchTy == MRI.getType(MI.getOperand(0).getReg());
+    if (ShiftAmt->Value.getZExtValue() == MatchTy.getSizeInBits() && MatchTy == MRI.getType(MI.getOperand(0).getReg())) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 unsigned CombinerHelper::getFPMinMaxOpcForSelect(
@@ -6852,6 +6966,7 @@ bool CombinerHelper::matchFPSelectToMinMax(Register Dst, Register Cond, Register
     MatchInfo = [=](MachineIRBuilder& B) {
         B.buildInstr(Opc, {Dst}, {CmpLHS, CmpRHS});
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -6868,7 +6983,11 @@ bool CombinerHelper::matchSimplifySelectToMinMax(MachineInstr& MI,
     Register Dst = MI.getOperand(0).getReg();
     Register TrueVal = MI.getOperand(2).getReg();
     Register FalseVal = MI.getOperand(3).getReg();
-    return matchFPSelectToMinMax(Dst, Cond, TrueVal, FalseVal, MatchInfo);
+    if (matchFPSelectToMinMax(Dst, Cond, TrueVal, FalseVal, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
@@ -6903,7 +7022,11 @@ bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
         auto Zero = B.buildConstant(MRI.getType(Y), 0);
         B.buildICmp(Pred, Dst, Y, Zero);
     };
-    return CmpInst::isEquality(Pred) && Y.isValid();
+    if (CmpInst::isEquality(Pred) && Y.isValid()) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 /// Return the minimum useless shift amount that results in complete loss of the
@@ -6951,13 +7074,17 @@ bool CombinerHelper::matchShiftsTooBig(
         }
         if (CI->uge(ResTy.getScalarSizeInBits())) {
             MatchInfo = std::nullopt;
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
-        auto OptMaxUsefulShift = getMinUselessShift(KB->getKnownBits(ShiftVal),
-            MI.getOpcode(), MatchInfo);
+        auto OptMaxUsefulShift = getMinUselessShift(KB->getKnownBits(ShiftVal), MI.getOpcode(), MatchInfo);
         return OptMaxUsefulShift && CI->uge(*OptMaxUsefulShift);
     };
-    return matchUnaryPredicate(MRI, ShiftReg, IsShiftTooBig);
+    if (matchUnaryPredicate(MRI, ShiftReg, IsShiftTooBig)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchCommuteConstantToRHS(MachineInstr& MI) const {
@@ -6985,7 +7112,11 @@ bool CombinerHelper::matchCommuteConstantToRHS(MachineInstr& MI) const {
         }
     }
     // Commute as long as RHS is not a constant or G_CONSTANT_FOLD_BARRIER.
-    return MRI.getVRegDef(RHS)->getOpcode() != TargetOpcode::G_CONSTANT_FOLD_BARRIER && !getIConstantVRegVal(RHS, MRI);
+    if (MRI.getVRegDef(RHS)->getOpcode() != TargetOpcode::G_CONSTANT_FOLD_BARRIER && !getIConstantVRegVal(RHS, MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchCommuteFPConstantToRHS(MachineInstr& MI) const {
@@ -6995,7 +7126,11 @@ bool CombinerHelper::matchCommuteFPConstantToRHS(MachineInstr& MI) const {
     if (!mi_match(LHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
         return false;
     }
-    return !mi_match(RHS, MRI, m_GFCstOrSplat(ValAndVReg));
+    if (!mi_match(RHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCommuteBinOpOperands(MachineInstr& MI) const {
@@ -7408,6 +7543,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildUMax(DstReg, True, False); };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ICmpInst::ICMP_SGT:
@@ -7416,6 +7552,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildSMax(DstReg, True, False); };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ICmpInst::ICMP_ULT:
@@ -7424,6 +7561,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildUMin(DstReg, True, False); };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ICmpInst::ICMP_SLT:
@@ -7432,6 +7570,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildSMin(DstReg, True, False); };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         default:
@@ -7460,6 +7599,7 @@ bool CombinerHelper::matchSimplifyNegMinMax(MachineInstr& MI,
             MatchInfo = [=](MachineIRBuilder& B) {
                 B.buildInstr(NewOpc, {DestReg}, {X, Sub0});
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -7471,10 +7611,12 @@ bool CombinerHelper::matchSelect(MachineInstr& MI, BuildFnTy& MatchInfo) const {
     GSelect* Select = cast<GSelect>(&MI);
 
     if (tryFoldSelectOfConstants(Select, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (tryFoldBoolSelectToLogic(Select, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7723,10 +7865,12 @@ bool CombinerHelper::matchAnd(MachineInstr& MI, BuildFnTy& MatchInfo) const {
     GAnd* And = cast<GAnd>(&MI);
 
     if (tryFoldAndOrOrICmpsUsingRanges(And, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (tryFoldLogicOfFCmps(And, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7737,10 +7881,12 @@ bool CombinerHelper::matchOr(MachineInstr& MI, BuildFnTy& MatchInfo) const {
     GOr* Or = cast<GOr>(&MI);
 
     if (tryFoldAndOrOrICmpsUsingRanges(Or, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (tryFoldLogicOfFCmps(Or, MatchInfo)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7766,6 +7912,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildAdd(Dst, LHS, RHS);
             B.buildUndef(Carry);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7775,12 +7922,14 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             MatchInfo = [=](MachineIRBuilder& B) {
                 B.buildSAddo(Dst, Carry, RHS, LHS);
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         // !IsSigned
         MatchInfo = [=](MachineIRBuilder& B) {
             B.buildUAddo(Dst, Carry, RHS, LHS);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7796,6 +7945,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildConstant(Dst, Result);
             B.buildConstant(Carry, Overflow);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7805,6 +7955,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildCopy(Dst, LHS);
             B.buildConstant(Carry, 0);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7824,6 +7975,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                         auto ConstRHS = B.buildConstant(DstTy, NewC);
                         B.buildSAddo(Dst, Carry, AddLHS->getLHSReg(), ConstRHS);
                     };
+                    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                     return true;
                 }
                 // !IsSigned
@@ -7831,6 +7983,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     auto ConstRHS = B.buildConstant(DstTy, NewC);
                     B.buildUAddo(Dst, Carry, AddLHS->getLHSReg(), ConstRHS);
                 };
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -7854,6 +8007,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildAdd(Dst, LHS, RHS, MachineInstr::MIFlag::NoUWrap);
                     B.buildConstant(Carry, 0);
                 };
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
             case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -7862,6 +8016,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildAdd(Dst, LHS, RHS);
                     B.buildConstant(Carry, 1);
                 };
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -7877,6 +8032,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildAdd(Dst, LHS, RHS, MachineInstr::MIFlag::NoSWrap);
             B.buildConstant(Carry, 0);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7891,6 +8047,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                 B.buildAdd(Dst, LHS, RHS, MachineInstr::MIFlag::NoSWrap);
                 B.buildConstant(Carry, 0);
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -7899,6 +8056,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                 B.buildAdd(Dst, LHS, RHS);
                 B.buildConstant(Carry, 1);
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -7916,7 +8074,11 @@ void CombinerHelper::applyBuildFnMO(const MachineOperand& MO,
 bool CombinerHelper::matchFPowIExpansion(MachineInstr& MI,
     int64_t Exponent) const {
     bool OptForSize = MI.getMF()->getFunction().hasOptSize();
-    return getTargetLowering().isBeneficialToExpandPowI(Exponent, OptForSize);
+    if (getTargetLowering().isBeneficialToExpandPowI(Exponent, OptForSize)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyExpandFPowI(MachineInstr& MI,
@@ -7986,7 +8148,7 @@ bool CombinerHelper::matchFoldAPlusC1MinusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C1 - C2);
         B.buildAdd(Dst, Add->getLHSReg(), Const);
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8010,7 +8172,7 @@ bool CombinerHelper::matchFoldC2MinusAPlusC1(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C2 - C1);
         B.buildSub(Dst, Const, Add->getLHSReg());
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8034,7 +8196,7 @@ bool CombinerHelper::matchFoldAMinusC1MinusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C1 + C2);
         B.buildSub(Dst, Sub2->getLHSReg(), Const);
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8058,7 +8220,7 @@ bool CombinerHelper::matchFoldC1Minus2MinusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C1 - C2);
         B.buildSub(Dst, Const, Sub2->getRHSReg());
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8082,7 +8244,7 @@ bool CombinerHelper::matchFoldAMinusC1PlusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C2 - C1);
         B.buildAdd(Dst, Sub->getLHSReg(), Const);
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8168,6 +8330,7 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
                 B.buildBuildVector(Unmerge->getOperand(I).getReg(), Ops);
             };
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     };
 
@@ -8201,7 +8364,7 @@ bool CombinerHelper::matchShuffleUndefRHS(MachineInstr& MI,
         B.buildShuffleVector(MI.getOperand(0), MI.getOperand(1), MI.getOperand(2),
             std::move(NewMask));
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8275,7 +8438,7 @@ bool CombinerHelper::matchShuffleDisjointMask(MachineInstr& MI,
         auto Undef = B.buildUndef(Src1Ty);
         B.buildShuffleVector(Shuffle.getReg(0), NewSrc1, Undef, NewMask);
     };
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8310,6 +8473,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                     B.buildSub(Dst, LHS, RHS, MachineInstr::MIFlag::NoSWrap);
                     B.buildConstant(Carry, 0);
                 };
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
             case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8320,6 +8484,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                                                /*isVector=*/CarryTy.isVector(),
                                                /*isFP=*/false));
                 };
+                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -8335,6 +8500,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                 B.buildSub(Dst, LHS, RHS, MachineInstr::MIFlag::NoUWrap);
                 B.buildConstant(Carry, 0);
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8345,6 +8511,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                                            /*isVector=*/CarryTy.isVector(),
                                            /*isFP=*/false));
             };
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
