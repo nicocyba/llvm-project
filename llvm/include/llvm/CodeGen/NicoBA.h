@@ -553,7 +553,7 @@ auto logEvent = [](const std::string& Event, MachineInstr& MI) {
 //     llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
 //     return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 // }
-std::optional<std::string> extractT3Type(const std::string& input) {
+inline std::optional<std::string> extractT3Type(const std::string& input) {
     // Define the start and end markers
     const std::string start_marker = "T3 = ";
     const char end_marker = ']';
