@@ -876,7 +876,7 @@ bool GIMatchTableExecutor::executeMatchTable(
                            << InsnID << "]->getOperand(" << OpIdx
                            << "), Value=" << Value << ")\n");
 
-                outs() << << CurrentIdx << ": GIM_CheckConstantInt(MIs["
+                outs() << CurrentIdx << ": GIM_CheckConstantInt(MIs["
                            << InsnID << "]->getOperand(" << OpIdx
                            << "), Value=" << Value << ")\n";
                 assert(State.MIs[InsnID] != nullptr && "Used insn before defined");
