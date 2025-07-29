@@ -5709,11 +5709,7 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
             Res = MIB.buildLShr(Ty, Res, Shift, MachineInstr::IsExact).getReg(0);
         }
 
-        if (MIB.buildMul(Ty, Res, Factor)) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            return true;
-        }
-        return false;
+        return MIB.buildMul(Ty, Res, Factor);
     }
 
     unsigned KnownLeadingZeros = KB ? KB->getKnownBits(LHS).countMinLeadingZeros() : 0;
@@ -5806,11 +5802,7 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
     auto IsOne = MIB.buildICmp(
         CmpInst::Predicate::ICMP_EQ,
         Ty.isScalar() ? LLT::scalar(1) : Ty.changeElementSize(1), RHS, One);
-    if (MIB.buildSelect(Ty, IsOne, LHS, Q)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        return true;
-    }
-    return false;
+    return MIB.buildSelect(Ty, IsOne, LHS, Q);
 }
 
 bool CombinerHelper::matchUDivByConst(MachineInstr& MI) const {
@@ -8337,8 +8329,7 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
     return false;
 }
 
-bool CombinerHelper::matchShuffleUndefRHS(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchShuffleUndefRHS(MachineInstr& MI, BuildFnTy& MatchInfo) const {
 
     bool Changed = false;
     auto& Shuffle = cast<GShuffleVector>(MI);
