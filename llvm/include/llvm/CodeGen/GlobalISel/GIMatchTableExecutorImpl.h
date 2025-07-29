@@ -876,7 +876,7 @@ bool GIMatchTableExecutor::executeMatchTable(
                            << InsnID << "]->getOperand(" << OpIdx
                            << "), Value=" << Value << ")\n");
 
-                outs() << CurrentIdx << ": GIM_CheckConstantInt(MIs["
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIM_CheckConstantInt(MIs["
                            << InsnID << "]->getOperand(" << OpIdx
                            << "), Value=" << Value << ")\n";
                 assert(State.MIs[InsnID] != nullptr && "Used insn before defined");
@@ -1050,10 +1050,6 @@ bool GIMatchTableExecutor::executeMatchTable(
                            << OldInsnID << "][" << OldOpIdx << "] = MIs["
                            << NewInsnID << "][" << NewOpIdx << "])\n");
                 
-                outs() << CurrentIdx << ": GIM_CheckCanReplaceReg(MIs["
-                           << OldInsnID << "][" << OldOpIdx << "] = MIs["
-                           << NewInsnID << "][" << NewOpIdx << "])\n";
-
                 Register Old = State.MIs[OldInsnID]->getOperand(OldOpIdx).getReg();
                 Register New = State.MIs[NewInsnID]->getOperand(NewOpIdx).getReg();
                 if (!canReplaceReg(Old, New, MRI)) {
@@ -1061,6 +1057,9 @@ bool GIMatchTableExecutor::executeMatchTable(
                         return false;
                     }
                 }
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIM_CheckCanReplaceReg(MIs["
+                           << OldInsnID << "][" << OldOpIdx << "] = MIs["
+                           << NewInsnID << "][" << NewOpIdx << "])\n";
                 break;
             }
             case GIM_MIFlags: {
@@ -1075,6 +1074,8 @@ bool GIMatchTableExecutor::executeMatchTable(
                         return false;
                     }
                 }
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIM_MIFlags(MIs[" << InsnID
+                           << "], " << Flags << ")\n";
                 break;
             }
             case GIM_MIFlagsNot: {
@@ -1089,6 +1090,8 @@ bool GIMatchTableExecutor::executeMatchTable(
                         return false;
                     }
                 }
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIM_MIFlagsNot(MIs[" << InsnID
+                           << "], " << Flags << ")\n";
                 break;
             }
             case GIM_Reject:
@@ -1119,6 +1122,10 @@ bool GIMatchTableExecutor::executeMatchTable(
                     dbgs() << CurrentIdx << ": GIR_MutateOpcode(OutMIs["
                            << NewInsnID << "], MIs[" << OldInsnID << "], "
                            << NewOpcode << ")\n");
+                
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIR_MutateOpcode(OutMIs["
+                           << NewInsnID << "], MIs[" << OldInsnID << "], "
+                           << NewOpcode << ")\n";
                 break;
             }
 
@@ -1134,6 +1141,9 @@ bool GIMatchTableExecutor::executeMatchTable(
                 DEBUG_WITH_TYPE(TgtExecutor::getName(),
                     dbgs() << CurrentIdx << ": GIR_BuildMI(OutMIs["
                            << NewInsnID << "], " << Opcode << ")\n");
+
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIR_BuildMI(OutMIs["
+                           << NewInsnID << "], " << Opcode << ")\n";
                 break;
             }
 

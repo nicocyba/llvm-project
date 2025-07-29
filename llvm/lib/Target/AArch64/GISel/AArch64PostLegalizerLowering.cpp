@@ -178,7 +178,7 @@ bool matchREV(MachineInstr &MI, MachineRegisterInfo &MRI,
         Opcode = AArch64::G_REV16;
 
       MatchInfo = ShuffleVectorPseudo(Opcode, Dst, {Src});
-      outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+      outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
       return true;
     }
   }
@@ -201,7 +201,7 @@ bool matchTRN(MachineInstr &MI, MachineRegisterInfo &MRI,
   Register V1 = MI.getOperand(1).getReg();
   Register V2 = MI.getOperand(2).getReg();
   MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -223,7 +223,7 @@ bool matchUZP(MachineInstr &MI, MachineRegisterInfo &MRI,
   Register V1 = MI.getOperand(1).getReg();
   Register V2 = MI.getOperand(2).getReg();
   MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -240,7 +240,7 @@ bool matchZip(MachineInstr &MI, MachineRegisterInfo &MRI,
   Register V1 = MI.getOperand(1).getReg();
   Register V2 = MI.getOperand(2).getReg();
   MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -281,7 +281,7 @@ bool matchDupFromInsertVectorElt(int Lane, MachineInstr &MI,
 
   MatchInfo = ShuffleVectorPseudo(AArch64::G_DUP, MI.getOperand(0).getReg(),
                                   {InsMI->getOperand(2).getReg()});
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -305,7 +305,7 @@ bool matchDupFromBuildVector(int Lane, MachineInstr &MI,
   Register Reg = BuildVecMI->getOperand(Lane + 1).getReg();
   MatchInfo =
       ShuffleVectorPseudo(AArch64::G_DUP, MI.getOperand(0).getReg(), {Reg});
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -320,12 +320,12 @@ bool matchDup(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (Lane < 0)
     Lane = 0;
   if (matchDupFromInsertVectorElt(Lane, MI, MRI, MatchInfo)){
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
 
   if (matchDupFromBuildVector(Lane, MI, MRI, MatchInfo)) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -379,7 +379,7 @@ bool matchEXT(MachineInstr &MI, MachineRegisterInfo &MRI,
 
     Imm = Mask[0] * ExtFactor;
     MatchInfo = ShuffleVectorPseudo(AArch64::G_EXT, Dst, {V1, V1, Imm});
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   bool ReverseExt;
@@ -388,7 +388,7 @@ bool matchEXT(MachineInstr &MI, MachineRegisterInfo &MRI,
     std::swap(V1, V2);
   Imm *= ExtFactor;
   MatchInfo = ShuffleVectorPseudo(AArch64::G_EXT, Dst, {V1, V2, Imm});
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -437,7 +437,7 @@ bool matchNonConstInsert(MachineInstr &MI, MachineRegisterInfo &MRI) {
   auto ValAndVReg =
       getIConstantVRegValWithLookThrough(MI.getOperand(3).getReg(), MRI);
   if (!ValAndVReg) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -522,7 +522,7 @@ bool matchINS(MachineInstr &MI, MachineRegisterInfo &MRI,
   }
 
   MatchInfo = std::make_tuple(DstVec, DstLane, SrcVec, SrcLane);
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -566,7 +566,7 @@ bool matchVAshrLshrImm(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (!Ty.isVector())
     return false;
   if (isVShiftRImm(MI.getOperand(2).getReg(), MRI, Ty, Imm)) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -708,7 +708,7 @@ bool matchAdjustICmpImmAndPred(
   auto Pred = static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate());
   if (auto MaybeNewImmAndPred = tryAdjustICmpImmAndPred(RHS, Pred, MRI)) {
     MatchInfo = *MaybeNewImmAndPred;
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -781,7 +781,7 @@ bool matchDupLane(MachineInstr &MI, MachineRegisterInfo &MRI,
 
   MatchInfo.first = Opc;
   MatchInfo.second = *LaneIdx;
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -815,7 +815,7 @@ bool matchScalarizeVectorUnmerge(MachineInstr &MI, MachineRegisterInfo &MRI) {
     return false;
   if (SrcTy.isVector() && !SrcTy.isScalable() &&
       Unmerge.getNumOperands() == (unsigned)SrcTy.getNumElements() + 1) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -840,7 +840,7 @@ bool matchBuildVectorToDup(MachineInstr &MI, MachineRegisterInfo &MRI) {
   if (!Splat)
     return false;
   if (Splat->isReg()) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   // Later, during selection, we'll try to match imported patterns using
@@ -848,7 +848,7 @@ bool matchBuildVectorToDup(MachineInstr &MI, MachineRegisterInfo &MRI) {
   // G_BUILD_VECTORs which could match those patterns.
   int64_t Cst = Splat->getCst();
   if (Cst != 0 && Cst != -1) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -1040,7 +1040,7 @@ bool matchLowerVectorFCMP(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (EltSize != 16 && EltSize != 32 && EltSize != 64)
     return false;
 
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -1112,7 +1112,7 @@ bool matchLowerBuildToInsertVecElt(MachineInstr &MI, MachineRegisterInfo &MRI) {
         getAnyConstantVRegValWithLookThrough(GBuildVec->getSourceReg(I), MRI);
 
     if (!ConstVal.has_value()) {
-      outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+      outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
       return true;
     }
   }
@@ -1149,7 +1149,7 @@ bool matchFormTruncstore(MachineInstr &MI, MachineRegisterInfo &MRI,
     return false;
   // Only form truncstores for value types of max 64b.
   if (MRI.getType(SrcReg).getSizeInBits() <= 64) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -1172,7 +1172,7 @@ bool matchVectorSextInReg(MachineInstr &MI, MachineRegisterInfo &MRI) {
   Register DstReg = MI.getOperand(0).getReg();
   LLT DstTy = MRI.getType(DstReg);
   if (DstTy.isVector()) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -1215,7 +1215,7 @@ bool matchUnmergeExtToUnmerge(MachineInstr &MI, MachineRegisterInfo &MRI,
     return false;
 
   MatchInfo = ExtSrc1;
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -1252,12 +1252,12 @@ bool matchExtMulToMULL(MachineInstr &MI, MachineRegisterInfo &MRI) {
          MRI.getType(I1->getOperand(1).getReg()).getScalarSizeInBits() * 2) &&
         (MRI.getType(I2->getOperand(0).getReg()).getScalarSizeInBits() ==
          MRI.getType(I2->getOperand(1).getReg()).getScalarSizeInBits() * 2)) {
-      outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+      outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
       return true;
     }
     // If result type is v2s64, scalarise the instruction
     else if (DstTy == LLT::fixed_vector(2, 64)) {
-      outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+      outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
       return true;
     }
   }
@@ -1381,7 +1381,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&

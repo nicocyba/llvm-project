@@ -231,7 +231,12 @@ bool CombinerHelper::matchCombineCopy(MachineInstr& MI) const {
     }
     Register DstReg = MI.getOperand(0).getReg();
     Register SrcReg = MI.getOperand(1).getReg();
-    return canReplaceReg(DstReg, SrcReg, MRI);
+
+    if (canReplaceReg(DstReg, SrcReg, MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 void CombinerHelper::applyCombineCopy(MachineInstr& MI) const {
     Register DstReg = MI.getOperand(0).getReg();
@@ -295,6 +300,7 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
             Observer.changedInstr(*OrigDef);
             B.buildCopy(DstOp, OrigOp);
         };
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -312,6 +318,7 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
             Freeze.getReg(0));
         replaceRegWith(MRI, DstOp, OrigOp);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -371,7 +378,7 @@ bool CombinerHelper::matchCombineConcatVectors(
     if (IsUndef) {
         Ops.clear();
     }
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 void CombinerHelper::applyCombineConcatVectors(
@@ -457,8 +464,12 @@ bool CombinerHelper::matchCombineShuffleConcat(
                 {MRI.getType(MI.getOperand(0).getReg()), ConcatSrcTy}})) {
         return false;
     }
-
-    return !Ops.empty();
+ 
+    if (!Ops.empty()) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineShuffleConcat(
@@ -574,6 +585,7 @@ bool CombinerHelper::matchCombineShuffleVector(
             Ops.push_back(Src2);
         }
     }
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -597,7 +609,11 @@ bool CombinerHelper::matchShuffleToExtract(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR && "Invalid instruction kind");
 
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
-    return Mask.size() == 1;
+    if (Mask.size() == 1) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyShuffleToExtract(MachineInstr& MI) const {
@@ -816,6 +832,7 @@ bool CombinerHelper::matchCombineExtendingLoads(
     assert(Preferred.Ty != LoadValueTy && "Extending to same type?");
 
     LLVM_DEBUG(dbgs() << "Preferred use is: " << *Preferred.MI);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1011,6 +1028,7 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
         B.buildLoadInstr(TargetOpcode::G_ZEXTLOAD, Dst, PtrReg, *NewMMO);
         LoadMI->eraseFromParent();
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1067,6 +1085,7 @@ bool CombinerHelper::matchSextTruncSextLoad(MachineInstr& MI) const {
             return false;
         }
         if (LoadSizeBits == SizeInBits) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -1134,6 +1153,7 @@ bool CombinerHelper::matchSextInRegOfLoad(
     }
 
     MatchInfo = std::make_tuple(LoadDef->getDstReg(), NewSizeBits);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1507,6 +1527,7 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
         LoadMI->eraseFromParent();
     };
 
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1524,6 +1545,7 @@ bool CombinerHelper::matchCombineIndexedLoadStore(
         return false;
     }
 
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1615,6 +1637,7 @@ bool CombinerHelper::matchCombineDivRem(MachineInstr& MI,
     for (auto& UseMI : MRI.use_nodbg_instructions(Src1)) {
         if (MI.getParent() == UseMI.getParent() && ((IsDiv && UseMI.getOpcode() == RemOpcode) || (!IsDiv && UseMI.getOpcode() == DivOpcode)) && matchEqualDefs(MI.getOperand(2), UseMI.getOperand(2)) && matchEqualDefs(MI.getOperand(1), UseMI.getOperand(1))) {
             OtherMI = &UseMI;
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -1685,7 +1708,11 @@ bool CombinerHelper::matchOptBrCondByInvertingCond(
     // Check that the next block is the conditional branch target. Also make sure
     // that it isn't the same as the G_BR's target (otherwise, this will loop.)
     MachineBasicBlock* BrCondTarget = BrCond->getOperand(1).getMBB();
-    return BrCondTarget != MI.getOperand(0).getMBB() && MBB->isLayoutSuccessor(BrCondTarget);
+    if (BrCondTarget != MI.getOperand(0).getMBB() && MBB->isLayoutSuccessor(BrCondTarget)) {
+      outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+      return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyOptBrCondByInvertingCond(
@@ -1844,6 +1871,7 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI,
     MatchInfo.Imm = AMNew.BaseOffs;
     MatchInfo.Base = Base;
     MatchInfo.Bank = getRegBank(Imm2);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1901,6 +1929,7 @@ bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI,
         return false;
     }
 
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2010,6 +2039,7 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
     }
 
     MatchInfo.Logic = LogicMI;
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2082,6 +2112,7 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
         auto S2 = B.buildShl(SrcTy, C1, ShiftReg);
         B.buildInstr(SrcDef->getOpcode(), {DstReg}, {S1, S2});
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(PRETTY_FUNCTION) << "\n";
     return true;
 }
 
@@ -2094,7 +2125,11 @@ bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI,
     }
 
     ShiftVal = MaybeImmVal->Value.exactLogBase2();
-    return (static_cast<int32_t>(ShiftVal) != -1);
+    if (static_cast<int32_t>(ShiftVal) != -1) {
+        outs() << "\t\t\t\t\t" << getFunctionName(PRETTY_FUNCTION) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineMulToShl(MachineInstr& MI,
@@ -2136,6 +2171,7 @@ bool CombinerHelper::matchCombineSubToAdd(MachineInstr& MI,
         MI.clearFlag(MachineInstr::MIFlag::NoUWrap);
         Observer.changedInstr(MI);
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(PRETTY_FUNCTION) << "\n";
     return true;
 }
 
@@ -2179,7 +2215,12 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
 
     unsigned MinLeadingZeros = KB->getKnownZeroes(ExtSrc).countl_one();
     unsigned SrcTySize = MRI.getType(ExtSrc).getScalarSizeInBits();
-    return MinLeadingZeros >= ShiftAmt && ShiftAmt < SrcTySize;
+
+    if (MinLeadingZeros >= ShiftAmt && ShiftAmt < SrcTySize) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineShlOfExtend(
@@ -2214,6 +2255,7 @@ bool CombinerHelper::matchCombineMergeUnmerge(MachineInstr& MI,
     }
 
     MatchInfo = Unmerge->getSourceReg();
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 

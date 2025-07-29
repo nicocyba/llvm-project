@@ -101,7 +101,7 @@ bool matchExtractVecEltPairwiseAdd(
     std::get<0>(MatchInfo) = TargetOpcode::G_FADD;
     std::get<1>(MatchInfo) = DstTy;
     std::get<2>(MatchInfo) = Other->getOperand(0).getReg();
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -244,7 +244,7 @@ bool matchAArch64MulConstCombine(
     }
     B.buildCopy(DstReg, Res.getReg(0));
   };
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -264,7 +264,7 @@ bool matchFoldMergeToZext(MachineInstr &MI, MachineRegisterInfo &MRI) {
   if (SrcTy != LLT::scalar(32) || Merge.getNumSources() != 2)
     return false;
   if (mi_match(Merge.getSourceReg(1), MRI, m_SpecificICst(0))) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -298,7 +298,7 @@ bool matchMutateAnyExtToZExt(MachineInstr &MI, MachineRegisterInfo &MRI) {
       mi_match(Src, MRI,
                m_any_of(m_GICmp(m_Pred(), m_Reg(), m_Reg()),
                         m_GFCmp(m_Pred(), m_Reg(), m_Reg())))) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -330,7 +330,7 @@ bool matchSplitStoreZero128(MachineInstr &MI, MachineRegisterInfo &MRI) {
   auto MaybeCst = isConstantOrConstantSplatVector(
       *MRI.getVRegDef(Store.getValueReg()), MRI);
   if (MaybeCst && MaybeCst->isZero()) {
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -384,7 +384,7 @@ bool matchOrToBSP(MachineInstr &MI, MachineRegisterInfo &MRI,
   }
 
   MatchInfo = {AO1, AO2, BVO1};
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -431,7 +431,7 @@ bool matchCombineMulCMLT(MachineInstr &MI, MachineRegisterInfo &MRI,
 
   SrcReg = LShrMI->getOperand(1).getReg();
 
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -562,7 +562,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&
