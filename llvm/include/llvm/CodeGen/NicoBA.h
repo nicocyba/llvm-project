@@ -408,8 +408,8 @@ auto logEvent = [](const std::string& Event, MachineInstr &MI) {
 };
 
 template <typename T1, typename T2, typename T3>
-inline bool mi_match_wrapper(T1& a, const T2& b, T3& c) {
+inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c) {
     llvm::outs() << "[mi_match types] " << __PRETTY_FUNCTION__ << "\n";
-    return mi_match(a, b, c);
+    return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
 } // end namespace llvm
