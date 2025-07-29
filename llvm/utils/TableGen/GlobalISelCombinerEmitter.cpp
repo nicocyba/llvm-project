@@ -2543,7 +2543,7 @@ void GICombinerEmitter::emitAdditionalImpl(raw_ostream& OS) {
        << "  const TargetSubtargetInfo &ST = MF.getSubtarget();\n"
        << "  const PredicateBitset AvailableFeatures = getAvailableFeatures();\n"
        << "  B.setInstrAndDebugLoc(I);\n"
-       << "  outs() << \"\\t\\t\\t\\t\" << __PRETTY_FUNCTION__ << \" - \" << \"MI: \" << MI << \"\\n\";\n"
+       << "  outs() << \"\\t\\t\\t\\t\" << __PRETTY_FUNCTION__ << \" - \" << \"MI: \" << I << \"\\n\";\n"
        << "  State.MIs.clear();\n"
        << "  State.MIs.push_back(&I);\n"
        << "  if (executeMatchTable(*this, State, ExecInfo, B, getMatchTable(), *ST.getInstrInfo(), MRI, *MRI.getTargetRegisterInfo(), *ST.getRegBankInfo(), AvailableFeatures"
