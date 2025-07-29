@@ -406,4 +406,10 @@ auto MI2String = [](MachineInstr &MI) {
 auto logEvent = [](const std::string& Event, MachineInstr &MI) {
   data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 };
+
+template <typename T1, typename T2, typename T3>
+inline bool mi_match_wrapper(const T1& a, const T2& b, const T3& c) {
+    llvm::outs() << "[mi_match types] " << __PRETTY_FUNCTION__ << "\n";
+    return mi_match(a, b, c);
+}
 } // end namespace llvm
