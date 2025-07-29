@@ -47,6 +47,7 @@ struct OneUse_match {
     OneUse_match(const SubPatternT& SP) : SubPat(SP) {}
 
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return MRI.hasOneUse(Reg) && SubPat.match(MRI, Reg);
     }
 };
@@ -62,6 +63,7 @@ struct OneNonDBGUse_match {
     OneNonDBGUse_match(const SubPatternT& SP) : SubPat(SP) {}
 
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return MRI.hasOneNonDBGUse(Reg) && SubPat.match(MRI, Reg);
     }
 };
@@ -92,6 +94,7 @@ struct ConstantMatch {
     ConstT& CR;
     ConstantMatch(ConstT& C) : CR(C) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         if (auto MaybeCst = matchConstant<ConstT>(Reg, MRI)) {
             CR = *MaybeCst;
             return true;
@@ -128,6 +131,7 @@ struct ICstOrSplatMatch {
     ConstT& CR;
     ICstOrSplatMatch(ConstT& C) : CR(C) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         if (auto MaybeCst = matchConstant<ConstT>(Reg, MRI)) {
             CR = *MaybeCst;
             return true;
@@ -154,6 +158,7 @@ struct GCstAndRegMatch {
     std::optional<ValueAndVReg>& ValReg;
     GCstAndRegMatch(std::optional<ValueAndVReg>& ValReg) : ValReg(ValReg) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         ValReg = getIConstantVRegValWithLookThrough(Reg, MRI);
         return ValReg ? true : false;
     }
@@ -168,6 +173,7 @@ struct GFCstAndRegMatch {
     GFCstAndRegMatch(std::optional<FPValueAndVReg>& FPValReg)
         : FPValReg(FPValReg) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         FPValReg = getFConstantVRegValWithLookThrough(Reg, MRI);
         return FPValReg ? true : false;
     }
@@ -182,6 +188,7 @@ struct GFCstOrSplatGFCstMatch {
     GFCstOrSplatGFCstMatch(std::optional<FPValueAndVReg>& FPValReg)
         : FPValReg(FPValReg) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return (FPValReg = getFConstantSplat(Reg, MRI)) || (FPValReg = getFConstantVRegValWithLookThrough(Reg, MRI));
     };
 };
@@ -196,6 +203,7 @@ struct SpecificConstantMatch {
     int64_t RequestedVal;
     SpecificConstantMatch(int64_t RequestedVal) : RequestedVal(RequestedVal) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         int64_t MatchedVal;
         return mi_match(Reg, MRI, m_ICst(MatchedVal)) && MatchedVal == RequestedVal;
     }
@@ -212,6 +220,7 @@ struct SpecificConstantSplatMatch {
     SpecificConstantSplatMatch(int64_t RequestedVal)
         : RequestedVal(RequestedVal) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return isBuildVectorConstantSplat(Reg, MRI, RequestedVal,
             /* AllowUndef */ false);
     }
@@ -228,6 +237,7 @@ struct SpecificConstantOrSplatMatch {
     SpecificConstantOrSplatMatch(int64_t RequestedVal)
         : RequestedVal(RequestedVal) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         int64_t MatchedVal;
         if (mi_match(Reg, MRI, m_ICst(MatchedVal)) && MatchedVal == RequestedVal) {
             return true;
@@ -257,6 +267,7 @@ struct SpecificRegisterMatch {
     Register RequestedReg;
     SpecificRegisterMatch(Register RequestedReg) : RequestedReg(RequestedReg) {}
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return Reg == RequestedReg;
     }
 };
@@ -272,8 +283,12 @@ inline SpecificRegisterMatch m_SpecificReg(Register RequestedReg) {
 // that.
 
 struct operand_type_match {
-    bool match(const MachineRegisterInfo& MRI, Register Reg) { return true; }
+    bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
+        return true;
+    }
     bool match(const MachineRegisterInfo& MRI, MachineOperand* MO) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return MO->isReg();
     }
 };
@@ -297,6 +312,7 @@ struct And<Pred, Preds...> : And<Preds...> {
     }
     template <typename MatchSrc>
     bool match(const MachineRegisterInfo& MRI, MatchSrc&& src) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return P.match(MRI, src) && And<Preds...>::match(MRI, src);
     }
 };
@@ -305,6 +321,7 @@ template <typename... Preds>
 struct Or {
     template <typename MatchSrc>
     bool match(const MachineRegisterInfo& MRI, MatchSrc&& src) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return false;
     }
 };
@@ -316,6 +333,7 @@ struct Or<Pred, Preds...> : Or<Preds...> {
         : Or<Preds...>(std::forward<Preds>(preds)...), P(std::forward<Pred>(p)) {}
     template <typename MatchSrc>
     bool match(const MachineRegisterInfo& MRI, MatchSrc&& src) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return P.match(MRI, src) || Or<Preds...>::match(MRI, src);
     }
 };
@@ -383,6 +401,7 @@ struct bind_ty {
 
     template <typename ITy>
     bool match(const MachineRegisterInfo& MRI, ITy&& V) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return bind_helper<Class>::bind(MRI, VR, V);
     }
 };
@@ -396,6 +415,7 @@ inline operand_type_match m_Pred() { return operand_type_match(); }
 template <typename BindTy>
 struct deferred_helper {
     static bool match(const MachineRegisterInfo& MRI, BindTy& VR, BindTy& V) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return VR == V;
     }
 };
@@ -403,6 +423,7 @@ struct deferred_helper {
 template <>
 struct deferred_helper<LLT> {
     static bool match(const MachineRegisterInfo& MRI, LLT VT, Register R) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return VT == MRI.getType(R);
     }
 };
@@ -415,6 +436,7 @@ struct deferred_ty {
 
     template <typename ITy>
     bool match(const MachineRegisterInfo& MRI, ITy&& V) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return deferred_helper<Class>::match(MRI, VR, V);
     }
 };
@@ -429,6 +451,7 @@ inline deferred_ty<LLT> m_DeferredType(LLT& Ty) { return Ty; }
 
 struct ImplicitDefMatch {
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         MachineInstr* TmpMI;
         if (mi_match(Reg, MRI, m_MInstr(TmpMI))) {
             return TmpMI->getOpcode() == TargetOpcode::G_IMPLICIT_DEF;
@@ -451,13 +474,14 @@ struct BinaryOp_match {
     BinaryOp_match(const LHS_P& LHS, const RHS_P& RHS) : L(LHS), R(RHS) {}
     template <typename OpTy>
     bool match(const MachineRegisterInfo& MRI, OpTy&& Op) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " BinaryOp_match: op="
-                       << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << MI2String(*TmpMI) << "\n";
+                // llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " BinaryOp_match: op="
+                //        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
+                //        << " matched on MI: " << MI2String(*TmpMI) << "\n";
                 // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
@@ -491,13 +515,14 @@ struct BinaryOpc_match {
         : Opc(Opcode), L(LHS), R(RHS), FuncName(FuncName) {}
     template <typename OpTy>
     bool match(const MachineRegisterInfo& MRI, OpTy&& Op) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opc && TmpMI->getNumDefs() == 1 && TmpMI->getNumOperands() == 3) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
-                       << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << MI2String(*TmpMI) << "\n";
+                // llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
+                //        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
+                //        << " matched on MI: " << MI2String(*TmpMI) << "\n";
                 // TmpMI->print(llvm::outs());
                 // Example: Print each operand of TmpMI
                 // for (unsigned i = 0; i < TmpMI->getNumOperands(); ++i) {
@@ -655,13 +680,14 @@ struct UnaryOp_match {
     UnaryOp_match(const SrcTy& LHS) : L(LHS) {}
     template <typename OpTy>
     bool match(const MachineRegisterInfo& MRI, OpTy&& Op) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 2) {
                 const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
-                llvm::outs() << "\t\t\t" << __func__ << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
-                       << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
-                       << " matched on MI: " << MI2String(*TmpMI) << "\n"; //", operand type: " << TmpMI->getOperand(0).getType();
+                // llvm::outs() << "\t\t\t" << __func__ << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
+                //        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
+                //        << " matched on MI: " << MI2String(*TmpMI) << "\n"; //", operand type: " << TmpMI->getOperand(0).getType();
                 return L.match(MRI, TmpMI->getOperand(1).getReg());
             }
         }
@@ -752,6 +778,7 @@ struct CompareOp_match {
 
     template <typename OpTy>
     bool match(const MachineRegisterInfo& MRI, OpTy&& Op) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         MachineInstr* TmpMI;
         if (!mi_match(Op, MRI, m_MInstr(TmpMI)) || TmpMI->getOpcode() != Opcode) {
             return false;
@@ -825,6 +852,7 @@ struct CheckType {
     CheckType(const LLT Ty) : Ty(Ty) {}
 
     bool match(const MachineRegisterInfo& MRI, Register Reg) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         return MRI.getType(Reg) == Ty;
     }
 };
@@ -841,6 +869,7 @@ struct TernaryOp_match {
         : Src0(Src0), Src1(Src1), Src2(Src2) {}
     template <typename OpTy>
     bool match(const MachineRegisterInfo& MRI, OpTy&& Op) {
+        llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 4) {
