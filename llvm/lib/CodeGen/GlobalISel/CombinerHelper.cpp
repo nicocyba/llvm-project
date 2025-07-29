@@ -2586,7 +2586,7 @@ bool CombinerHelper::matchCombineI2PToP2I(MachineInstr& MI,
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
     Register SrcReg = MI.getOperand(1).getReg();
-    if (mi_match(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg)))) {
+    if (mi_match(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg))))) {
         outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2864,14 +2864,22 @@ bool CombinerHelper::matchUndefShuffleVectorMask(MachineInstr& MI) const {
 
 bool CombinerHelper::matchUndefStore(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_STORE);
-    return getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(0).getReg(),
-        MRI);
+    if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(0).getReg(),
+        MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchUndefSelectCmp(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
-    return getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(1).getReg(),
-        MRI);
+    if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(1).getReg(),
+        MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchInsertExtractVecEltOutOfBounds(
@@ -2887,7 +2895,11 @@ bool CombinerHelper::matchInsertExtractVecEltOutOfBounds(
     if (!Idx) {
         return false;
     }
-    return Idx->getZExtValue() >= VecTy.getNumElements();
+    if (Idx->getZExtValue() >= VecTy.getNumElements()) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchConstantSelectCmp(MachineInstr& MI,
@@ -2898,6 +2910,7 @@ bool CombinerHelper::matchConstantSelectCmp(MachineInstr& MI,
         return false;
     }
     OpIdx = Cst->isZero() ? 3 : 2;
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2926,7 +2939,12 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
     // Even though %0 and %1 are produced by the same instruction they are not
     // the same values.
     if (I1 == I2) {
-        return MOP1.getReg() == MOP2.getReg();
+        if (MOP1.getReg() == MOP2.getReg()) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
+
     }
 
     // If we have an instruction which loads or stores, we can't guarantee that
@@ -2985,7 +3003,11 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         // In this case, I1 and I2 will both be equal to %a = COPY $physreg.
         // From that, we know that they must have the same value, since they must
         // have come from the same COPY.
-        return I1->isIdenticalTo(*I2);
+        if (I1->isIdenticalTo(*I2)) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
     }
 
     // We don't have any physical registers, so we don't necessarily need the
