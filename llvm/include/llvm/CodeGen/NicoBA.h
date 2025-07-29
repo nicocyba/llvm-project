@@ -399,6 +399,7 @@ auto MI2String = [](MachineInstr &MI) {
   MI.print(OS);
   OS.flush();
   InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
+  InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask>");
   return InstrStr;
 };
 

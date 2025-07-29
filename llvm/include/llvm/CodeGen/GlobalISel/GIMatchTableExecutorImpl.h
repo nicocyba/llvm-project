@@ -875,6 +875,10 @@ bool GIMatchTableExecutor::executeMatchTable(
                     dbgs() << CurrentIdx << ": GIM_CheckConstantInt(MIs["
                            << InsnID << "]->getOperand(" << OpIdx
                            << "), Value=" << Value << ")\n");
+
+                outs() << << CurrentIdx << ": GIM_CheckConstantInt(MIs["
+                           << InsnID << "]->getOperand(" << OpIdx
+                           << "), Value=" << Value << ")\n";
                 assert(State.MIs[InsnID] != nullptr && "Used insn before defined");
                 MachineOperand& MO = State.MIs[InsnID]->getOperand(OpIdx);
                 if (MO.isReg()) {
@@ -1045,6 +1049,10 @@ bool GIMatchTableExecutor::executeMatchTable(
                     dbgs() << CurrentIdx << ": GIM_CheckCanReplaceReg(MIs["
                            << OldInsnID << "][" << OldOpIdx << "] = MIs["
                            << NewInsnID << "][" << NewOpIdx << "])\n");
+                
+                outs() << CurrentIdx << ": GIM_CheckCanReplaceReg(MIs["
+                           << OldInsnID << "][" << OldOpIdx << "] = MIs["
+                           << NewInsnID << "][" << NewOpIdx << "])\n";
 
                 Register Old = State.MIs[OldInsnID]->getOperand(OldOpIdx).getReg();
                 Register New = State.MIs[NewInsnID]->getOperand(NewOpIdx).getReg();
