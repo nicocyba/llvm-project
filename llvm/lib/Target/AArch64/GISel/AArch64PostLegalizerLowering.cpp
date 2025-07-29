@@ -201,6 +201,7 @@ bool matchTRN(MachineInstr &MI, MachineRegisterInfo &MRI,
   Register V1 = MI.getOperand(1).getReg();
   Register V2 = MI.getOperand(2).getReg();
   MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -222,6 +223,7 @@ bool matchUZP(MachineInstr &MI, MachineRegisterInfo &MRI,
   Register V1 = MI.getOperand(1).getReg();
   Register V2 = MI.getOperand(2).getReg();
   MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -238,6 +240,7 @@ bool matchZip(MachineInstr &MI, MachineRegisterInfo &MRI,
   Register V1 = MI.getOperand(1).getReg();
   Register V2 = MI.getOperand(2).getReg();
   MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -278,6 +281,7 @@ bool matchDupFromInsertVectorElt(int Lane, MachineInstr &MI,
 
   MatchInfo = ShuffleVectorPseudo(AArch64::G_DUP, MI.getOperand(0).getReg(),
                                   {InsMI->getOperand(2).getReg()});
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -301,6 +305,7 @@ bool matchDupFromBuildVector(int Lane, MachineInstr &MI,
   Register Reg = BuildVecMI->getOperand(Lane + 1).getReg();
   MatchInfo =
       ShuffleVectorPseudo(AArch64::G_DUP, MI.getOperand(0).getReg(), {Reg});
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -314,10 +319,15 @@ bool matchDup(MachineInstr &MI, MachineRegisterInfo &MRI,
   // If this is undef splat, generate it via "just" vdup, if possible.
   if (Lane < 0)
     Lane = 0;
-  if (matchDupFromInsertVectorElt(Lane, MI, MRI, MatchInfo))
+  if (matchDupFromInsertVectorElt(Lane, MI, MRI, MatchInfo)){
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
-  if (matchDupFromBuildVector(Lane, MI, MRI, MatchInfo))
+  }
+
+  if (matchDupFromBuildVector(Lane, MI, MRI, MatchInfo)) {
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
+  }
   return false;
 }
 
@@ -346,7 +356,7 @@ bool isSingletonExtMask(ArrayRef<int> M, LLT Ty) {
     if (ExpectedElt != static_cast<unsigned>(M[I]))
       return false;
   }
-
+  
   return true;
 }
 
@@ -378,6 +388,7 @@ bool matchEXT(MachineInstr &MI, MachineRegisterInfo &MRI,
     std::swap(V1, V2);
   Imm *= ExtFactor;
   MatchInfo = ShuffleVectorPseudo(AArch64::G_EXT, Dst, {V1, V2, Imm});
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -770,6 +781,7 @@ bool matchDupLane(MachineInstr &MI, MachineRegisterInfo &MRI,
 
   MatchInfo.first = Opc;
   MatchInfo.second = *LaneIdx;
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
