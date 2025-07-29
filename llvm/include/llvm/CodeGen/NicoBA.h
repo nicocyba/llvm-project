@@ -308,7 +308,9 @@ namespace llvm {
 enum CurrentBackendStage : unsigned {
   INIT,
   IRTRANSLATOR,
+  PRELEGALIZERCOMBINER,
   LEGALIZER,
+  POSTLEGALIZERCOMBINER,
   REGBANKSELECT,
   INSTRUCTIONSELECT,
   COMBINER,
@@ -317,14 +319,16 @@ enum CurrentBackendStage : unsigned {
 
 inline std::string to_string(CurrentBackendStage stage) {
   switch (stage) {
-    case INIT: return "init";
+    // case INIT: return "init";
     case IRTRANSLATOR: return "irtranslator";
+    case PRELEGALIZERCOMBINER: return "prelegalizercombiner";
     case LEGALIZER: return "legalizer";
+    case POSTLEGALIZERCOMBINER: return "postlegalizercombiner";
     case REGBANKSELECT: return "regbankselect";
     case INSTRUCTIONSELECT: return "instructionselect";
     case COMBINER: return "combiner";
     case MACHINECOMBINER: return "machinecombiner";
-    default: return "unknown";
+    default: return "init";
   } 
 }
 
@@ -395,6 +399,7 @@ auto MI2String = [](MachineInstr &MI) {
   MI.print(OS);
   OS.flush();
   InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
+  InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask...>");
   return InstrStr;
 };
 
@@ -415,7 +420,8 @@ inline void mi_match_wrapper2(T1&&, T2&&, T3&&) {
     std::string pretty = __PRETTY_FUNCTION__;
     std::string t3type;
     std::smatch match;
-    std::regex re("T3 =([^]]+)]");
+    // regex that matches everything between "T3 = " and the next closing parenthesis
+    std::regex re("T3 = \\[(.*?)\\]");
     if (std::regex_search(pretty, match, re)) {
         t3type = match[1].str();
         // Trim whitespace
