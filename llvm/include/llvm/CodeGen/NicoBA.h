@@ -415,7 +415,7 @@ inline void mi_match_wrapper2(T1&&, T2&&, T3&&) {
     std::string pretty = __PRETTY_FUNCTION__;
     std::string t3type;
     std::smatch match;
-    std::regex re("T3 =([^\]]+)]");
+    std::regex re("T3 =([^]]+)]");
     if (std::regex_search(pretty, match, re)) {
         t3type = match[1].str();
         // Trim whitespace
