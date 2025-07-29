@@ -3026,7 +3026,7 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
             outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
-        return false
+        return false;
     }
     return false;
 }
@@ -3125,28 +3125,48 @@ void CombinerHelper::applyFunnelShiftConstantModulo(MachineInstr& MI) const {
 bool CombinerHelper::matchSelectSameVal(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
     // Match (cond ? x : x)
-    return matchEqualDefs(MI.getOperand(2), MI.getOperand(3)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(2).getReg(), MRI);
+    if (matchEqualDefs(MI.getOperand(2), MI.getOperand(3)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(2).getReg(), MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchBinOpSameVal(MachineInstr& MI) const {
-    return matchEqualDefs(MI.getOperand(1), MI.getOperand(2)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(1).getReg(), MRI);
+    if (matchEqualDefs(MI.getOperand(1), MI.getOperand(2)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(1).getReg(), MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchOperandIsZero(MachineInstr& MI,
     unsigned OpIdx) const {
-    return matchConstantOp(MI.getOperand(OpIdx), 0) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(OpIdx).getReg(), MRI);
+    if (matchConstantOp(MI.getOperand(OpIdx), 0) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(OpIdx).getReg(), MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchOperandIsUndef(MachineInstr& MI,
     unsigned OpIdx) const {
     MachineOperand& MO = MI.getOperand(OpIdx);
-    return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
+    if (MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchOperandIsKnownToBeAPowerOfTwo(MachineInstr& MI,
     unsigned OpIdx) const {
     MachineOperand& MO = MI.getOperand(OpIdx);
-    return isKnownToBeAPowerOfTwo(MO.getReg(), MRI, KB);
+    if (isKnownToBeAPowerOfTwo(MO.getReg(), MRI, KB)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::replaceInstWithFConstant(MachineInstr& MI,
@@ -3200,7 +3220,11 @@ bool CombinerHelper::matchSimplifyAddToSub(
         return true;
     };
 
-    return CheckFold(LHS, RHS) || CheckFold(RHS, LHS);
+    if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 bool CombinerHelper::matchCombineInsertVecElts(
@@ -3246,11 +3270,16 @@ bool CombinerHelper::matchCombineInsertVecElts(
                 MatchInfo[I - 1] = TmpInst->getOperand(I).getReg();
             }
         }
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     // If we didn't end in a G_IMPLICIT_DEF and the source is not fully
     // overwritten, bail out.
-    return TmpInst->getOpcode() == TargetOpcode::G_IMPLICIT_DEF || all_of(MatchInfo, [](Register Reg) { return !!Reg; });
+    if (TmpInst->getOpcode() == TargetOpcode::G_IMPLICIT_DEF || all_of(MatchInfo, [](Register Reg) { return !!Reg; })) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyCombineInsertVecElts(
@@ -3390,6 +3419,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     InstructionBuildSteps HandSteps(HandOpcode, HandBuildSteps);
 
     MatchInfo = InstructionStepsMatchInfo({LogicSteps, HandSteps});
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3425,6 +3455,7 @@ bool CombinerHelper::matchAshrShlToSextInreg(
         return false;
     }
     MatchInfo = std::make_tuple(Src, ShlCst);
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3465,6 +3496,7 @@ bool CombinerHelper::matchOverlappingAnd(
         auto Zero = B.buildConstant(Ty, 0);
         replaceRegWith(MRI, Dst, Zero->getOperand(0).getReg());
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3512,12 +3544,14 @@ bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
     // Check if we can replace AndDst with the LHS of the G_AND
     if (canReplaceReg(AndDst, LHS, MRI) && (LHSBits.Zero | RHSBits.One).isAllOnes()) {
         Replacement = LHS;
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Check if we can replace AndDst with the RHS of the G_AND
     if (canReplaceReg(AndDst, RHS, MRI) && (LHSBits.One | RHSBits.Zero).isAllOnes()) {
         Replacement = RHS;
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -3553,12 +3587,14 @@ bool CombinerHelper::matchRedundantOr(MachineInstr& MI,
     // Check if we can replace OrDst with the LHS of the G_OR
     if (canReplaceReg(OrDst, LHS, MRI) && (LHSBits.One | RHSBits.Zero).isAllOnes()) {
         Replacement = LHS;
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Check if we can replace OrDst with the RHS of the G_OR
     if (canReplaceReg(OrDst, RHS, MRI) && (LHSBits.Zero | RHSBits.One).isAllOnes()) {
         Replacement = RHS;
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -3570,7 +3606,11 @@ bool CombinerHelper::matchRedundantSExtInReg(MachineInstr& MI) const {
     Register Src = MI.getOperand(1).getReg();
     unsigned ExtBits = MI.getOperand(2).getImm();
     unsigned TypeSize = MRI.getType(Src).getScalarSizeInBits();
-    return KB->computeNumSignBits(Src) >= (TypeSize - ExtBits + 1);
+    if (KB->computeNumSignBits(Src) >= (TypeSize - ExtBits + 1)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 static bool isConstValidTrue(const TargetLowering& TLI, unsigned ScalarSizeBits, int64_t Cst, bool IsVector, bool IsFP) {
@@ -3659,7 +3699,7 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
             return false;
         }
     }
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3773,7 +3813,7 @@ bool CombinerHelper::matchNotCmp(
             return false;
         }
     }
-
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3840,7 +3880,12 @@ bool CombinerHelper::matchXorOfAndWithSameReg(
     if (Y != SharedReg) {
         std::swap(X, Y);
     }
-    return Y == SharedReg;
+    if (Y == SharedReg) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+
+    }
+    return false;
 }
 
 void CombinerHelper::applyXorOfAndWithSameReg(
@@ -3868,12 +3913,20 @@ bool CombinerHelper::matchPtrAddZero(MachineInstr& MI) const {
 
     if (Ty.isPointer()) {
         auto ConstVal = getIConstantVRegVal(PtrAdd.getBaseReg(), MRI);
-        return ConstVal && *ConstVal == 0;
+        if (ConstVal && *ConstVal == 0) {
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            return true;
+        }
+        return false;
     }
 
     assert(Ty.isVector() && "Expecting a vector type");
     const MachineInstr* VecMI = MRI.getVRegDef(PtrAdd.getBaseReg());
-    return isBuildVectorAllZeros(*VecMI, MRI);
+    if (isBuildVectorAllZeros(*VecMI, MRI)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 void CombinerHelper::applyPtrAddZero(MachineInstr& MI) const {
@@ -3937,12 +3990,17 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
     // variable.
     bool CanFoldNonConst = (BinOpcode == TargetOpcode::G_AND || BinOpcode == TargetOpcode::G_OR) && (isNullOrNullSplat(*SelectLHS, MRI) || isAllOnesOrAllOnesSplat(*SelectLHS, MRI)) && (isNullOrNullSplat(*SelectRHS, MRI) || isAllOnesOrAllOnesSplat(*SelectRHS, MRI));
     if (CanFoldNonConst) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
-    return isConstantOrConstantVector(*MRI.getVRegDef(OtherOperandReg), MRI,
+    if (isConstantOrConstantVector(*MRI.getVRegDef(OtherOperandReg), MRI,
         /*AllowFP*/ true,
-        /*AllowOpaqueConstants*/ false);
+        /*AllowOpaqueConstants*/ false)) {
+        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        return true;
+    }
+    return false;
 }
 
 /// \p SelectOperand is the operand in binary operator \p MI that is the select
@@ -4350,6 +4408,7 @@ bool CombinerHelper::matchLoadOrCombine(
             MIB.buildBSwap(Dst, LoadDst);
         }
     };
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4371,6 +4430,7 @@ bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI,
     ExtMI = &*MRI.use_instr_nodbg_begin(DstReg);
     switch (ExtMI->getOpcode()) {
         case TargetOpcode::G_ANYEXT:
+            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true; // G_ANYEXT is usually free.
         case TargetOpcode::G_ZEXT:
         case TargetOpcode::G_SEXT:
@@ -4408,6 +4468,7 @@ bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI,
                 return false;
         }
     }
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4493,6 +4554,7 @@ bool CombinerHelper::matchExtractVecEltBuildVec(MachineInstr& MI,
     }
 
     Reg = SrcVecMI->getOperand(VecIdx + 1).getReg();
+    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
