@@ -457,8 +457,8 @@ class CodeGenInstructionPattern : public InstructionPattern {
 public:
   CodeGenInstructionPattern(const CodeGenInstruction &I, StringRef Name)
       : InstructionPattern(K_CodeGenInstruction, Name), I(I) {
-        outs() << "Creating CodeGenInstructionPattern for: " << Name << "\n";
-        outs() << "  InstNS: " << I.Namespace << "\n";
+        llvm::outs() << "Creating CodeGenInstructionPattern for: " << Name << "\n";
+        llvm::outs() << "  InstNS: " << I.Namespace << "\n";
       }
 
   static bool classof(const Pattern *P) {
