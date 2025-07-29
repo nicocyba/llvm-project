@@ -101,6 +101,7 @@ bool matchExtractVecEltPairwiseAdd(
     std::get<0>(MatchInfo) = TargetOpcode::G_FADD;
     std::get<1>(MatchInfo) = DstTy;
     std::get<2>(MatchInfo) = Other->getOperand(0).getReg();
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -243,6 +244,7 @@ bool matchAArch64MulConstCombine(
     }
     B.buildCopy(DstReg, Res.getReg(0));
   };
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -261,7 +263,11 @@ bool matchFoldMergeToZext(MachineInstr &MI, MachineRegisterInfo &MRI) {
   LLT SrcTy = MRI.getType(Merge.getSourceReg(0));
   if (SrcTy != LLT::scalar(32) || Merge.getNumSources() != 2)
     return false;
-  return mi_match(Merge.getSourceReg(1), MRI, m_SpecificICst(0));
+  if (mi_match(Merge.getSourceReg(1), MRI, m_SpecificICst(0))) {
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    return true;
+  }
+  return false;
 }
 
 void applyFoldMergeToZext(MachineInstr &MI, MachineRegisterInfo &MRI,
@@ -288,10 +294,14 @@ bool matchMutateAnyExtToZExt(MachineInstr &MI, MachineRegisterInfo &MRI) {
   assert(MI.getOpcode() == TargetOpcode::G_ANYEXT);
   Register Dst = MI.getOperand(0).getReg();
   Register Src = MI.getOperand(1).getReg();
-  return MRI.getType(Dst).isScalar() &&
-         mi_match(Src, MRI,
-                  m_any_of(m_GICmp(m_Pred(), m_Reg(), m_Reg()),
-                           m_GFCmp(m_Pred(), m_Reg(), m_Reg())));
+  if (MRI.getType(Dst).isScalar() &&
+      mi_match(Src, MRI,
+               m_any_of(m_GICmp(m_Pred(), m_Reg(), m_Reg()),
+                        m_GFCmp(m_Pred(), m_Reg(), m_Reg())))) {
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    return true;
+  }
+  return false;
 }
 
 void applyMutateAnyExtToZExt(MachineInstr &MI, MachineRegisterInfo &MRI,
@@ -319,7 +329,11 @@ bool matchSplitStoreZero128(MachineInstr &MI, MachineRegisterInfo &MRI) {
     return false;
   auto MaybeCst = isConstantOrConstantSplatVector(
       *MRI.getVRegDef(Store.getValueReg()), MRI);
-  return MaybeCst && MaybeCst->isZero();
+  if (MaybeCst && MaybeCst->isZero()) {
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    return true;
+  }
+  return false;
 }
 
 void applySplitStoreZero128(MachineInstr &MI, MachineRegisterInfo &MRI,
@@ -370,6 +384,7 @@ bool matchOrToBSP(MachineInstr &MI, MachineRegisterInfo &MRI,
   }
 
   MatchInfo = {AO1, AO2, BVO1};
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -416,6 +431,7 @@ bool matchCombineMulCMLT(MachineInstr &MI, MachineRegisterInfo &MRI,
 
   SrcReg = LShrMI->getOperand(1).getReg();
 
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 

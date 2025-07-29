@@ -56,8 +56,12 @@ bool matchFConstantToConstant(MachineInstr &MI, MachineRegisterInfo &MRI) {
   // When we're storing a value, it doesn't matter what register bank it's on.
   // Since not all floating point constants can be materialized using a fmov,
   // it makes more sense to just use a GPR.
-  return all_of(MRI.use_nodbg_instructions(DstReg),
-                [](const MachineInstr &Use) { return Use.mayStore(); });
+  if (all_of(MRI.use_nodbg_instructions(DstReg),
+             [](const MachineInstr &Use) { return Use.mayStore(); })) {
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    return true;
+  }
+  return false;
 }
 
 /// Change a G_FCONSTANT into a G_CONSTANT.
@@ -98,6 +102,7 @@ bool matchICmpRedundantTrunc(MachineInstr &MI, MachineRegisterInfo &MRI,
     return false;
 
   MatchInfo = WideReg;
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -186,6 +191,7 @@ bool matchFoldGlobalOffset(MachineInstr &MI, MachineRegisterInfo &MRI,
       NewOffset > GV->getDataLayout().getTypeAllocSize(T))
     return false;
   MatchInfo = std::make_pair(NewOffset, MinOffset);
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -283,6 +289,7 @@ bool matchExtAddvToUdotAddv(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (SrcTy.getScalarSizeInBits() != 8 || SrcTy.getNumElements() % 8 != 0)
     return false;
 
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   return true;
 }
 
@@ -438,6 +445,7 @@ bool matchExtUaddvToUaddlv(MachineInstr &MI, MachineRegisterInfo &MRI,
       (DstTy.getScalarSizeInBits() == 64 &&
        ExtSrcTy.getNumElements() % 4 == 0)) {
     std::get<0>(MatchInfo) = ExtSrcReg;
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
   }
   return false;
@@ -577,6 +585,7 @@ bool matchPushAddSubExt(MachineInstr &MI, MachineRegisterInfo &MRI,
   if (((Ext1SrcScal == 8 && ExtDstScal == 32) ||
        ((Ext1SrcScal == 8 || Ext1SrcScal == 16) && ExtDstScal == 64)) &&
       Ext1SrcTy == Ext2SrcTy)
+    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 
   return false;
