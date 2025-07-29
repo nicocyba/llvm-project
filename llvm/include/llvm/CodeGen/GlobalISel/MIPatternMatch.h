@@ -482,7 +482,7 @@ struct BinaryOp_match {
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 3) {
-                const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
+                // const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 // llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " BinaryOp_match: op="
                 //        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
                 //        << " matched on MI: " << MI2String(*TmpMI) << "\n";
@@ -523,7 +523,7 @@ struct BinaryOpc_match {
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opc && TmpMI->getNumDefs() == 1 && TmpMI->getNumOperands() == 3) {
-                const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
+                // const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 // llvm::outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " | " << to_string(current_stage) << " | " << FuncName << " | BinaryOpc_match: op="
                 //        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
                 //        << " matched on MI: " << MI2String(*TmpMI) << "\n";
