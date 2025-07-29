@@ -1000,6 +1000,7 @@ void CombineRuleBuilder::print(raw_ostream& OS,
 
 bool CombineRuleBuilder::addApplyPattern(std::unique_ptr<Pattern> Pat) {
     StringRef Name = Pat->getName();
+    outs() << "Adding apply pattern '" << Name << "'\n";
     if (ApplyPats.contains(Name)) {
         PrintError("'" + Name + "' apply pattern defined more than once!");
         return false;
@@ -1025,6 +1026,7 @@ bool CombineRuleBuilder::addApplyPattern(std::unique_ptr<Pattern> Pat) {
 
 bool CombineRuleBuilder::addMatchPattern(std::unique_ptr<Pattern> Pat) {
     StringRef Name = Pat->getName();
+    outs() << "Adding match pattern '" << Name << "'\n";
     if (MatchPats.contains(Name)) {
         PrintError("'" + Name + "' match pattern defined more than once!");
         return false;
