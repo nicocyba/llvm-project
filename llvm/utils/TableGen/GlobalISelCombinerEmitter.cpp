@@ -1842,7 +1842,7 @@ bool CombineRuleBuilder::emitPatFragMatchPattern(
 
 bool CombineRuleBuilder::emitApplyPatterns(CodeExpansions& CE, RuleMatcher& M) {
     assert(MatchDatas.empty());
-
+    outs() << "// Emitting 'apply' patterns for rule '" << RuleDef.getName() << "'\n";
     DenseSet<const Pattern*> SeenPats;
     StringMap<unsigned> OperandToTempRegID;
 
