@@ -1330,10 +1330,11 @@ AArch64PostLegalizerLowering::AArch64PostLegalizerLowering()
 }
 
 bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction &MF) {
-  if (MF.getProperties().hasProperty(
-          MachineFunctionProperties::Property::FailedISel))
+  if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
-  LLVM_DEBUG(outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n");
+
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&
          "Expected a legalized function?");

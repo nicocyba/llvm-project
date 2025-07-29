@@ -361,8 +361,8 @@ struct GlobalISelData {
   std::string event; // created, deleted, special
   std::string mf; //mf name
   std::string mbb; // mbb name
-  std::string mi_before; // mi name
-  std::string mi_after; // mi name
+  std::string mi_before; // mi
+  std::string mi_after; // mi
   std::string pattern; // MIPattern
 };
 

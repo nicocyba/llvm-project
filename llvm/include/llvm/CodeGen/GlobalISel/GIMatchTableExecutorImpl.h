@@ -43,7 +43,9 @@ namespace llvm {
 
 template <class TgtExecutor, class PredicateBitset, class ComplexMatcherMemFn, class CustomRendererFn>
 bool GIMatchTableExecutor::executeMatchTable(
-    TgtExecutor& Exec, MatcherState& State, const ExecInfoTy<PredicateBitset, ComplexMatcherMemFn, CustomRendererFn>& ExecInfo, MachineIRBuilder& Builder, const uint8_t* MatchTable, const TargetInstrInfo& TII, MachineRegisterInfo& MRI, const TargetRegisterInfo& TRI, const RegisterBankInfo& RBI, const PredicateBitset& AvailableFeatures, CodeGenCoverage* CoverageInfo) const {
+    TgtExecutor& Exec, MatcherState& State, const ExecInfoTy<PredicateBitset, ComplexMatcherMemFn, CustomRendererFn>& ExecInfo, 
+    MachineIRBuilder& Builder, const uint8_t* MatchTable, const TargetInstrInfo& TII, MachineRegisterInfo& MRI, 
+    const TargetRegisterInfo& TRI, const RegisterBankInfo& RBI, const PredicateBitset& AvailableFeatures, CodeGenCoverage* CoverageInfo) const {
 
     uint64_t CurrentIdx = 0;
     SmallVector<uint64_t, 4> OnFailResumeAt;
