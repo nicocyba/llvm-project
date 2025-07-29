@@ -78,7 +78,7 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 }
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t" << __PRETTY_FUNCTION__ << " - " << "MI: " << MI << "\n";
     if (tryCombineAllImpl(MI)) {
         return true;
     }
@@ -149,8 +149,7 @@ AArch64O0PreLegalizerCombiner::AArch64O0PreLegalizerCombiner()
 }
 
 bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
-    if (MF.getProperties().hasProperty(
-            MachineFunctionProperties::Property::FailedISel)) {
+    if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
     outs() << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";

@@ -2541,14 +2541,12 @@ void GICombinerEmitter::emitAdditionalImpl(raw_ostream& OS) {
     OS << "bool " << getClassName() << "::" << getCombineAllMethodName()
        << "(MachineInstr &I) const {\n"
        << "  const TargetSubtargetInfo &ST = MF.getSubtarget();\n"
-       << "  const PredicateBitset AvailableFeatures = "
-          "getAvailableFeatures();\n"
+       << "  const PredicateBitset AvailableFeatures = getAvailableFeatures();\n"
        << "  B.setInstrAndDebugLoc(I);\n"
+       << "  outs() << \"\\t\\t\\t\\t\" << __PRETTY_FUNCTION__ << \" - \" << \"MI: \" << MI << \"\\n\";\n"
        << "  State.MIs.clear();\n"
        << "  State.MIs.push_back(&I);\n"
-       << "  if (executeMatchTable(*this, State, ExecInfo, B"
-       << ", getMatchTable(), *ST.getInstrInfo(), MRI, "
-          "*MRI.getTargetRegisterInfo(), *ST.getRegBankInfo(), AvailableFeatures"
+       << "  if (executeMatchTable(*this, State, ExecInfo, B, getMatchTable(), *ST.getInstrInfo(), MRI, *MRI.getTargetRegisterInfo(), *ST.getRegBankInfo(), AvailableFeatures"
        << ", /*CoverageInfo*/ nullptr)) {\n"
        << "    return true;\n"
        << "  }\n\n"
@@ -2726,6 +2724,14 @@ void GICombinerEmitter::gatherRules(std::vector<RuleMatcher>& ActiveRules,
             assert(ErrorsPrinted && "Emission failed without errors!");
             continue;
         }
+    }
+    outs() << "Gathered " << ActiveRules.size()
+       << " rules for combiner '" << Name << "'\n";
+    outs() << "  - " << AllCombineRules.size()
+       << " rules are enabled by default\n";
+    // please print all combinerules
+    for (const auto& [ID, Name] : AllCombineRules) {
+        outs() << "  - Rule #" << ID << ": " << Name << '\n';
     }
 }
 
