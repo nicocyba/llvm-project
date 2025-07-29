@@ -980,7 +980,7 @@ bool LoadStoreOpt::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
   
-  outs() << "Running LoadStoreOpt\n";
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   LLVM_DEBUG(dbgs() << "Begin memory optimizations for: " << MF.getName()
                     << '\n');
 

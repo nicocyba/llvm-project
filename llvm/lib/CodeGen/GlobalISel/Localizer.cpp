@@ -209,7 +209,7 @@ bool Localizer::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  outs() << "Running Localizer\n";
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
   // Don't run the pass if the target asked so.
   if (DoNotRunPass(MF))
     return false;

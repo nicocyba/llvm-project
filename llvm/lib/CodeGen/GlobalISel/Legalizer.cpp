@@ -318,8 +318,10 @@ bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
   if (MF.getProperties().hasProperty(
           MachineFunctionProperties::Property::FailedISel))
     return false;
+    
   current_stage = CurrentBackendStage::LEGALIZER;
-  outs() << "Running Legalizer\n";
+  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+
   LLVM_DEBUG(dbgs() << "Legalize Machine IR for: " << MF.getName() << '\n');
   init(MF);
   const TargetPassConfig &TPC = getAnalysis<TargetPassConfig>();
