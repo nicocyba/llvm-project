@@ -551,7 +551,7 @@ auto MI2String = [](MachineInstr& MI) {
 
 auto log_backend_event = [](const std::string& event, MachineInstr& MI, const std::string& pattern) {
     // data_globalisel.emplace_back({to_string(current_stage), event, MI.getParent()->getParent(), MI.getParent(), MI2String(MI), MI2String(MI), pattern});
-    data_globalisel.emplace_back({to_string(current_stage), event, "", "", "", "", pattern});
+    data_globalisel.emplace_back(GlobalISelData{to_string(current_stage), event, "", "", "", "", pattern});
 };
 } // end namespace llvm...
 
