@@ -339,7 +339,7 @@ bool Combiner::combineMachineInstrs() {
       MachineInstr &CurrInst = *WorkList.pop_back_val();
       // llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
       bool AppliedCombine = tryCombineAll(CurrInst);
-      WLObserver->reportFullyCreatedInstrs();
+      // WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
       if (AppliedCombine)
