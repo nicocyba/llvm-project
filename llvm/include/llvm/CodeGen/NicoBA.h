@@ -431,8 +431,8 @@ inline std::string to_string(AArch64MachineCombinerPattern2 pattern) {
             return "FMULv8i16_indexed_OP2";
         case FNMADD:
             return "FNMADD";
-        default:
-            return "<unknown>";
+        // default:
+        //     return "<unknown>";
     }
 }
 } // end namespace nico
@@ -625,7 +625,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
   // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
   if (is_T1_MachineInstr) {
-    log_backend_event("mi_match", std::forward<T1>(a), pattern);
+    llvm::log_backend_event("mi_match", std::forward<T1>(a), pattern);
   }
   
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
