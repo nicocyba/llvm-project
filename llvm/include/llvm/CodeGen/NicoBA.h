@@ -532,6 +532,7 @@ struct GlobalISelDataVector : public std::vector<GlobalISelData> {
 
 inline thread_local MachineCombinerDataVector data_machinecombiner;
 inline thread_local GlobalISelDataVector data_globalisel;
+
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
 auto MI2String = [](MachineInstr& MI) {
@@ -608,8 +609,8 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
 }
 
 template <typename T1, typename T2, typename T3>
-inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
+inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
-  llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " (" << file_cleaned << ":" << line << ")\n";
+  llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " (" << file_cleaned << ":" << line << ")\n";
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
