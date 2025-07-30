@@ -29,10 +29,10 @@ inline std::string to_string(MachineCombinerPattern2 pattern) {
             return "REASSOC_XA_BY";
         case REASSOC_XA_YB:
             return "REASSOC_XA_YB";
-        case TARGET_PATTERN_START:
-            return "TARGET_PATTERN_START";
+        // case TARGET_PATTERN_START:
+        //     return "TARGET_PATTERN_START";
         default:
-            return "<unknown>";
+            return "TARGET_PATTERN_START";
     }
 }
 
@@ -485,6 +485,7 @@ inline thread_local CurrentBackendStage current_stage = INIT;
 
 inline thread_local bool is_globalisel = false;
 
+// definition of machinecombiner data structure
 struct MachineCombinerData {
     unsigned idx;
     unsigned mbb_pred;
@@ -498,17 +499,7 @@ struct MachineCombinerData {
     std::string pattern;
 };
 
-struct GlobalISelData {
-    std::string caller; // irtranslator, legalizer, ...
-    std::string event; // created, deleted, special
-    std::string mf; // mf name
-    std::string mbb; // mbb name
-    std::string mi_before; // mi name
-    std::string mi_after; // mi name
-    std::string pattern; // MIPattern
-};
-
-// Use a thread_local wrapper with a destructor to clear the vector on thread exit.
+// thread local wrapper to clear data after each run
 struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
     ~MachineCombinerDataVector() {
         for (auto& i : *this) {
@@ -517,6 +508,16 @@ struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
         }
         this->clear();
     }
+};
+
+struct GlobalISelData {
+    std::string caller; // irtranslator, legalizer, ...
+    std::string event; // created, deleted, special
+    std::string mf; // mf name
+    std::string mbb; // mbb name
+    std::string mi_before; // mi name
+    std::string mi_after; // mi name
+    std::string pattern; // MIPattern
 };
 
 struct GlobalISelDataVector : public std::vector<GlobalISelData> {
@@ -543,7 +544,11 @@ auto MI2String = [](MachineInstr& MI) {
     return InstrStr;
 };
 
-auto logEvent = [](const std::string& Event, MachineInstr& MI) {
+// auto logEvent = [](const std::string& Event, MachineInstr& MI) {
+//     data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
+// };
+
+auto log_backend_event = [](const std::string& Event, MachineInstr& MI) {
     data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 };
 } // end namespace llvm...
@@ -601,9 +606,10 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
     return flag;
     // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
+
 template <typename T1, typename T2, typename T3>
 inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
-  file = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
-  llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " (" << file << ":" << line << ")\n";
+  std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
+  llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " (" << file_cleaned << ":" << line << ")\n";
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
