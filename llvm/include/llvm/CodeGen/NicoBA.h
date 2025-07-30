@@ -616,14 +616,16 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   constexpr bool is_T1_Register = std::is_same<std::decay_t<T1>, llvm::Register>::value;
 
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
-  llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
+  std::string pattern = __PRETTY_FUNCTION__;
+  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
+  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
+  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
+  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
+
+  llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
   // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
   if (is_T1_MachineInstr) {
-    llvm::outs() << "\t\t\t\t\tT1 is MachineInstr\n";
-  } else if (is_T1_Register) {
-    llvm::outs() << "\t\t\t\t\tT1 is Register\n";
-  } else {
-    llvm::outs() << "\t\t\t\t\tT1 is neither MachineInstr nor Register\n";
+    log_backend_event("mi_match", std::forward<T1>(a), pattern);
   }
   
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
