@@ -1931,10 +1931,11 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //    << RuleDef.getName() << "'\\n\";\n";
 
     OS << "outs() << \"Combiner Rule #" << RuleID << ": " << RuleDef.getName() << "'\\n\";\n";
-    if (!Alts.empty()) {
-        OS << "outs() << \"@ \" << ";
-        print(OS, Alts);
-    }
+    // if (!Alts.empty()) {
+    //     OS << "outs() << \"@ \" << ";
+    //     print(OS, Alts);
+    // }
+    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, CodeStr, true);\n";
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
     // }
