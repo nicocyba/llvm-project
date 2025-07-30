@@ -1935,9 +1935,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
         OS << "outs() << \"@ \" << ";
         print(OS, Alts);
     }
-    if (!AdditionalComment.isTriviallyEmpty()) {
-        OS << "; " << AdditionalComment;
-    }
+    // if (!AdditionalComment.isTriviallyEmpty()) {
+    //     OS << "; " << AdditionalComment;
+    // }
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
     M.setCustomCXXAction(Code.getEnumNameWithPrefix(CXXCustomActionPrefix));
