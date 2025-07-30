@@ -621,6 +621,45 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
     // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
 
+inline void simplifyBindTy(std::string& str) {
+    const std::string start_marker = "llvm::MIPatternMatch::bind_ty<";
+    size_t start_pos;
+
+    // Loop as long as we can find a new occurrence of the start_marker
+    while ((start_pos = str.find(start_marker)) != std::string::npos) {
+        // --- This part is the same: find the matching bracket ---
+        int depth = 1;
+        size_t end_pos = std::string::npos;
+        for (size_t i = start_pos + start_marker.length(); i < str.length(); ++i) {
+            if (str[i] == '<') {
+                depth++;
+            } else if (str[i] == '>') {
+                depth--;
+            }
+            if (depth == 0) {
+                end_pos = i;
+                break;
+            }
+        }
+
+        if (end_pos != std::string::npos) {
+            // --- This part is new: extract content and replace ---
+
+            // 1. Get the content from inside the brackets
+            size_t content_start_pos = start_pos + start_marker.length();
+            size_t content_length = end_pos - content_start_pos;
+            std::string content = str.substr(content_start_pos, content_length);
+
+            // 2. Replace the entire pattern (from "llvm..." to ">") with the content
+            size_t whole_pattern_length = end_pos - start_pos + 1;
+            str.replace(start_pos, whole_pattern_length, content);
+        } else {
+            // Malformed string, break to avoid an infinite loop
+            break;
+        }
+    }
+}
+
 template <typename T1, typename T2, typename T3>
 inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
   // Type trait checks
@@ -630,10 +669,11 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
 
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
   std::string pattern = *extractT3Type(__PRETTY_FUNCTION__);
-  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
-  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
-  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
-  pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
+  pattern = simplifyBindTy(pattern);
+  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
+  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
+  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
+  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
 
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
   // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
