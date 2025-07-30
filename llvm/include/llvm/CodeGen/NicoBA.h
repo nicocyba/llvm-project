@@ -602,7 +602,7 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
     // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
 template <typename T1, typename T2, typename T3>
-inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, std::string& caller = __PRETTY_FUNCTION__, std::string& file = __FILE__, unsigned line = __LINE__) {
+inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __PRETTY_FUNCTION__, const char* file = __FILE__, unsigned line = __LINE__) {
   llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " at " << file << ":" << line << "\n";
   // if (auto result = extractT3Type(caller)) {
   //     std::string t3type = *result;
