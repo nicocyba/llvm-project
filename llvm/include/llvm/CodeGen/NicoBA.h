@@ -520,6 +520,15 @@ struct GlobalISelData {
     std::string pattern; // MIPattern
 };
 
+struct GlobalISelDataPattern {
+    std::string stage; // irtranslator, legalizer, ...
+    std::string mf; // mf name
+    std::string mbb; // mbb name
+    std::string mi_before; // mi name
+    std::string mi_after; // mi name
+    std::string pattern; // MIPattern
+};
+
 struct GlobalISelDataVector : public std::vector<GlobalISelData> {
     ~GlobalISelDataVector() {
         // for (auto &i : *this) {
@@ -612,7 +621,8 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
 template <typename T1, typename T2, typename T3>
 inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
   // Type trait checks
-  constexpr bool is_T1_MachineInstr = std::is_same<std::decay_t<T1>, llvm::MachineInstr>::value;
+  constexpr bool is_T1_MachineInstr = std::is_same<std::decay_t<T1>, llvm::MachineInstr>::value
+                                 || std::is_same<std::decay_t<T1>, llvm::MachineInstr*>::value;
   constexpr bool is_T1_Register = std::is_same<std::decay_t<T1>, llvm::Register>::value;
 
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
@@ -624,7 +634,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
 
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
   // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
-  if (is_T1_MachineInstr) {
+  if (!is_T1_Register) {
     llvm::log_backend_event("mi_match", std::forward<T1>(a), pattern);
   }
   
