@@ -342,8 +342,11 @@ bool Combiner::combineMachineInstrs() {
       // WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
-      if (AppliedCombine)
+      if (AppliedCombine) {
         WLObserver->appliedCombine();
+        llvm::outs() << "\t\t\t--> Status = 1\n";
+      }
+        
     }
     MFChanged |= Changed;
 
