@@ -1935,7 +1935,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //     OS << "outs() << \"@ \" << ";
     //     print(OS, Alts);
     // }
-    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, " << RuleDef.getName().str() << ", true);\n";
+    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \"" << RuleDef.getName().str() << "\", true);\n";
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
     // }
