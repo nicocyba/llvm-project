@@ -549,8 +549,8 @@ auto MI2String = [](MachineInstr& MI) {
 //     data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 // };
 
-auto log_backend_event = [](const std::string& event, MachineInstr& MI) {
-    data_globalisel.emplace_back({caller, event, mf, mbb, MI2String(MI), MI.getOpcode()});
+auto log_backend_event = [](const std::string& event, MachineInstr& MI, const std::string& pattern) {
+    data_globalisel.emplace_back({to_string(current_stage), event, MI.getParent()->getParent(), MI.getParent(), MI2String(MI), MI2String(MI), pattern});
 };
 } // end namespace llvm...
 
@@ -612,5 +612,6 @@ template <typename T1, typename T2, typename T3>
 inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " (" << file_cleaned << ":" << line << ")\n";
+  log_backend_event("matching");
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
