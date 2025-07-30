@@ -522,6 +522,7 @@ struct GlobalISelData {
 
 struct GlobalISelDataPattern {
     std::string stage; // irtranslator, legalizer, ...
+    std::string pattern_match_file;
     std::string pattern_match_name;
     std::string pattern_match_type; 
     bool match_success;
@@ -681,6 +682,6 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   //   log_backend_event("mi_match", caller, pattern, true);
   // }
   bool result = mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
-  llvm::log_backend_event(llvm::to_string(llvm::current_stage), caller, pattern, result? true : false);
+  llvm::log_backend_event(llvm::to_string(llvm::current_stage), file_cleaned, caller, pattern, result? true : false);
   return result;
 }
