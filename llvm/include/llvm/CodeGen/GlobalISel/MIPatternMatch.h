@@ -38,7 +38,7 @@ template <typename Reg, typename Pattern>
 template <typename Pattern>
 [[nodiscard]] bool mi_match(MachineInstr& MI, const MachineRegisterInfo& MRI, Pattern&& P) {
     // // llvm::outs() << "\t\t\t\t\t" << __PRETTY_FUNCTION__ << "\n";
-    return mi_match_wrapper2(MI, MRI, P, P.match(MRI, &MI));
+    // return mi_match_wrapper2(MI, MRI, P, P.match(MRI, &MI));
     // llvm::outs() << "mi_match: " << MI << "\n";
     // logPattern("mi_match", MI, P);
     return P.match(MRI, &MI);
