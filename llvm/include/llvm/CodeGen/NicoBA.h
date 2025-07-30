@@ -662,7 +662,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   // Type trait checks
   constexpr bool is_T1_MachineInstr = std::is_same<std::decay_t<T1>, llvm::MachineInstr>::value
                                  || std::is_same<std::decay_t<T1>, llvm::MachineInstr*>::value;
-  constexpr bool is_T1_Register = std::is_same<std::decay_t<T1>, llvm::Register>::value;
+  // constexpr bool is_T1_Register = std::is_same<std::decay_t<T1>, llvm::Register>::value;
 
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
   std::string pattern = *extractT3Type(__PRETTY_FUNCTION__);

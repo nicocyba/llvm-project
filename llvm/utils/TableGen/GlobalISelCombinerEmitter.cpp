@@ -2747,9 +2747,9 @@ void GICombinerEmitter::gatherRules(std::vector<RuleMatcher>& ActiveRules,
        << " rules are enabled by default\n";
 
     // please print all combinerules
-    for (const auto& [ID, Name] : AllCombineRules) {
-        outs() << "  - Rule #" << ID << ": " << Name << '\n';
-    }
+    // for (const auto& [ID, Name] : AllCombineRules) {
+    //     outs() << "  - Rule #" << ID << ": " << Name << '\n';
+    // }
 }
 
 void GICombinerEmitter::run(raw_ostream& OS) {
