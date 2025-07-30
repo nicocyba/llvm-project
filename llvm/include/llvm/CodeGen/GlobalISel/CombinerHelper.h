@@ -82,8 +82,7 @@ struct ShiftOfShiftedLogic {
 
 using BuildFnTy = std::function<void(MachineIRBuilder &)>;
 
-using OperandBuildSteps =
-    SmallVector<std::function<void(MachineInstrBuilder &)>, 4>;
+using OperandBuildSteps = SmallVector<std::function<void(MachineInstrBuilder &)>, 4>;
 struct InstructionBuildSteps {
   unsigned Opcode = 0;          /// The opcode for the produced instruction.
   OperandBuildSteps OperandFns; /// Operands to be added to the instruction.
