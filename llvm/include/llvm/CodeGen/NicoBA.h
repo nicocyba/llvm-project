@@ -602,7 +602,8 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
     // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
 template <typename T1, typename T2, typename T3>
-inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __FILE__, unsigned line = __LINE__) {
-  llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " at " << file << ":" << line << "\n";
+inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __builtin_FILE(), unsigned line = __builtin_LINE()) {
+  file = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
+  llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " | " << *extractT3Type(__PRETTY_FUNCTION__) << " (" << file << ":" << line << ")\n";
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
