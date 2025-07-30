@@ -1926,6 +1926,19 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
         Expander.emit(OS);
     }
 
+    // NICO
+    // OS << "outs() << \"// Emitting CXX Action for rule '"
+    //    << RuleDef.getName() << "'\\n\";\n";
+
+    OS << "outs() << \"Combiner Rule #" << RuleID << ": " << RuleDef.getName() << "'\\n\";\n";
+    if (!Alts.empty()) {
+        OS << "outs() << \"@ \" << ";
+        print(OS, Alts);
+    }
+    if (!AdditionalComment.isTriviallyEmpty()) {
+        OS << "; " << AdditionalComment;
+    }
+
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
     M.setCustomCXXAction(Code.getEnumNameWithPrefix(CXXCustomActionPrefix));
     return true;
@@ -2731,6 +2744,7 @@ void GICombinerEmitter::gatherRules(std::vector<RuleMatcher>& ActiveRules,
        << " rules for combiner '" << Name << "'\n";
     outs() << "  - " << AllCombineRules.size()
        << " rules are enabled by default\n";
+
     // please print all combinerules
     for (const auto& [ID, Name] : AllCombineRules) {
         outs() << "  - Rule #" << ID << ": " << Name << '\n';
