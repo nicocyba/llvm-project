@@ -522,14 +522,13 @@ struct GlobalISelData {
 
 struct GlobalISelDataPattern {
     std::string stage; // irtranslator, legalizer, ...
-    std::string mf; // mf name
-    std::string mbb; // mbb name
-    std::string mi_before; // mi name
-    std::string mi_after; // mi name
-    std::string pattern; // MIPattern
+    std::string pattern_match_name;
+    std::string pattern_match_type; 
+    bool match_success;
 };
 
-struct GlobalISelDataVector : public std::vector<GlobalISelData> {
+template <typename T>
+struct GlobalISelDataVector : public std::vector<T> {
     ~GlobalISelDataVector() {
         // for (auto &i : *this) {
         //   i.inserted.clear();
@@ -539,8 +538,11 @@ struct GlobalISelDataVector : public std::vector<GlobalISelData> {
     }
 };
 
+
+
 inline thread_local MachineCombinerDataVector data_machinecombiner;
-inline thread_local GlobalISelDataVector data_globalisel;
+inline thread_local GlobalISelDataVector<GlobalISelData> data_globalisel;
+inline thread_local GlobalISelDataVector<GlobalISelDataPattern> data_globalisel_patterns;
 
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
@@ -558,9 +560,10 @@ auto MI2String = [](MachineInstr& MI) {
 //     data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 // };
 
-auto log_backend_event = [](const std::string& event, MachineInstr& MI, const std::string& pattern) {
+
+auto log_backend_event = [](const std::string& stage, const std::string& pattern_name, const std::string& pattern_type, bool match_success) {
     // data_globalisel.emplace_back({to_string(current_stage), event, MI.getParent()->getParent(), MI.getParent(), MI2String(MI), MI2String(MI), pattern});
-    data_globalisel.emplace_back(GlobalISelData{to_string(current_stage), event, "", "", "", "", pattern});
+    data_globalisel_patterns.emplace_back(GlobalISelDataPattern{stage, pattern_name, pattern_type, match_success});
 };
 } // end namespace llvm...
 
@@ -634,9 +637,10 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
 
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
   // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
-  if (!is_T1_Register) {
-    llvm::log_backend_event("mi_match", std::forward<T1>(a), pattern);
-  }
-  
-  return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
+  // if (!is_T1_Register) {
+  //   log_backend_event("mi_match", caller, pattern, true);
+  // }
+  bool result = mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
+  llvm::log_backend_event(llvm::to_string(current_stage), caller, pattern, result? true : false);
+  return result;
 }
