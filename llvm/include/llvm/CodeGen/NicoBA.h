@@ -602,25 +602,7 @@ inline bool mi_match_wrapper2(T1&&, T2&&, T3&&, bool flag) {
     // return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
 template <typename T1, typename T2, typename T3>
-inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __PRETTY_FUNCTION__, const char* file = __FILE__, unsigned line = __LINE__) {
+inline bool mi_match_wrapper3(T1&& a, T2&& b, T3&& c, const char* caller = __builtin_FUNCTION(), const char* file = __FILE__, unsigned line = __LINE__) {
   llvm::outs() << "\t\t\t\t\tmi_match_wrapper3: " << caller << " at " << file << ":" << line << "\n";
-  // if (auto result = extractT3Type(caller)) {
-  //     std::string t3type = *result;
-  //     t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
-  //     t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
-  //     t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
-  //     t3type = std::regex_replace(t3type, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
-  //     // if (t3type.find("MachineInstr") != std::string::npos) {
-  //     //   t3type = "MachineInstr";
-  //     // } else if (t3type.find("MachineOperand") != std::string::npos) {
-  //     //   t3type = "MachineOperand";
-  //     // } else if (t3type.find("MachineRegisterInfo") != std::string::npos) {
-  //     //   t3type = "MachineRegisterInfo";
-  //     // }
-  //     llvm::outs() << "\t\t\t\t\tPattern: " << t3type << "\n";
-  // } else {
-  //     llvm::outs() << "\t\t\t\t\tPattern not found\n";
-  // }
-  // return flag;
   return mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
 }
