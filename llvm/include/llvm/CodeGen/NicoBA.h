@@ -29,10 +29,10 @@ inline std::string to_string(MachineCombinerPattern2 pattern) {
             return "REASSOC_XA_BY";
         case REASSOC_XA_YB:
             return "REASSOC_XA_YB";
-        // case TARGET_PATTERN_START:
-        //     return "TARGET_PATTERN_START";
-        default:
+        case TARGET_PATTERN_START:
             return "TARGET_PATTERN_START";
+        // default:
+        //     return "TARGET_PATTERN_START";
     }
 }
 
@@ -452,7 +452,7 @@ enum CurrentBackendStage : unsigned {
 
 inline std::string to_string(CurrentBackendStage stage) {
     switch (stage) {
-        // case INIT: return "init";
+        case INIT: return "init";
         case IRTRANSLATOR:
             return "irtranslator";
         case PRELEGALIZERCOMBINER:
@@ -469,8 +469,8 @@ inline std::string to_string(CurrentBackendStage stage) {
             return "combiner";
         case MACHINECOMBINER:
             return "machinecombiner";
-        default:
-            return "init";
+        // default:
+        //     return "init";
     }
 }
 
@@ -549,8 +549,8 @@ auto MI2String = [](MachineInstr& MI) {
 //     data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
 // };
 
-auto log_backend_event = [](const std::string& Event, MachineInstr& MI) {
-    data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
+auto log_backend_event = [](const std::string& event, MachineInstr& MI) {
+    data_globalisel.emplace_back({caller, event, mf, mbb, MI2String(MI), MI.getOpcode()});
 };
 } // end namespace llvm...
 

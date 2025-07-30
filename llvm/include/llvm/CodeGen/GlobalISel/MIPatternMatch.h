@@ -688,7 +688,7 @@ struct UnaryOp_match {
         MachineInstr* TmpMI;
         if (mi_match(Op, MRI, m_MInstr(TmpMI))) {
             if (TmpMI->getOpcode() == Opcode && TmpMI->getNumOperands() == 2) {
-                const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
+                // const TargetInstrInfo *TII = TmpMI->getMF()->getSubtarget().getInstrInfo();
                 // llvm::outs() << "\t\t\t" << __func__ << " | " << to_string(current_stage) << " | " << "FuncNameTODO" << " | BinaryOpc_match: op="
                 //        << (TII ? TII->getName(TmpMI->getOpcode()) : "<unknown>")
                 //        << " matched on MI: " << MI2String(*TmpMI) << "\n"; //", operand type: " << TmpMI->getOperand(0).getType();
