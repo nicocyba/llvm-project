@@ -1914,7 +1914,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             Expander.emit(OS);
             OS << "}()) {\n"
                << "  return false;\n}\n";
-            CodeStrNico += M->getRawCode().str() + "\n";
+            CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
     
@@ -1926,7 +1926,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             /*ShowExpansions=*/false);
         OS << LS;
         Expander.emit(OS);
-        CodeStrNico += CXXPat->getRawCode().str() + "\n";
+        CodeStrNico += CXXPat->getRawCode().str() + " | ";
     }
 
     // NICO
@@ -1945,6 +1945,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // }
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
+    
     M.setCustomCXXAction(Code.getEnumNameWithPrefix(CXXCustomActionPrefix));
     return true;
 }
