@@ -1983,9 +1983,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << " -> "
        << "\" +temp_after+\""
        << " -> "
-       << "obs_created=\"" << obs_created << "\", "
-       << "obs_changed=\"" << obs_changed << "\", "
-       << "obs_deleted=\"" << obs_deleted << "\", "
+       << "obs_created=\"" << "\" + obs_created + \"\", "
+       << "obs_changed=\"" << "\" + obs_changed + \"\", "
+       << "obs_deleted=\"" << "\" + obs_deleted + \"\", "
        << "\", true);\n";
 
     OS << "WLObserver->DeletedInstrsNico.clear();\n";
