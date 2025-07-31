@@ -101,10 +101,12 @@ struct InstructionStepsMatchInfo {
 };
 
 class CombinerHelper {
+public:
+  GISelChangeObserver &Observer;
 protected:
   MachineIRBuilder &Builder;
   MachineRegisterInfo &MRI;
-  GISelChangeObserver &Observer;
+  // GISelChangeObserver &Observer;
   GISelKnownBits *KB;
   MachineDominatorTree *MDT;
   bool IsPreLegalize;
