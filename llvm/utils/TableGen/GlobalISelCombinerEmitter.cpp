@@ -1934,14 +1934,14 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //    << RuleDef.getName() << "'\\n\";\n";
 
     OS << "\n\n// Nico\n";
-    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\\n";
+    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n";
     // if (!Alts.empty()) {
     //     OS << "outs() << \"@ \" << ";
     //     print(OS, Alts);
     // }
     // Escape special characters in CodeStrNico for C++ string literal
-    OS << "std::string temp = \"\";\\n";
-    OS << "for (const auto& C : State.MIs) { temp += MI2String(C); temp += \" | \"; }\\n";
+    OS << "std::string temp = \"\";\n";
+    OS << "for (const auto& C : State.MIs) { temp += MI2String(C); temp += \" | \"; }\n";
     auto escapeString = [](const std::string& input) -> std::string {
         std::string out;
         for (char c : input) {
@@ -1967,7 +1967,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << RuleID << "###" << RuleDef.getName().str() << "###"
     //    << escapeString(CodeStrNico)
        << "\" +temp+\""
-       << "\", true);\\n";
+       << "\", true);\n";
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
     // }
