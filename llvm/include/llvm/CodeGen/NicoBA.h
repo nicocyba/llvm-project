@@ -560,11 +560,6 @@ auto MI2String = [](MachineInstr& MI) {
     return InstrStr;
 };
 
-// auto logEvent = [](const std::string& Event, MachineInstr& MI) {
-//     data_gicombiner.emplace_back(Event, MI2String(MI), MI.getOpcode());
-// };
-
-
 auto log_backend_event = [](const std::string& stage, const std::string& pattern_file, const std::string& pattern_name, const std::string& pattern_type, bool match_success) {
     // data_globalisel.emplace_back({to_string(current_stage), event, MI.getParent()->getParent(), MI.getParent(), MI2String(MI), MI2String(MI), pattern});
     data_globalisel_patterns.emplace_back(GlobalISelDataPattern{stage, pattern_file, pattern_name, pattern_type, match_success});
@@ -603,7 +598,6 @@ inline void simplifyBindTy(std::string& str) {
 
     // Loop as long as we can find a new occurrence of the start_marker
     while ((start_pos = str.find(start_marker)) != std::string::npos) {
-        // --- This part is the same: find the matching bracket ---
         int depth = 1;
         size_t end_pos = std::string::npos;
         for (size_t i = start_pos + start_marker.length(); i < str.length(); ++i) {
@@ -619,8 +613,6 @@ inline void simplifyBindTy(std::string& str) {
         }
 
         if (end_pos != std::string::npos) {
-            // --- This part is new: extract content and replace ---
-
             // 1. Get the content from inside the brackets
             size_t content_start_pos = start_pos + start_marker.length();
             size_t content_length = end_pos - content_start_pos;
@@ -644,6 +636,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   // constexpr bool is_T1_Register = std::is_same<std::decay_t<T1>, llvm::Register>::value;
 
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
+  std::string file_cleaned = std::regex_replace(file_cleaned, std::regex("/libraries/llvm-project/build/"), "");
   std::string pattern = *extractT3Type(__PRETTY_FUNCTION__);
   simplifyBindTy(pattern);
   // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
