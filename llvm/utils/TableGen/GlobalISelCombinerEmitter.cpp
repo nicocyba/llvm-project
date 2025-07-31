@@ -1897,6 +1897,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     assert(hasOnlyCXXApplyPatterns());
     declareAllMatchDatasExpansions(CE);
 
+    std::string CodeStrNico;
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
 
@@ -1913,9 +1914,10 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             Expander.emit(OS);
             OS << "}()) {\n"
                << "  return false;\n}\n";
+            CodeStrNico += M->getRawCode().str() + "\n";
         }
     }
-
+    
     OS << "// Apply Patterns\n";
     ListSeparator LS("\n");
     for (auto& Pat : ApplyPats) {
@@ -1924,18 +1926,20 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             /*ShowExpansions=*/false);
         OS << LS;
         Expander.emit(OS);
+        CodeStrNico += CXXPat->getRawCode().str() + "\n";
     }
 
     // NICO
     // OS << "outs() << \"// Emitting CXX Action for rule '"
     //    << RuleDef.getName() << "'\\n\";\n";
 
+    OS << "\n\n// Nico\n";
     OS << "outs() << \"Combiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n";
     // if (!Alts.empty()) {
     //     OS << "outs() << \"@ \" << ";
     //     print(OS, Alts);
     // }
-    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \"" << RuleDef.getName().str() << "\", true);\n";
+    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \"" << RuleID << "###" << RuleDef.getName().str() << "###" << CodeStrNico << "\", true);\n";
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
     // }
