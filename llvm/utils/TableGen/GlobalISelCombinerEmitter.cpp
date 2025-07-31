@@ -1939,7 +1939,32 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //     OS << "outs() << \"@ \" << ";
     //     print(OS, Alts);
     // }
-    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \"" << RuleID << "###" << RuleDef.getName().str() << "###" << CodeStrNico << "\", true);\n";
+    // Escape special characters in CodeStrNico for C++ string literal
+    auto escapeString = [](const std::string& input) -> std::string {
+        std::string out;
+        for (char c : input) {
+            switch (c) {
+                case '\\': out += "\\\\"; break;
+                case '\"': out += "\\\""; break;
+                case '\n': out += "\\n"; break;
+                case '\r': out += "\\r"; break;
+                case '\t': out += "\\t"; break;
+                default:
+                    if (static_cast<unsigned char>(c) < 32 || static_cast<unsigned char>(c) > 126) {
+                        char buf[8];
+                        snprintf(buf, sizeof(buf), "\\x%02x", static_cast<unsigned char>(c));
+                        out += buf;
+                    } else {
+                        out += c;
+                    }
+            }
+        }
+        return out;
+    };
+    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \""
+       << RuleID << "###" << RuleDef.getName().str() << "###"
+       << escapeString(CodeStrNico)
+       << "\", true);\n";
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
     // }
