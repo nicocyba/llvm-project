@@ -1934,7 +1934,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //    << RuleDef.getName() << "'\\n\";\n";
 
     OS << "\n\n// Nico\n";
-    OS << "outs() << \"Combiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n";
+    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n";
     // if (!Alts.empty()) {
     //     OS << "outs() << \"@ \" << ";
     //     print(OS, Alts);
