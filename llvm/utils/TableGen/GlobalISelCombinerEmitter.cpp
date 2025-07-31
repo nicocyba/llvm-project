@@ -1937,11 +1937,21 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //    << RuleDef.getName() << "'\\n\";\n";
 
     OS << "\n\n// Nico\n";
-    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << " | " << M.Matchers. <<  "\";\n\n";
+    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n\n";
     // if (!Alts.empty()) {
     //     OS << "outs() << \"@ \" << ";
     //     print(OS, Alts);
     // }
+
+    OS << "std::string obs_created = \"\";\n";
+    OS << "for (const auto& C : WLObserver->CreatedInstrsNico) { obs_created += MI2String(*C); obs_created += \" | \"; }\n";
+
+    OS << "std::string obs_changed = \"\";\n";
+    OS << "for (const auto& C : WLObserver->ChangedInstrsNico) { obs_changed += MI2String(*C); obs_changed += \" | \"; }\n";
+
+    OS << "std::string obs_deleted = \"\";\n";
+    OS << "for (const auto& C : WLObserver->DeletedInstrsNico) { obs_deleted += MI2String(*C); obs_deleted += \" | \"; }\n";
+
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp_after = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_after += MI2String(*C); temp_after += \" | \"; }\n";
@@ -1972,7 +1982,16 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << "\" +temp_before+\""
        << " -> "
        << "\" +temp_after+\""
+       << " -> "
+       << "obs_created=\"" << obs_created << "\", "
+       << "obs_changed=\"" << obs_changed << "\", "
+       << "obs_deleted=\"" << obs_deleted << "\", "
        << "\", true);\n";
+
+    OS << "WLObserver->DeletedInstrsNico.clear();\n";
+    OS << "WLObserver->ChangedInstrsNico.clear();\n";
+    OS << "WLObserver->CreatedInstrsNico.clear();\n";
+
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
     // }

@@ -57,8 +57,9 @@ public:
   /// The instructions that have been created but we want to report once they
   /// have their operands. This is only maintained if debug output is requested.
   SmallSetVector<const MachineInstr *, 32> CreatedInstrs;
-  // SmallSetVector<const MachineInstr *, 32> DeletedInstrs;
-  // SmallSetVector<const MachineInstr *, 32> ChangedInstrs;
+  SmallSetVector<const MachineInstr *, 32> CreatedInstrsNico;
+  SmallSetVector<const MachineInstr *, 32> DeletedInstrsNico;
+  SmallSetVector<const MachineInstr *, 32> ChangedInstrsNico;
   
 // #endif
   using Level = CombinerInfo::ObserverLevel;
@@ -113,6 +114,7 @@ public:
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
+    DeletedInstrsNico.insert(&MI);
     CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
     if constexpr (Lvl != Level::Basic) {
@@ -123,6 +125,7 @@ public:
 
   void createdInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Creating: " << MI; 
+    CreatedInstrsNico.insert(&MI);
     CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
@@ -145,6 +148,7 @@ public:
 
   void changedInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Changed: " << MI;
+    ChangedInstrsNico.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else

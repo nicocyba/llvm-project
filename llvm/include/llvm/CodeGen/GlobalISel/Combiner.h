@@ -51,7 +51,7 @@ private:
   //  references. Accessing Observer/B as pointers unnecessarily leaks
   //  implementation details into derived classes.
   std::unique_ptr<MachineIRBuilder> Builder;
-  std::unique_ptr<WorkListMaintainer> WLObserver;
+  
   std::unique_ptr<GISelObserverWrapper> ObserverWrapper;
 
   bool HasSetupMF = false;
@@ -80,6 +80,8 @@ protected:
 
   const TargetPassConfig *TPC;
   GISelCSEInfo *CSEInfo;
+
+  std::unique_ptr<WorkListMaintainer> WLObserver;
 };
 
 } // End namespace llvm.
