@@ -80,7 +80,7 @@ protected:
 
   const TargetPassConfig *TPC;
   GISelCSEInfo *CSEInfo;
-
+public:
   std::unique_ptr<WorkListMaintainer> WLObserver;
 };
 
