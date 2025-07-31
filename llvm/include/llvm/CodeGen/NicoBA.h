@@ -442,6 +442,7 @@ enum CurrentBackendStage : unsigned {
     INIT,
     IRTRANSLATOR,
     PRELEGALIZERCOMBINER,
+    PRELEGALIZERCOMBINERO0,
     LEGALIZER,
     POSTLEGALIZERCOMBINER,
     REGBANKSELECT,
@@ -457,6 +458,8 @@ inline std::string to_string(CurrentBackendStage stage) {
             return "irtranslator";
         case PRELEGALIZERCOMBINER:
             return "prelegalizercombiner";
+        case PRELEGALIZERCOMBINERO0:
+            return "prelegalizercombinerO0";
         case LEGALIZER:
             return "legalizer";
         case POSTLEGALIZERCOMBINER:

@@ -829,6 +829,8 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
     outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    current_stage = CurrentBackendStage::PRELEGALIZERCOMBINER;
+
     auto& TPC = getAnalysis<TargetPassConfig>();
 
     // Enable CSE.
