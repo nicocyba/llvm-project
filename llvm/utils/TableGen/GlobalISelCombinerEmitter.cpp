@@ -1917,6 +1917,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
+
+    OS << "std::string temp_before = \"\";\n";
+    OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C); temp_before += \" | \"; }\n";
     
     OS << "// Apply Patterns\n";
     ListSeparator LS("\n");
@@ -1940,8 +1943,8 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //     print(OS, Alts);
     // }
     // Escape special characters in CodeStrNico for C++ string literal
-    OS << "std::string temp = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp += MI2String(*C); temp += \" | \"; }\n";
+    OS << "std::string temp_after = \"\";\n";
+    OS << "for (const auto& C : State.MIs) { temp_after += MI2String(*C); temp_after += \" | \"; }\n";
     auto escapeString = [](const std::string& input) -> std::string {
         std::string out;
         for (char c : input) {
@@ -1966,7 +1969,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \""
        << RuleID << "###" << RuleDef.getName().str() << "###"
     //    << escapeString(CodeStrNico)
-       << "\" +temp+\""
+       << "\" +temp_before+\""
+       << "\" -> \""
+       << "\" +temp_after+\""
        << "\", true);\n";
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
