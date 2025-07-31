@@ -2096,7 +2096,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #8: APlusC1MinusC2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "8###APlusC1MinusC2###return Helper.matchFoldAPlusC1MinusC2(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "8###APlusC1MinusC2###" +temp+"", true);
     
     return true;
   }
@@ -2111,7 +2113,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #9: C2MinusAPlusC1";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "9###C2MinusAPlusC1###return Helper.matchFoldC2MinusAPlusC1(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "9###C2MinusAPlusC1###" +temp+"", true);
     
     return true;
   }
@@ -2126,7 +2130,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #10: AMinusC1MinusC2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "10###AMinusC1MinusC2###return Helper.matchFoldAMinusC1MinusC2(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "10###AMinusC1MinusC2###" +temp+"", true);
     
     return true;
   }
@@ -2141,7 +2147,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #11: C1Minus2MinusC2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "11###C1Minus2MinusC2###return Helper.matchFoldC1Minus2MinusC2(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "11###C1Minus2MinusC2###" +temp+"", true);
     
     return true;
   }
@@ -2156,7 +2164,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #12: AMinusC1PlusC2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "12###AMinusC1PlusC2###return Helper.matchFoldAMinusC1PlusC2(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "12###AMinusC1PlusC2###" +temp+"", true);
     
     return true;
   }
@@ -2170,7 +2180,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #13: copy_prop";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "13###copy_prop###return Helper.matchCombineCopy(*${mi}); | Helper.applyCombineCopy(*${mi}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "13###copy_prop###" +temp+"", true);
     
     return true;
   }
@@ -2185,7 +2197,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #14: mul_to_shl";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "14###mul_to_shl###return Helper.matchCombineMulToShl(*${mi}, ${matchinfo}); | Helper.applyCombineMulToShl(*${mi}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "14###mul_to_shl###" +temp+"", true);
     
     return true;
   }
@@ -2200,7 +2214,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #15: sub_to_add";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "15###sub_to_add###return Helper.matchCombineSubToAdd(*${mi}, ${matchinfo}); | Helper.applyBuildFnNoErase(*${mi}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "15###sub_to_add###" +temp+"", true);
     
     return true;
   }
@@ -2215,7 +2231,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #16: add_p2i_to_ptradd";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "16###add_p2i_to_ptradd###return Helper.matchCombineAddP2IToPtrAdd(*${root}, ${info}); | Helper.applyCombineAddP2IToPtrAdd(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "16###add_p2i_to_ptradd###" +temp+"", true);
     
     return true;
   }
@@ -2230,7 +2248,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #23: match_extract_of_element";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "23###match_extract_of_element###return Helper.matchExtractVectorElement(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "23###match_extract_of_element###" +temp+"", true);
     
     return true;
   }
@@ -2245,7 +2265,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #24: insert_vector_elt_oob";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "24###insert_vector_elt_oob###return Helper.matchInsertVectorElementOOB(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "24###insert_vector_elt_oob###" +temp+"", true);
     
     return true;
   }
@@ -2260,7 +2282,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #26: extract_vector_element_different_indices";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "26###extract_vector_element_different_indices###return Helper.matchExtractVectorElementWithDifferentIndices(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "26###extract_vector_element_different_indices###" +temp+"", true);
     
     return true;
   }
@@ -2276,7 +2300,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #27: extract_vector_element_build_vector";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "27###extract_vector_element_build_vector###return Helper.matchExtractVectorElementWithBuildVector(*${Extract}, *${Build},\n      ${matchinfo}); | Helper.applyBuildFn(*${Extract}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "27###extract_vector_element_build_vector###" +temp+"", true);
     
     return true;
   }
@@ -2291,7 +2317,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #28: extract_vector_element_build_vector_trunc2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "28###extract_vector_element_build_vector_trunc2###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "28###extract_vector_element_build_vector_trunc2###" +temp+"", true);
     
     return true;
   }
@@ -2306,7 +2334,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #29: extract_vector_element_build_vector_trunc3";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "29###extract_vector_element_build_vector_trunc3###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "29###extract_vector_element_build_vector_trunc3###" +temp+"", true);
     
     return true;
   }
@@ -2321,7 +2351,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #30: extract_vector_element_build_vector_trunc4";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "30###extract_vector_element_build_vector_trunc4###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "30###extract_vector_element_build_vector_trunc4###" +temp+"", true);
     
     return true;
   }
@@ -2336,7 +2368,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #31: extract_vector_element_build_vector_trunc5";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "31###extract_vector_element_build_vector_trunc5###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "31###extract_vector_element_build_vector_trunc5###" +temp+"", true);
     
     return true;
   }
@@ -2351,7 +2385,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #32: extract_vector_element_build_vector_trunc6";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "32###extract_vector_element_build_vector_trunc6###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "32###extract_vector_element_build_vector_trunc6###" +temp+"", true);
     
     return true;
   }
@@ -2366,7 +2402,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #33: extract_vector_element_build_vector_trunc7";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "33###extract_vector_element_build_vector_trunc7###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "33###extract_vector_element_build_vector_trunc7###" +temp+"", true);
     
     return true;
   }
@@ -2381,7 +2419,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #34: extract_vector_element_build_vector_trunc8";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "34###extract_vector_element_build_vector_trunc8###return Helper.matchExtractVectorElementWithBuildVectorTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "34###extract_vector_element_build_vector_trunc8###" +temp+"", true);
     
     return true;
   }
@@ -2397,7 +2437,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #35: extract_vector_element_shuffle_vector";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "35###extract_vector_element_shuffle_vector###return Helper.matchExtractVectorElementWithShuffleVector(*${Extract}, *${Shuffle},\n      ${matchinfo}); | Helper.applyBuildFn(*${Extract}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "35###extract_vector_element_shuffle_vector###" +temp+"", true);
     
     return true;
   }
@@ -2412,7 +2454,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #37: add_of_vscale";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "37###add_of_vscale###return Helper.matchAddOfVScale(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "37###add_of_vscale###" +temp+"", true);
     
     return true;
   }
@@ -2427,7 +2471,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #38: mul_of_vscale";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "38###mul_of_vscale###return Helper.matchMulOfVScale(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "38###mul_of_vscale###" +temp+"", true);
     
     return true;
   }
@@ -2442,7 +2488,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #39: shl_of_vscale";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "39###shl_of_vscale###return Helper.matchShlOfVScale(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "39###shl_of_vscale###" +temp+"", true);
     
     return true;
   }
@@ -2457,7 +2505,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #40: sub_of_vscale";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "40###sub_of_vscale###return Helper.matchSubOfVScale(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "40###sub_of_vscale###" +temp+"", true);
     
     return true;
   }
@@ -2472,7 +2522,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #42: push_freeze_to_prevent_poison_from_propagating";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "42###push_freeze_to_prevent_poison_from_propagating###return !isGuaranteedNotToBePoison(${src}.getReg(), MRI) && Helper.matchFreezeOfSingleMaybePoisonOperand(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "42###push_freeze_to_prevent_poison_from_propagating###" +temp+"", true);
     
     return true;
   }
@@ -2487,7 +2539,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #43: truncate_of_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "43###truncate_of_zext###return Helper.matchTruncateOfExt(*${root}, *${ExtMI}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "43###truncate_of_zext###" +temp+"", true);
     
     return true;
   }
@@ -2502,7 +2556,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #44: truncate_of_sext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "44###truncate_of_sext###return Helper.matchTruncateOfExt(*${root}, *${ExtMI}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "44###truncate_of_sext###" +temp+"", true);
     
     return true;
   }
@@ -2517,7 +2573,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #45: truncate_of_anyext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "45###truncate_of_anyext###return Helper.matchTruncateOfExt(*${root}, *${ExtMI}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "45###truncate_of_anyext###" +temp+"", true);
     
     return true;
   }
@@ -2532,7 +2590,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #46: zext_of_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "46###zext_of_zext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "46###zext_of_zext###" +temp+"", true);
     
     return true;
   }
@@ -2547,7 +2607,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #47: zext_of_anyext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "47###zext_of_anyext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "47###zext_of_anyext###" +temp+"", true);
     
     return true;
   }
@@ -2562,7 +2624,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #48: sext_of_sext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "48###sext_of_sext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "48###sext_of_sext###" +temp+"", true);
     
     return true;
   }
@@ -2577,7 +2641,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #49: sext_of_anyext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "49###sext_of_anyext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "49###sext_of_anyext###" +temp+"", true);
     
     return true;
   }
@@ -2592,7 +2658,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #50: anyext_of_anyext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "50###anyext_of_anyext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "50###anyext_of_anyext###" +temp+"", true);
     
     return true;
   }
@@ -2607,7 +2675,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #51: anyext_of_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "51###anyext_of_zext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "51###anyext_of_zext###" +temp+"", true);
     
     return true;
   }
@@ -2622,7 +2692,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #52: anyext_of_sext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "52###anyext_of_sext###return Helper.matchExtOfExt(*${First}, *${Second}, ${matchinfo}); | Helper.applyBuildFn(*${First}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "52###anyext_of_sext###" +temp+"", true);
     
     return true;
   }
@@ -2637,7 +2709,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #53: select_of_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "53###select_of_zext###return Helper.matchCastOfSelect(*${Cast}, *${Select}, ${matchinfo}); | Helper.applyBuildFn(*${Cast}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "53###select_of_zext###" +temp+"", true);
     
     return true;
   }
@@ -2652,7 +2726,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #54: select_of_anyext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "54###select_of_anyext###return Helper.matchCastOfSelect(*${Cast}, *${Select}, ${matchinfo}); | Helper.applyBuildFn(*${Cast}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "54###select_of_anyext###" +temp+"", true);
     
     return true;
   }
@@ -2667,7 +2743,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #55: select_of_truncate";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "55###select_of_truncate###return Helper.matchCastOfSelect(*${Cast}, *${Select}, ${matchinfo}); | Helper.applyBuildFn(*${Cast}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "55###select_of_truncate###" +temp+"", true);
     
     return true;
   }
@@ -2682,7 +2760,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #56: buildvector_of_truncate";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "56###buildvector_of_truncate###return Helper.matchCastOfBuildVector(*${Cast}, *${Build}, ${matchinfo}); | Helper.applyBuildFn(*${Cast}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "56###buildvector_of_truncate###" +temp+"", true);
     
     return true;
   }
@@ -2697,7 +2777,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #57: narrow_binop_add";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "57###narrow_binop_add###return Helper.matchNarrowBinop(*${Trunc}, *${Binop}, ${matchinfo}); | Helper.applyBuildFn(*${Trunc}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "57###narrow_binop_add###" +temp+"", true);
     
     return true;
   }
@@ -2712,7 +2794,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #58: narrow_binop_sub";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "58###narrow_binop_sub###return Helper.matchNarrowBinop(*${Trunc}, *${Binop}, ${matchinfo}); | Helper.applyBuildFn(*${Trunc}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "58###narrow_binop_sub###" +temp+"", true);
     
     return true;
   }
@@ -2727,7 +2811,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #59: narrow_binop_mul";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "59###narrow_binop_mul###return Helper.matchNarrowBinop(*${Trunc}, *${Binop}, ${matchinfo}); | Helper.applyBuildFn(*${Trunc}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "59###narrow_binop_mul###" +temp+"", true);
     
     return true;
   }
@@ -2742,7 +2828,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #60: narrow_binop_and";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "60###narrow_binop_and###return Helper.matchNarrowBinop(*${Trunc}, *${Binop}, ${matchinfo}); | Helper.applyBuildFn(*${Trunc}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "60###narrow_binop_and###" +temp+"", true);
     
     return true;
   }
@@ -2757,7 +2845,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #61: narrow_binop_or";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "61###narrow_binop_or###return Helper.matchNarrowBinop(*${Trunc}, *${Binop}, ${matchinfo}); | Helper.applyBuildFn(*${Trunc}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "61###narrow_binop_or###" +temp+"", true);
     
     return true;
   }
@@ -2772,7 +2862,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #62: narrow_binop_xor";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "62###narrow_binop_xor###return Helper.matchNarrowBinop(*${Trunc}, *${Binop}, ${matchinfo}); | Helper.applyBuildFn(*${Trunc}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "62###narrow_binop_xor###" +temp+"", true);
     
     return true;
   }
@@ -2787,7 +2879,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #63: integer_of_truncate";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "63###integer_of_truncate###return Helper.matchCastOfInteger(*${Cast}, ${matchinfo}); | Helper.replaceInstWithConstant(*${Cast}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "63###integer_of_truncate###" +temp+"", true);
     
     return true;
   }
@@ -2802,7 +2896,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #64: combine_insert_vec_elts_build_vector";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "64###combine_insert_vec_elts_build_vector###return Helper.matchCombineInsertVecElts(*${root}, ${info}); | Helper.applyCombineInsertVecElts(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "64###combine_insert_vec_elts_build_vector###" +temp+"", true);
     
     return true;
   }
@@ -2817,7 +2913,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #65: extract_vec_elt_build_vec";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "65###extract_vec_elt_build_vec###return Helper.matchExtractVecEltBuildVec(*${root}, ${matchinfo}); | Helper.applyExtractVecEltBuildVec(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "65###extract_vec_elt_build_vec###" +temp+"", true);
     
     return true;
   }
@@ -2832,7 +2930,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #66: extract_all_elts_from_build_vector";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "66###extract_all_elts_from_build_vector###return Helper.matchExtractAllEltsFromBuildVector(*${root}, ${matchinfo}); | Helper.applyExtractAllEltsFromBuildVector(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "66###extract_all_elts_from_build_vector###" +temp+"", true);
     
     return true;
   }
@@ -2847,7 +2947,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #67: extending_loads";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "67###extending_loads###return Helper.matchCombineExtendingLoads(*${root}, ${matchinfo}); | Helper.applyCombineExtendingLoads(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "67###extending_loads###" +temp+"", true);
     
     return true;
   }
@@ -2862,7 +2964,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #68: load_and_mask";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "68###load_and_mask###return Helper.matchCombineLoadWithAndMask(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "68###load_and_mask###" +temp+"", true);
     
     return true;
   }
@@ -2877,7 +2981,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #69: combine_extracted_vector_load";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "69###combine_extracted_vector_load###return Helper.matchCombineExtractedVectorLoad(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "69###combine_extracted_vector_load###" +temp+"", true);
     
     return true;
   }
@@ -2891,7 +2997,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #70: undef_to_fp_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "70###undef_to_fp_zero###return Helper.matchAnyExplicitUseIsUndef(*${root}); | Helper.replaceInstWithFConstant(*${root}, 0.0); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "70###undef_to_fp_zero###" +temp+"", true);
     
     return true;
   }
@@ -2905,7 +3013,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #71: undef_to_int_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "71###undef_to_int_zero###return Helper.matchAnyExplicitUseIsUndef(*${root}); | Helper.replaceInstWithConstant(*${root}, 0); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "71###undef_to_int_zero###" +temp+"", true);
     
     return true;
   }
@@ -2919,7 +3029,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #72: undef_to_negative_one";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "72###undef_to_negative_one###return Helper.matchAnyExplicitUseIsUndef(*${root}); | Helper.replaceInstWithConstant(*${root}, -1); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "72###undef_to_negative_one###" +temp+"", true);
     
     return true;
   }
@@ -2933,7 +3045,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #73: binop_left_undef_to_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "73###binop_left_undef_to_zero###return Helper.matchOperandIsUndef(*${root}, 1); | Helper.replaceInstWithConstant(*${root}, 0); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "73###binop_left_undef_to_zero###" +temp+"", true);
     
     return true;
   }
@@ -2947,7 +3061,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #74: binop_right_undef_to_undef";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "74###binop_right_undef_to_undef###return Helper.matchOperandIsUndef(*${root}, 2); | Helper.replaceInstWithUndef(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "74###binop_right_undef_to_undef###" +temp+"", true);
     
     return true;
   }
@@ -2961,7 +3077,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #75: unary_undef_to_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "75###unary_undef_to_zero###return Helper.matchOperandIsUndef(*${root}, 1); | Helper.replaceInstWithConstant(*${root}, 0); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "75###unary_undef_to_zero###" +temp+"", true);
     
     return true;
   }
@@ -2971,7 +3089,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #76: unary_undef_to_undef";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "76###unary_undef_to_undef###Helper.replaceInstWithUndef(*${dst}.getParent()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "76###unary_undef_to_undef###" +temp+"", true);
     
     return true;
   }
@@ -2985,7 +3105,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #77: propagate_undef_any_op";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "77###propagate_undef_any_op###return Helper.matchAnyExplicitUseIsUndef(*${root}); | Helper.replaceInstWithUndef(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "77###propagate_undef_any_op###" +temp+"", true);
     
     return true;
   }
@@ -2999,7 +3121,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #78: propagate_undef_all_ops";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "78###propagate_undef_all_ops###return Helper.matchAllExplicitUsesAreUndef(*${root}); | Helper.replaceInstWithUndef(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "78###propagate_undef_all_ops###" +temp+"", true);
     
     return true;
   }
@@ -3013,7 +3137,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #79: propagate_undef_shuffle_mask";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "79###propagate_undef_shuffle_mask###return Helper.matchUndefShuffleVectorMask(*${root}); | Helper.replaceInstWithUndef(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "79###propagate_undef_shuffle_mask###" +temp+"", true);
     
     return true;
   }
@@ -3027,7 +3153,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #80: erase_undef_store";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "80###erase_undef_store###return Helper.matchUndefStore(*${root}); | Helper.eraseInst(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "80###erase_undef_store###" +temp+"", true);
     
     return true;
   }
@@ -3041,7 +3169,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #81: insert_extract_vec_elt_out_of_bounds";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "81###insert_extract_vec_elt_out_of_bounds###return Helper.matchInsertExtractVecEltOutOfBounds(*${root}); | Helper.replaceInstWithUndef(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "81###insert_extract_vec_elt_out_of_bounds###" +temp+"", true);
     
     return true;
   }
@@ -3055,7 +3185,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #82: select_same_val";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "82###select_same_val###return Helper.matchSelectSameVal(*${root}); | Helper.replaceSingleDefInstWithOperand(*${root}, 2); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "82###select_same_val###" +temp+"", true);
     
     return true;
   }
@@ -3069,7 +3201,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #85: binop_left_to_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "85###binop_left_to_zero###return Helper.matchOperandIsZero(*${root}, 1); | Helper.replaceSingleDefInstWithOperand(*${root}, 1); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "85###binop_left_to_zero###" +temp+"", true);
     
     return true;
   }
@@ -3084,7 +3218,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #87: p2i_to_i2p";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "87###p2i_to_i2p###return Helper.matchCombineI2PToP2I(*${root}, ${info}); | Helper.applyCombineI2PToP2I(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "87###p2i_to_i2p###" +temp+"", true);
     
     return true;
   }
@@ -3099,7 +3235,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #88: i2p_to_p2i";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "88###i2p_to_p2i###${info} = ${ptr}.getReg(); return true; | Helper.applyCombineP2IToI2P(*${mi}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "88###i2p_to_p2i###" +temp+"", true);
     
     return true;
   }
@@ -3114,7 +3252,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #89: anyext_trunc_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "89###anyext_trunc_fold###return Helper.matchCombineAnyExtTrunc(*${root}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "89###anyext_trunc_fold###" +temp+"", true);
     
     return true;
   }
@@ -3129,7 +3269,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #94: buildvector_identity_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "94###buildvector_identity_fold###return Helper.matchBuildVectorIdentityFold(*${build_vector}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${build_vector}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "94###buildvector_identity_fold###" +temp+"", true);
     
     return true;
   }
@@ -3144,7 +3286,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #95: trunc_buildvector_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "95###trunc_buildvector_fold###return Helper.matchTruncBuildVectorFold(*${op}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${op}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "95###trunc_buildvector_fold###" +temp+"", true);
     
     return true;
   }
@@ -3159,7 +3303,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #96: trunc_lshr_buildvector_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "96###trunc_lshr_buildvector_fold###return Helper.matchTruncLshrBuildVectorFold(*${op}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${op}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "96###trunc_lshr_buildvector_fold###" +temp+"", true);
     
     return true;
   }
@@ -3173,7 +3319,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #97: bitcast_bitcast_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "97###bitcast_bitcast_fold###return MRI.getType(${src0}.getReg()) == MRI.getType(${dst}.getReg()); | Helper.replaceSingleDefInstWithReg(*${op}, ${src0}.getReg()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "97###bitcast_bitcast_fold###" +temp+"", true);
     
     return true;
   }
@@ -3187,7 +3335,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #98: fptrunc_fpext_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "98###fptrunc_fpext_fold###return MRI.getType(${src0}.getReg()) == MRI.getType(${dst}.getReg()); | Helper.replaceSingleDefInstWithReg(*${op}, ${src0}.getReg()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "98###fptrunc_fpext_fold###" +temp+"", true);
     
     return true;
   }
@@ -3202,7 +3352,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #101: extend_through_phis";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "101###extend_through_phis###return Helper.matchExtendThroughPhis(*${root}, ${matchinfo}); | Helper.applyExtendThroughPhis(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "101###extend_through_phis###" +temp+"", true);
     
     return true;
   }
@@ -3217,7 +3369,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #102: simplify_add_to_sub";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "102###simplify_add_to_sub###return Helper.matchSimplifyAddToSub(*${root}, ${info}); | Helper.applySimplifyAddToSub(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "102###simplify_add_to_sub###" +temp+"", true);
     
     return true;
   }
@@ -3232,7 +3386,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #103: hoist_logic_op_with_same_opcode_hands";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "103###hoist_logic_op_with_same_opcode_hands###return Helper.matchHoistLogicOpWithSameOpcodeHands(*${root}, ${info}); | Helper.applyBuildInstructionSteps(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "103###hoist_logic_op_with_same_opcode_hands###" +temp+"", true);
     
     return true;
   }
@@ -3251,7 +3407,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #104: shifts_too_big";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "104###shifts_too_big###return Helper.matchShiftsTooBig(*${mi}, ${matchinfo}); | if (${matchinfo}) {\n      Helper.replaceInstWithConstant(*${mi}, *${matchinfo});\n    } else {\n      Helper.replaceInstWithUndef(*${mi});\n    } | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "104###shifts_too_big###" +temp+"", true);
     
     return true;
   }
@@ -3266,7 +3424,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #105: reassoc_ptradd";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "105###reassoc_ptradd###return Helper.matchReassocPtrAdd(*${root}, ${matchinfo}); | Helper.applyBuildFnNoErase(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "105###reassoc_ptradd###" +temp+"", true);
     
     return true;
   }
@@ -3281,7 +3441,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #106: reassoc_comm_binops";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "106###reassoc_comm_binops###return Helper.matchReassocCommBinOp(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "106###reassoc_comm_binops###" +temp+"", true);
     
     return true;
   }
@@ -3296,7 +3458,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #107: ptr_add_immed_chain";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "107###ptr_add_immed_chain###return Helper.matchPtrAddImmedChain(*${d}, ${matchinfo}); | Helper.applyPtrAddImmedChain(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "107###ptr_add_immed_chain###" +temp+"", true);
     
     return true;
   }
@@ -3311,7 +3475,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #108: canonicalize_icmp";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "108###canonicalize_icmp###return Helper.matchCanonicalizeICmp(*${cmp}, ${matchinfo}); | Helper.applyBuildFn(*${cmp}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "108###canonicalize_icmp###" +temp+"", true);
     
     return true;
   }
@@ -3326,7 +3492,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #109: canonicalize_fcmp";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "109###canonicalize_fcmp###return Helper.matchCanonicalizeFCmp(*${cmp}, ${matchinfo}); | Helper.applyBuildFn(*${cmp}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "109###canonicalize_fcmp###" +temp+"", true);
     
     return true;
   }
@@ -3341,7 +3509,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #110: icmp_to_true_false_known_bits";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "110###icmp_to_true_false_known_bits###return Helper.matchICmpToTrueFalseKnownBits(*${d}, ${matchinfo}); | Helper.replaceInstWithConstant(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "110###icmp_to_true_false_known_bits###" +temp+"", true);
     
     return true;
   }
@@ -3356,7 +3526,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #111: icmp_to_lhs_known_bits";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "111###icmp_to_lhs_known_bits###return Helper.matchICmpToLHSKnownBits(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "111###icmp_to_lhs_known_bits###" +temp+"", true);
     
     return true;
   }
@@ -3371,7 +3543,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #114: redundant_binop_in_equality";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "114###redundant_binop_in_equality###return Helper.matchRedundantBinOpInEquality(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "114###redundant_binop_in_equality###" +temp+"", true);
     
     return true;
   }
@@ -3386,7 +3560,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #115: shl_ashr_to_sext_inreg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "115###shl_ashr_to_sext_inreg###return Helper.matchAshrShlToSextInreg(*${root}, ${info}); | Helper.applyAshShlToSextInreg(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "115###shl_ashr_to_sext_inreg###" +temp+"", true);
     
     return true;
   }
@@ -3401,7 +3577,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #116: sext_inreg_of_load";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "116###sext_inreg_of_load###return Helper.matchSextInRegOfLoad(*${root}, ${matchinfo}); | Helper.applySextInRegOfLoad(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "116###sext_inreg_of_load###" +temp+"", true);
     
     return true;
   }
@@ -3416,7 +3594,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #117: reduce_shl_of_extend";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "117###reduce_shl_of_extend###return Helper.matchCombineShlOfExtend(*${mi}, ${matchinfo}); | Helper.applyCombineShlOfExtend(*${mi}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "117###reduce_shl_of_extend###" +temp+"", true);
     
     return true;
   }
@@ -3431,7 +3611,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #118: narrow_binop_feeding_and";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "118###narrow_binop_feeding_and###return Helper.matchNarrowBinopFeedingAnd(*${root}, ${matchinfo}); | Helper.applyBuildFnNoErase(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "118###narrow_binop_feeding_and###" +temp+"", true);
     
     return true;
   }
@@ -3446,7 +3628,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #120: select_constant_cmp";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "120###select_constant_cmp###return Helper.matchConstantSelectCmp(*${root}, ${matchinfo}); | Helper.replaceSingleDefInstWithOperand(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "120###select_constant_cmp###" +temp+"", true);
     
     return true;
   }
@@ -3461,7 +3645,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #121: select_to_iminmax";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "121###select_to_iminmax###return Helper.matchSelectIMinMax(${root}, ${info}); | Helper.applyBuildFnMO(${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "121###select_to_iminmax###" +temp+"", true);
     
     return true;
   }
@@ -3476,7 +3662,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #122: match_selects";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "122###match_selects###return Helper.matchSelect(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "122###match_selects###" +temp+"", true);
     
     return true;
   }
@@ -3491,7 +3679,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #123: redundant_and";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "123###redundant_and###return Helper.matchRedundantAnd(*${root}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "123###redundant_and###" +temp+"", true);
     
     return true;
   }
@@ -3505,7 +3695,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #124: redundant_sext_inreg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "124###redundant_sext_inreg###return Helper.matchRedundantSExtInReg(*${root}); | Helper.replaceSingleDefInstWithOperand(*${root}, 1); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "124###redundant_sext_inreg###" +temp+"", true);
     
     return true;
   }
@@ -3520,7 +3712,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #125: redundant_or";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "125###redundant_or###return Helper.matchRedundantOr(*${root}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "125###redundant_or###" +temp+"", true);
     
     return true;
   }
@@ -3534,7 +3728,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #126: urem_pow2_to_mask";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "126###urem_pow2_to_mask###return Helper.matchOperandIsKnownToBeAPowerOfTwo(*${root}, 2); | Helper.applySimplifyURemByPow2(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "126###urem_pow2_to_mask###" +temp+"", true);
     
     return true;
   }
@@ -3549,7 +3745,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #127: zext_trunc_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "127###zext_trunc_fold###return Helper.matchCombineZextTrunc(*${root}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "127###zext_trunc_fold###" +temp+"", true);
     
     return true;
   }
@@ -3567,7 +3765,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #128: sext_inreg_to_zext_inreg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "128###sext_inreg_to_zext_inreg###unsigned BitWidth = MRI.getType(${src}.getReg()).getScalarSizeInBits();\n        return Helper.getKnownBits()->maskedValueIsZero(${src}.getReg(),\n                 APInt::getOneBitSet(BitWidth, ${imm}.getImm() - 1)); | Helper.getBuilder().setInstrAndDebugLoc(*${root});\n      Helper.getBuilder().buildZExtInReg(${dst}, ${src}, ${imm}.getImm());\n      ${root}->eraseFromParent(); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "128###sext_inreg_to_zext_inreg###" +temp+"", true);
     
     return true;
   }
@@ -3582,7 +3782,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #129: trunc_shift";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "129###trunc_shift###return Helper.matchCombineTruncOfShift(*${root}, ${matchinfo}); | Helper.applyCombineTruncOfShift(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "129###trunc_shift###" +temp+"", true);
     
     return true;
   }
@@ -3597,7 +3799,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #130: not_cmp_fold";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "130###not_cmp_fold###return Helper.matchNotCmp(*${d}, ${info}); | Helper.applyNotCmp(*${d}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "130###not_cmp_fold###" +temp+"", true);
     
     return true;
   }
@@ -3612,7 +3816,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #131: opt_brcond_by_inverting_cond";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "131###opt_brcond_by_inverting_cond###return Helper.matchOptBrCondByInvertingCond(*${root}, ${matchinfo}); | Helper.applyOptBrCondByInvertingCond(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "131###opt_brcond_by_inverting_cond###" +temp+"", true);
     
     return true;
   }
@@ -3622,7 +3828,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #132: constant_fold_fneg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "132###constant_fold_fneg###Helper.applyCombineConstantFoldFpUnary(*${root}, ${cst}.getFPImm()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "132###constant_fold_fneg###" +temp+"", true);
     
     return true;
   }
@@ -3632,7 +3840,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #133: constant_fold_fabs";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "133###constant_fold_fabs###Helper.applyCombineConstantFoldFpUnary(*${root}, ${cst}.getFPImm()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "133###constant_fold_fabs###" +temp+"", true);
     
     return true;
   }
@@ -3642,7 +3852,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #134: constant_fold_fsqrt";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "134###constant_fold_fsqrt###Helper.applyCombineConstantFoldFpUnary(*${root}, ${cst}.getFPImm()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "134###constant_fold_fsqrt###" +temp+"", true);
     
     return true;
   }
@@ -3652,7 +3864,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #135: constant_fold_flog2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "135###constant_fold_flog2###Helper.applyCombineConstantFoldFpUnary(*${root}, ${cst}.getFPImm()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "135###constant_fold_flog2###" +temp+"", true);
     
     return true;
   }
@@ -3662,7 +3876,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #136: constant_fold_fptrunc";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "136###constant_fold_fptrunc###Helper.applyCombineConstantFoldFpUnary(*${root}, ${cst}.getFPImm()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "136###constant_fold_fptrunc###" +temp+"", true);
     
     return true;
   }
@@ -3672,7 +3888,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #137: itof_const_zero_fold_si";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "137###itof_const_zero_fold_si###Helper.replaceInstWithFConstant(*${dst}.getParent(), 0.0); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "137###itof_const_zero_fold_si###" +temp+"", true);
     
     return true;
   }
@@ -3682,7 +3900,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #138: itof_const_zero_fold_ui";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "138###itof_const_zero_fold_ui###Helper.replaceInstWithFConstant(*${dst}.getParent(), 0.0); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "138###itof_const_zero_fold_ui###" +temp+"", true);
     
     return true;
   }
@@ -3697,7 +3917,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #139: const_ptradd_to_i2p";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "139###const_ptradd_to_i2p###return Helper.matchCombineConstPtrAddToI2P(*${root}, ${info}); | Helper.applyCombineConstPtrAddToI2P(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "139###const_ptradd_to_i2p###" +temp+"", true);
     
     return true;
   }
@@ -3712,7 +3934,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #140: overlapping_and";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "140###overlapping_and###return Helper.matchOverlappingAnd(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "140###overlapping_and###" +temp+"", true);
     
     return true;
   }
@@ -3727,7 +3951,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #141: mulo_by_2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "141###mulo_by_2###return Helper.matchMulOBy2(*${root}, ${matchinfo}); | Helper.applyBuildFnNoErase(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "141###mulo_by_2###" +temp+"", true);
     
     return true;
   }
@@ -3742,7 +3968,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #142: mulo_by_0";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "142###mulo_by_0###return Helper.matchMulOBy0(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "142###mulo_by_0###" +temp+"", true);
     
     return true;
   }
@@ -3757,7 +3985,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #143: adde_to_addo";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "143###adde_to_addo###return Helper.matchAddEToAddO(*${root}, ${matchinfo}); | Helper.applyBuildFnNoErase(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "143###adde_to_addo###" +temp+"", true);
     
     return true;
   }
@@ -3772,7 +4002,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #144: combine_minmax_nan";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "144###combine_minmax_nan###return Helper.matchCombineFMinMaxNaN(*${root}, ${info}); | Helper.replaceSingleDefInstWithOperand(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "144###combine_minmax_nan###" +temp+"", true);
     
     return true;
   }
@@ -3786,7 +4018,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #145: expand_const_fpowi";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "145###expand_const_fpowi###return Helper.matchFPowIExpansion(*${root}, ${imm}.getCImm()->getSExtValue()); | Helper.applyExpandFPowI(*${root}, ${imm}.getCImm()->getSExtValue()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "145###expand_const_fpowi###" +temp+"", true);
     
     return true;
   }
@@ -3801,7 +4035,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #146: xor_of_and_with_same_reg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "146###xor_of_and_with_same_reg###return Helper.matchXorOfAndWithSameReg(*${root}, ${matchinfo}); | Helper.applyXorOfAndWithSameReg(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "146###xor_of_and_with_same_reg###" +temp+"", true);
     
     return true;
   }
@@ -3815,7 +4051,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #147: ptr_add_with_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "147###ptr_add_with_zero###return Helper.matchPtrAddZero(*${root}); | Helper.applyPtrAddZero(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "147###ptr_add_with_zero###" +temp+"", true);
     
     return true;
   }
@@ -3830,7 +4068,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #148: shift_immed_chain";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "148###shift_immed_chain###return Helper.matchShiftImmedChain(*${d}, ${matchinfo}); | Helper.applyShiftImmedChain(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "148###shift_immed_chain###" +temp+"", true);
     
     return true;
   }
@@ -3845,7 +4085,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #149: shift_of_shifted_logic_chain";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "149###shift_of_shifted_logic_chain###return Helper.matchShiftOfShiftedLogic(*${d}, ${matchinfo}); | Helper.applyShiftOfShiftedLogic(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "149###shift_of_shifted_logic_chain###" +temp+"", true);
     
     return true;
   }
@@ -3860,7 +4102,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #150: load_or_combine";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "150###load_or_combine###return Helper.matchLoadOrCombine(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "150###load_or_combine###" +temp+"", true);
     
     return true;
   }
@@ -3875,7 +4119,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #151: div_rem_to_divrem";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "151###div_rem_to_divrem###return Helper.matchCombineDivRem(*${root}, ${matchinfo}); | Helper.applyCombineDivRem(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "151###div_rem_to_divrem###" +temp+"", true);
     
     return true;
   }
@@ -3890,7 +4136,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #152: funnel_shift_from_or_shift";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "152###funnel_shift_from_or_shift###return Helper.matchOrShiftToFunnelShift(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "152###funnel_shift_from_or_shift###" +temp+"", true);
     
     return true;
   }
@@ -3904,7 +4152,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #153: funnel_shift_to_rotate";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "153###funnel_shift_to_rotate###return Helper.matchFunnelShiftToRotate(*${root}); | Helper.applyFunnelShiftToRotate(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "153###funnel_shift_to_rotate###" +temp+"", true);
     
     return true;
   }
@@ -3918,7 +4168,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #156: funnel_shift_overshift";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "156###funnel_shift_overshift###return Helper.matchConstantLargerBitWidth(*${root}, 3); | Helper.applyFunnelShiftConstantModulo(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "156###funnel_shift_overshift###" +temp+"", true);
     
     return true;
   }
@@ -3933,7 +4185,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #159: commute_shift";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "159###commute_shift###return Helper.matchCommuteShift(*${d}, ${matchinfo}); | Helper.applyBuildFn(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "159###commute_shift###" +temp+"", true);
     
     return true;
   }
@@ -3948,7 +4202,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #160: bitfield_extract_from_sext_inreg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "160###bitfield_extract_from_sext_inreg###return Helper.matchBitfieldExtractFromSExtInReg(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "160###bitfield_extract_from_sext_inreg###" +temp+"", true);
     
     return true;
   }
@@ -3963,7 +4219,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #161: bitfield_extract_from_and";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "161###bitfield_extract_from_and###return Helper.matchBitfieldExtractFromAnd(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "161###bitfield_extract_from_and###" +temp+"", true);
     
     return true;
   }
@@ -3978,7 +4236,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #162: bitfield_extract_from_shr";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "162###bitfield_extract_from_shr###return Helper.matchBitfieldExtractFromShr(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "162###bitfield_extract_from_shr###" +temp+"", true);
     
     return true;
   }
@@ -3993,7 +4253,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #163: bitfield_extract_from_shr_and";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "163###bitfield_extract_from_shr_and###return Helper.matchBitfieldExtractFromShrAnd(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "163###bitfield_extract_from_shr_and###" +temp+"", true);
     
     return true;
   }
@@ -4008,7 +4270,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #164: constant_fold_binop";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "164###constant_fold_binop###return Helper.matchConstantFoldBinOp(*${d}, ${matchinfo}); | Helper.replaceInstWithConstant(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "164###constant_fold_binop###" +temp+"", true);
     
     return true;
   }
@@ -4023,7 +4287,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #165: constant_fold_fp_binop";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "165###constant_fold_fp_binop###return Helper.matchConstantFoldFPBinOp(*${d}, ${matchinfo}); | Helper.replaceInstWithFConstant(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "165###constant_fold_fp_binop###" +temp+"", true);
     
     return true;
   }
@@ -4038,7 +4304,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #166: constant_fold_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "166###constant_fold_fma###return Helper.matchConstantFoldFMA(*${d}, ${matchinfo}); | Helper.replaceInstWithFConstant(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "166###constant_fold_fma###" +temp+"", true);
     
     return true;
   }
@@ -4053,7 +4321,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #167: constant_fold_cast_op";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "167###constant_fold_cast_op###return Helper.matchConstantFoldCastOp(*${d}, ${matchinfo}); | Helper.replaceInstWithConstant(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "167###constant_fold_cast_op###" +temp+"", true);
     
     return true;
   }
@@ -4067,7 +4337,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #169: udiv_by_const";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "169###udiv_by_const###return Helper.matchUDivByConst(*${root}); | Helper.applyUDivByConst(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "169###udiv_by_const###" +temp+"", true);
     
     return true;
   }
@@ -4081,7 +4353,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #170: sdiv_by_const";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "170###sdiv_by_const###return Helper.matchSDivByConst(*${root}); | Helper.applySDivByConst(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "170###sdiv_by_const###" +temp+"", true);
     
     return true;
   }
@@ -4095,7 +4369,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #171: sdiv_by_pow2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "171###sdiv_by_pow2###return Helper.matchDivByPow2(*${root}, /*IsSigned=*/true); | Helper.applySDivByPow2(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "171###sdiv_by_pow2###" +temp+"", true);
     
     return true;
   }
@@ -4109,7 +4385,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #172: udiv_by_pow2";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "172###udiv_by_pow2###return Helper.matchDivByPow2(*${root}, /*IsSigned=*/false); | Helper.applyUDivByPow2(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "172###udiv_by_pow2###" +temp+"", true);
     
     return true;
   }
@@ -4123,7 +4401,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #173: mulh_to_lshr";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "173###mulh_to_lshr###return Helper.matchUMulHToLShr(*${root}); | Helper.applyUMulHToLShr(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "173###mulh_to_lshr###" +temp+"", true);
     
     return true;
   }
@@ -4138,7 +4418,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #174: redundant_neg_operands";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "174###redundant_neg_operands###return Helper.matchRedundantNegOperands(*${root}, ${matchinfo}); | Helper.applyBuildFnNoErase(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "174###redundant_neg_operands###" +temp+"", true);
     
     return true;
   }
@@ -4153,7 +4435,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #175: and_or_disjoint_mask";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "175###and_or_disjoint_mask###return Helper.matchAndOrDisjointMask(*${root}, ${info}); | Helper.applyBuildFnNoErase(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "175###and_or_disjoint_mask###" +temp+"", true);
     
     return true;
   }
@@ -4169,7 +4453,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #176: combine_fadd_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "176###combine_fadd_fmul_to_fmad_or_fma###return Helper.matchCombineFAddFMulToFMadOrFMA(*${root},\n                                                          ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "176###combine_fadd_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4185,7 +4471,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #177: combine_fadd_fpext_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "177###combine_fadd_fpext_fmul_to_fmad_or_fma###return Helper.matchCombineFAddFpExtFMulToFMadOrFMA(*${root},\n                                                               ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "177###combine_fadd_fpext_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4201,7 +4489,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #178: combine_fadd_fma_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "178###combine_fadd_fma_fmul_to_fmad_or_fma###return Helper.matchCombineFAddFMAFMulToFMadOrFMA(*${root},\n                                                             ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "178###combine_fadd_fma_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4217,7 +4507,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #179: combine_fadd_fpext_fma_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "179###combine_fadd_fpext_fma_fmul_to_fmad_or_fma###return Helper.matchCombineFAddFpExtFMulToFMadOrFMAAggressive(\n                                                  *${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "179###combine_fadd_fpext_fma_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4233,7 +4525,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #180: combine_fsub_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "180###combine_fsub_fmul_to_fmad_or_fma###return Helper.matchCombineFSubFMulToFMadOrFMA(*${root},\n                                                          ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "180###combine_fsub_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4249,7 +4543,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #181: combine_fsub_fneg_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "181###combine_fsub_fneg_fmul_to_fmad_or_fma###return Helper.matchCombineFSubFNegFMulToFMadOrFMA(*${root},\n                                                              ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "181###combine_fsub_fneg_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4265,7 +4561,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #182: combine_fsub_fpext_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "182###combine_fsub_fpext_fmul_to_fmad_or_fma###return Helper.matchCombineFSubFpExtFMulToFMadOrFMA(*${root},\n                                                               ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "182###combine_fsub_fpext_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4281,7 +4579,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #183: combine_fsub_fpext_fneg_fmul_to_fmad_or_fma";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "183###combine_fsub_fpext_fneg_fmul_to_fmad_or_fma###return Helper.matchCombineFSubFpExtFNegFMulToFMadOrFMA(\n                                            *${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "183###combine_fsub_fpext_fneg_fmul_to_fmad_or_fma###" +temp+"", true);
     
     return true;
   }
@@ -4296,7 +4596,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #184: fold_binop_into_select";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "184###fold_binop_into_select###return Helper.matchFoldBinOpIntoSelect(*${root}, ${select_op_no}); | Helper.applyFoldBinOpIntoSelect(*${root}, ${select_op_no}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "184###fold_binop_into_select###" +temp+"", true);
     
     return true;
   }
@@ -4311,7 +4613,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #185: sub_add_reg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "185###sub_add_reg###return Helper.matchSubAddSameReg(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "185###sub_add_reg###" +temp+"", true);
     
     return true;
   }
@@ -4326,7 +4630,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #186: select_to_minmax";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "186###select_to_minmax###return Helper.matchSimplifySelectToMinMax(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "186###select_to_minmax###" +temp+"", true);
     
     return true;
   }
@@ -4341,7 +4647,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #187: fsub_to_fneg";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "187###fsub_to_fneg###return Helper.matchFsubToFneg(*${root}, ${matchinfo}); | Helper.applyFsubToFneg(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "187###fsub_to_fneg###" +temp+"", true);
     
     return true;
   }
@@ -4355,7 +4663,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #188: commute_int_constant_to_rhs";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "188###commute_int_constant_to_rhs###return Helper.matchCommuteConstantToRHS(*${root}); | Helper.applyCommuteBinOpOperands(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "188###commute_int_constant_to_rhs###" +temp+"", true);
     
     return true;
   }
@@ -4369,7 +4679,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #189: commute_fp_constant_to_rhs";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "189###commute_fp_constant_to_rhs###return Helper.matchCommuteFPConstantToRHS(*${root}); | Helper.applyCommuteBinOpOperands(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "189###commute_fp_constant_to_rhs###" +temp+"", true);
     
     return true;
   }
@@ -4384,7 +4696,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #190: match_ands";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "190###match_ands###return Helper.matchAnd(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "190###match_ands###" +temp+"", true);
     
     return true;
   }
@@ -4399,7 +4713,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #191: match_ors";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "191###match_ors###return Helper.matchOr(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "191###match_ors###" +temp+"", true);
     
     return true;
   }
@@ -4414,7 +4730,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #192: simplify_neg_minmax";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "192###simplify_neg_minmax###return Helper.matchSimplifyNegMinMax(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "192###simplify_neg_minmax###" +temp+"", true);
     
     return true;
   }
@@ -4429,7 +4747,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #193: combine_concat_vector";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "193###combine_concat_vector###return Helper.matchCombineConcatVectors(*${root}, ${matchinfo}); | Helper.applyCombineConcatVectors(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "193###combine_concat_vector###" +temp+"", true);
     
     return true;
   }
@@ -4444,7 +4764,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #194: sext_trunc";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "194###sext_trunc###return Helper.matchSextOfTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "194###sext_trunc###" +temp+"", true);
     
     return true;
   }
@@ -4459,7 +4781,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #195: zext_trunc";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "195###zext_trunc###return Helper.matchZextOfTrunc(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "195###zext_trunc###" +temp+"", true);
     
     return true;
   }
@@ -4474,7 +4798,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #196: nneg_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "196###nneg_zext###return Helper.matchNonNegZext(${root}, ${matchinfo}); | Helper.applyBuildFnMO(${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "196###nneg_zext###" +temp+"", true);
     
     return true;
   }
@@ -4489,7 +4815,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #197: combine_shuffle_concat";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "197###combine_shuffle_concat###return Helper.matchCombineShuffleConcat(*${root}, ${matchinfo}); | Helper.applyCombineShuffleConcat(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "197###combine_shuffle_concat###" +temp+"", true);
     
     return true;
   }
@@ -4504,7 +4832,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #198: combine_shuffle_undef_rhs";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "198###combine_shuffle_undef_rhs###return Helper.matchShuffleUndefRHS(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "198###combine_shuffle_undef_rhs###" +temp+"", true);
     
     return true;
   }
@@ -4519,7 +4849,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #199: combine_shuffle_disjoint_mask";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "199###combine_shuffle_disjoint_mask###return Helper.matchShuffleDisjointMask(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "199###combine_shuffle_disjoint_mask###" +temp+"", true);
     
     return true;
   }
@@ -4534,7 +4866,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #200: combine_use_vector_truncate";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "200###combine_use_vector_truncate###return Helper.matchUseVectorTruncate(*${root}, ${matchinfo}); | Helper.applyUseVectorTruncate(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "200###combine_use_vector_truncate###" +temp+"", true);
     
     return true;
   }
@@ -4549,7 +4883,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #201: unmerge_anyext_build_vector";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "201###unmerge_anyext_build_vector###return Helper.matchUnmergeValuesAnyExtBuildVector(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "201###unmerge_anyext_build_vector###" +temp+"", true);
     
     return true;
   }
@@ -4564,7 +4900,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #202: unmerge_merge";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "202###unmerge_merge###return Helper.matchCombineUnmergeMergeToPlainValues(*${d}, ${info}); | Helper.applyCombineUnmergeMergeToPlainValues(*${d}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "202###unmerge_merge###" +temp+"", true);
     
     return true;
   }
@@ -4579,7 +4917,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #203: merge_unmerge";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "203###merge_unmerge###return Helper.matchCombineMergeUnmerge(*${d}, ${matchinfo}); | Helper.replaceSingleDefInstWithReg(*${d}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "203###merge_unmerge###" +temp+"", true);
     
     return true;
   }
@@ -4594,7 +4934,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #204: unmerge_cst";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "204###unmerge_cst###return Helper.matchCombineUnmergeConstant(*${d}, ${info}); | Helper.applyCombineUnmergeConstant(*${d}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "204###unmerge_cst###" +temp+"", true);
     
     return true;
   }
@@ -4609,7 +4951,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #205: unmerge_undef";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "205###unmerge_undef###return Helper.matchCombineUnmergeUndef(*${root}, ${info}); | Helper.applyBuildFn(*${root}, ${info}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "205###unmerge_undef###" +temp+"", true);
     
     return true;
   }
@@ -4623,7 +4967,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #206: unmerge_dead_to_trunc";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "206###unmerge_dead_to_trunc###return Helper.matchCombineUnmergeWithDeadLanesToTrunc(*${d}); | Helper.applyCombineUnmergeWithDeadLanesToTrunc(*${d}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "206###unmerge_dead_to_trunc###" +temp+"", true);
     
     return true;
   }
@@ -4637,7 +4983,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #207: unmerge_zext_to_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "207###unmerge_zext_to_zext###return Helper.matchCombineUnmergeZExtToZExt(*${d}); | Helper.applyCombineUnmergeZExtToZExt(*${d}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "207###unmerge_zext_to_zext###" +temp+"", true);
     
     return true;
   }
@@ -4652,7 +5000,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #208: merge_of_x_and_undef";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "208###merge_of_x_and_undef###return Helper.matchMergeXAndUndef(*${MI}, ${matchinfo}); | Helper.applyBuildFn(*${MI}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "208###merge_of_x_and_undef###" +temp+"", true);
     
     return true;
   }
@@ -4667,7 +5017,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #209: merge_of_x_and_zero";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "209###merge_of_x_and_zero###return Helper.matchMergeXAndZero(*${MI}, ${matchinfo}); | Helper.applyBuildFn(*${MI}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "209###merge_of_x_and_zero###" +temp+"", true);
     
     return true;
   }
@@ -4682,7 +5034,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #210: match_addos";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "210###match_addos###return Helper.matchAddOverflow(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "210###match_addos###" +temp+"", true);
     
     return true;
   }
@@ -4697,7 +5051,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #211: match_subo_no_overflow";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "211###match_subo_no_overflow###return Helper.matchSuboCarryOut(*${root}, ${matchinfo}); | Helper.applyBuildFn(*${root}, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "211###match_subo_no_overflow###" +temp+"", true);
     
     return true;
   }
@@ -4711,7 +5067,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #212: fconstant_to_constant";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "212###fconstant_to_constant###return matchFConstantToConstant(*${root}, MRI); | applyFConstantToConstant(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "212###fconstant_to_constant###" +temp+"", true);
     
     return true;
   }
@@ -4726,7 +5084,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #213: icmp_redundant_trunc";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "213###icmp_redundant_trunc###return matchICmpRedundantTrunc(*${root}, MRI, Helper.getKnownBits(), ${matchinfo}); | applyICmpRedundantTrunc(*${root}, MRI, B, Observer, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "213###icmp_redundant_trunc###" +temp+"", true);
     
     return true;
   }
@@ -4741,7 +5101,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #214: fold_global_offset";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "214###fold_global_offset###return matchFoldGlobalOffset(*${root}, MRI, ${matchinfo}); | applyFoldGlobalOffset(*${root}, MRI, B, Observer, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "214###fold_global_offset###" +temp+"", true);
     
     return true;
   }
@@ -4755,7 +5117,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #215: shuffle_to_extract";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "215###shuffle_to_extract###return Helper.matchShuffleToExtract(*${root}); | Helper.applyShuffleToExtract(*${root}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "215###shuffle_to_extract###" +temp+"", true);
     
     return true;
   }
@@ -4770,7 +5134,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #216: ext_addv_to_udot_addv";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "216###ext_addv_to_udot_addv###return matchExtAddvToUdotAddv(*${root}, MRI, STI, ${matchinfo}); | applyExtAddvToUdotAddv(*${root}, MRI, B, Observer, STI, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "216###ext_addv_to_udot_addv###" +temp+"", true);
     
     return true;
   }
@@ -4785,7 +5151,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #217: ext_uaddv_to_uaddlv";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "217###ext_uaddv_to_uaddlv###return matchExtUaddvToUaddlv(*${root}, MRI, ${matchinfo}); | applyExtUaddvToUaddlv(*${root}, MRI, B, Observer, ${matchinfo}); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "217###ext_uaddv_to_uaddlv###" +temp+"", true);
     
     return true;
   }
@@ -4799,7 +5167,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #218: push_sub_through_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "218###push_sub_through_zext###return matchPushAddSubExt(*${root}, MRI, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | applyPushAddSubExt(*${root}, MRI, B, ${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "218###push_sub_through_zext###" +temp+"", true);
     
     return true;
   }
@@ -4813,7 +5183,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #219: push_add_through_zext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "219###push_add_through_zext###return matchPushAddSubExt(*${root}, MRI, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | applyPushAddSubExt(*${root}, MRI, B, ${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "219###push_add_through_zext###" +temp+"", true);
     
     return true;
   }
@@ -4827,7 +5199,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #220: push_sub_through_sext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "220###push_sub_through_sext###return matchPushAddSubExt(*${root}, MRI, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | applyPushAddSubExt(*${root}, MRI, B, ${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "220###push_sub_through_sext###" +temp+"", true);
     
     return true;
   }
@@ -4841,7 +5215,9 @@ bool AArch64PreLegalizerCombinerImpl::runCustomAction(unsigned ApplyID, const Ma
     
     // Nico
     outs() << "\t\t\t\t\tCombiner Rule #221: push_add_through_sext";
-    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "221###push_add_through_sext###return matchPushAddSubExt(*${root}, MRI, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | applyPushAddSubExt(*${root}, MRI, B, ${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, ${dst}.getReg(), ${src1}.getReg(), ${src2}.getReg()); | ", true);
+    std::string temp = "";
+    for (const auto& C : State.MIs) { temp += MI2String(*C); temp += " | "; }
+    llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, "221###push_add_through_sext###" +temp+"", true);
     
     return true;
   }
