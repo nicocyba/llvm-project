@@ -1941,7 +1941,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // }
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp += MI2String(C); temp += \" | \"; }\n";
+    OS << "for (const auto& C : State.MIs) { temp += MI2String(*C); temp += \" | \"; }\n";
     auto escapeString = [](const std::string& input) -> std::string {
         std::string out;
         for (char c : input) {
