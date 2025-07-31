@@ -1943,14 +1943,14 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //     print(OS, Alts);
     // }
 
-    OS << "std::string obs_created = \"\";\n";
-    OS << "for (const auto& C : WLObserver->CreatedInstrsNico) { obs_created += MI2String(*C); obs_created += \" | \"; }\n";
+    // OS << "std::string obs_created = \"\";\n";
+    // OS << "for (const auto& C : WLObserver->CreatedInstrsNico) { obs_created += MI2String(*C); obs_created += \" | \"; }\n";
 
-    OS << "std::string obs_changed = \"\";\n";
-    OS << "for (const auto& C : WLObserver->ChangedInstrsNico) { obs_changed += MI2String(*C); obs_changed += \" | \"; }\n";
+    // OS << "std::string obs_changed = \"\";\n";
+    // OS << "for (const auto& C : WLObserver->ChangedInstrsNico) { obs_changed += MI2String(*C); obs_changed += \" | \"; }\n";
 
-    OS << "std::string obs_deleted = \"\";\n";
-    OS << "for (const auto& C : WLObserver->DeletedInstrsNico) { obs_deleted += MI2String(*C); obs_deleted += \" | \"; }\n";
+    // OS << "std::string obs_deleted = \"\";\n";
+    // OS << "for (const auto& C : WLObserver->DeletedInstrsNico) { obs_deleted += MI2String(*C); obs_deleted += \" | \"; }\n";
 
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp_after = \"\";\n";
@@ -1982,15 +1982,18 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << "\" +temp_before+\""
        << " -> "
        << "\" +temp_after+\""
-       << " -> "
-       << "obs_created=\"" << "\" + obs_created + \"\", "
-       << "obs_changed=\"" << "\" + obs_changed + \"\", "
-       << "obs_deleted=\"" << "\" + obs_deleted + \"\", "
+    //    << " -> "
+    //    << "obs_created=\"" 
+    //    << "\" + obs_created + \"\", "
+    //    << "obs_changed=\"" 
+    //    << "\" + obs_changed + \"\", "
+    //    << "obs_deleted=\"" 
+    //    << "\" + obs_deleted + \"\", "
        << "\", true);\n";
 
-    OS << "WLObserver->DeletedInstrsNico.clear();\n";
-    OS << "WLObserver->ChangedInstrsNico.clear();\n";
-    OS << "WLObserver->CreatedInstrsNico.clear();\n";
+    // OS << "WLObserver->DeletedInstrsNico.clear();\n";
+    // OS << "WLObserver->ChangedInstrsNico.clear();\n";
+    // OS << "WLObserver->CreatedInstrsNico.clear();\n";
 
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;
