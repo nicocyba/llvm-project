@@ -1944,13 +1944,13 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // }
 
     OS << "std::string obs_created = \"\";\n";  
-    OS << "for (const auto& C : WorkListMaintainerImpl->CreatedInstrsNico) { obs_created += MI2String(*C); obs_created += \" | \"; }\n";
+    OS << "for (const auto& C : getWorkListObserver()->CreatedInstrsNico) { obs_created += MI2String(*C); obs_created += \" | \"; }\n";
 
     OS << "std::string obs_changed = \"\";\n";
-    OS << "for (const auto& C : WorkListMaintainerImpl->ChangedInstrsNico) { obs_changed += MI2String(*C); obs_changed += \" | \"; }\n";
+    OS << "for (const auto& C : getWorkListObserver()->ChangedInstrsNico) { obs_changed += MI2String(*C); obs_changed += \" | \"; }\n";
 
     OS << "std::string obs_deleted = \"\";\n";
-    OS << "for (const auto& C : WorkListMaintainerImpl->DeletedInstrsNico) { obs_deleted += MI2String(*C); obs_deleted += \" | \"; }\n";
+    OS << "for (const auto& C : getWorkListObserver()->DeletedInstrsNico) { obs_deleted += MI2String(*C); obs_deleted += \" | \"; }\n";
 
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp_after = \"\";\n";
@@ -1991,9 +1991,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << "\" + obs_deleted + \"\", "
        << "\", true);\n";
 
-    OS << "WorkListMaintainerImpl->DeletedInstrsNico.clear();\n";
-    OS << "WorkListMaintainerImpl->ChangedInstrsNico.clear();\n";
-    OS << "WorkListMaintainerImpl->CreatedInstrsNico.clear();\n";
+    OS << "getWorkListObserver()->DeletedInstrsNico.clear();\n";
+    OS << "getWorkListObserver()->ChangedInstrsNico.clear();\n";
+    OS << "getWorkListObserver()->CreatedInstrsNico.clear();\n";
 
     // if (!AdditionalComment.isTriviallyEmpty()) {
     //     OS << "; " << AdditionalComment;

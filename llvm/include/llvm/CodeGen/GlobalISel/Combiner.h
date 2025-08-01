@@ -70,6 +70,12 @@ public:
 
   bool combineMachineInstrs();
 
+  // getter for WLObserver.
+  WorkListMaintainer &getWorkListObserver() {
+    assert(WLObserver && "WorkListMaintainer is not initialized");
+    return *WLObserver;
+  }
+
 protected:
   CombinerInfo &CInfo;
   GISelChangeObserver &Observer;
