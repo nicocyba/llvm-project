@@ -23,6 +23,8 @@
 #include "llvm/ADT/SetVector.h"
 #include "llvm/CodeGen/MachineInstr.h"
 
+#include "llvm/CodeGen/NicoBA.h"
+
 
 namespace llvm {
 class MachineRegisterInfo;

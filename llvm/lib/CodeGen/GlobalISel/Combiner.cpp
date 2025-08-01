@@ -24,7 +24,7 @@
 #include "llvm/CodeGen/MachineOptimizationRemarkEmitter.h"
 #include "llvm/Support/Debug.h"
 
-#include "llvm/CodeGen/NicoBA.h"
+
 
 #define DEBUG_TYPE "gi-combiner"
 
@@ -111,7 +111,8 @@ public:
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
-    DeletedInstrsNico.insert(&MI);
+    DeletedInstrsNico.push_back(&MI);
+
     CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
     if constexpr (Lvl != Level::Basic) {
@@ -122,7 +123,8 @@ public:
 
   void createdInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Creating: " << MI; 
-    CreatedInstrsNico.insert(&MI);
+    CreatedInstrsNico.push_back(&MI);
+    
     CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
@@ -145,7 +147,8 @@ public:
 
   void changedInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Changed: " << MI;
-    ChangedInstrsNico.insert(&MI);
+    ChangedInstrsNico.push_back(&MI);
+
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
     else

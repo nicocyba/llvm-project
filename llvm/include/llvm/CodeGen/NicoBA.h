@@ -435,7 +435,20 @@ inline std::string to_string(AArch64MachineCombinerPattern2 pattern) {
         //     return "<unknown>";
     }
 }
+
+
+inline thread_local std::vector<const MachineInstr *> CreatedInstrsNico;
+inline thread_local std::vector<const MachineInstr *> DeletedInstrsNico;
+inline thread_local std::vector<const MachineInstr *> ChangedInstrsNico;
+
+inline void reset_observerdata() {
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
+
 } // end namespace nico
+
 namespace llvm {
 
 enum CurrentBackendStage : unsigned {
