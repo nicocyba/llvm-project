@@ -437,9 +437,9 @@ inline std::string to_string(AArch64MachineCombinerPattern2 pattern) {
 }
 
 
-inline thread_local std::vector<const MachineInstr *> CreatedInstrsNico;
-inline thread_local std::vector<const MachineInstr *> DeletedInstrsNico;
-inline thread_local std::vector<const MachineInstr *> ChangedInstrsNico;
+inline thread_local std::vector<const llvm::MachineInstr *> CreatedInstrsNico;
+inline thread_local std::vector<const llvm::MachineInstr *> DeletedInstrsNico;
+inline thread_local std::vector<const llvm::MachineInstr *> ChangedInstrsNico;
 
 inline void reset_observerdata() {
     CreatedInstrsNico.clear();
