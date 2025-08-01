@@ -17,6 +17,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/CodeGen/MachineFunction.h"
 // #include "llvm/ADT/Statistic.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/CodeGen/NicoBA.h"
 
 namespace llvm {
@@ -30,7 +31,7 @@ class MachineRegisterInfo;
 /// notified earlier (consider using GISelWorkList).
 class GISelChangeObserver {
   SmallPtrSet<MachineInstr *, 4> ChangingAllUsesOfReg;
-  
+
   SmallSetVector<const MachineInstr *, 32> CreatedInstrsNico;
   SmallSetVector<const MachineInstr *, 32> DeletedInstrsNico;
   SmallSetVector<const MachineInstr *, 32> ChangedInstrsNico;
