@@ -111,7 +111,7 @@ public:
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
-    DeletedInstrsNico.push_back(&MI);
+    nico::DeletedInstrsNico.push_back(&MI);
 
     CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
@@ -123,8 +123,8 @@ public:
 
   void createdInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Creating: " << MI; 
-    CreatedInstrsNico.push_back(&MI);
-    
+    nico::CreatedInstrsNico.push_back(&MI);
+
     CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
@@ -147,7 +147,7 @@ public:
 
   void changedInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Changed: " << MI;
-    ChangedInstrsNico.push_back(&MI);
+    nico::ChangedInstrsNico.push_back(&MI);
 
     if constexpr (Lvl == Level::Basic)
       WorkList.insert(&MI);
