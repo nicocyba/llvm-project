@@ -564,7 +564,7 @@ inline thread_local GlobalISelDataVector<GlobalISelDataPattern> data_globalisel_
 
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
-auto MI2String = [](MachineInstr& MI) {
+auto MI2String = [](const MachineInstr& MI) {
     std::string InstrStr;
     llvm::raw_string_ostream OS(InstrStr);
     MI.print(OS);

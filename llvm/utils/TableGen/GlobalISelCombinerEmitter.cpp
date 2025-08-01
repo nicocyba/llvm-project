@@ -1560,9 +1560,7 @@ bool CombineRuleBuilder::parseDefs(const DagInit& Def) {
     return true;
 }
 
-bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE,
-    const PatternAlternatives& Alts,
-    const InstructionPattern& IP) {
+bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlternatives& Alts, const InstructionPattern& IP) {
     auto StackTrace = PrettyStackTraceEmit(RuleDef, &IP);
 
     auto& M = addRuleMatcher(Alts);
@@ -1638,9 +1636,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE,
                                   : emitApplyPatterns(CE, M);
 }
 
-bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE,
-    const PatternAlternatives& Alts,
-    const AnyOpcodePattern& AOP) {
+bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlternatives& Alts, const AnyOpcodePattern& AOP) {
     auto StackTrace = PrettyStackTraceEmit(RuleDef, &AOP);
 
     const bool IsUsingCustomCXXAction = hasOnlyCXXApplyPatterns();
