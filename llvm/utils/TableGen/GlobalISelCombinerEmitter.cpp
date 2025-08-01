@@ -1562,7 +1562,7 @@ bool CombineRuleBuilder::parseDefs(const DagInit& Def) {
 
 bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlternatives& Alts, const InstructionPattern& IP) {
     auto StackTrace = PrettyStackTraceEmit(RuleDef, &IP);
-
+    outs() << "emitting match pattern for '" << IP.getName() << "'\n";
     auto& M = addRuleMatcher(Alts);
     InstructionMatcher& IM = M.addInstructionMatcher(IP.getName());
     declareInstExpansion(CE, IM, IP.getName());
@@ -1597,6 +1597,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
     const bool IsUsingCustomCXXAction = hasOnlyCXXApplyPatterns();
     SmallVector<CXXPattern*, 2> CXXMatchers;
     for (auto& Pat : values(MatchPats)) {
+        outs() << "\tProcessing match pattern '" << Pat->getName() << "'\n";
         if (SeenPats.contains(Pat.get())) {
             continue;
         }
@@ -1638,7 +1639,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
 
 bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlternatives& Alts, const AnyOpcodePattern& AOP) {
     auto StackTrace = PrettyStackTraceEmit(RuleDef, &AOP);
-
+    outs() << "emitting match pattern for wip_match_opcode '" << AOP.getName() << "'\n";
     const bool IsUsingCustomCXXAction = hasOnlyCXXApplyPatterns();
     for (const CodeGenInstruction* CGI : AOP.insts()) {
         auto& M = addRuleMatcher(Alts, "wip_match_opcode '" + CGI->TheDef->getName() + "'");
@@ -1654,6 +1655,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
         // Emit remaining patterns.
         SmallVector<CXXPattern*, 2> CXXMatchers;
         for (auto& Pat : values(MatchPats)) {
+            outs() << "\tProcessing match pattern '" << Pat->getName() << "'\n";
             if (Pat.get() == &AOP) {
                 continue;
             }
@@ -1929,15 +1931,8 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     }
 
     // NICO
-    // OS << "outs() << \"// Emitting CXX Action for rule '"
-    //    << RuleDef.getName() << "'\\n\";\n";
-
     OS << "\n\n// Nico\n";
     OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n\n";
-    // if (!Alts.empty()) {
-    //     OS << "outs() << \"@ \" << ";
-    //     print(OS, Alts);
-    // }
 
     OS << "std::string obs_created = \"\";\n";  
     OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C); obs_created += \" | \"; }\n";
@@ -1945,33 +1940,14 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     OS << "std::string obs_changed = \"\";\n";
     OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += llvm::MI2String(*C); obs_changed += \" | \"; }\n";
 
-    OS << "std::string obs_deleted = \"\";\n";
-    OS << "for (const auto& C : nico::DeletedInstrsNico) { obs_deleted += llvm::MI2String(*C); obs_deleted += \" | \"; }\n";
+    OS << "std::string obs_deleted = std::to_string(nico::DeletedInstrsNico.size());\n";
+    // OS << "std::string obs_deleted = \"\";\n";
+    // OS << "for (const auto& C : nico::DeletedInstrsNico) { obs_deleted += llvm::MI2String(*C); obs_deleted += \" | \"; }\n";
 
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp_after = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_after += llvm::MI2String(*C); temp_after += \" | \"; }\n";
-    auto escapeString = [](const std::string& input) -> std::string {
-        std::string out;
-        for (char c : input) {
-            switch (c) {
-                case '\\': out += "\\\\"; break;
-                case '\"': out += "\\\""; break;
-                case '\n': out += "\\n"; break;
-                case '\r': out += "\\r"; break;
-                case '\t': out += "\\t"; break;
-                default:
-                    if (static_cast<unsigned char>(c) < 32 || static_cast<unsigned char>(c) > 126) {
-                        char buf[8];
-                        snprintf(buf, sizeof(buf), "\\x%02x", static_cast<unsigned char>(c));
-                        out += buf;
-                    } else {
-                        out += c;
-                    }
-            }
-        }
-        return out;
-    };
+    
     OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \""
        << RuleID << "###" << RuleDef.getName().str() << "###"
     //    << escapeString(CodeStrNico)

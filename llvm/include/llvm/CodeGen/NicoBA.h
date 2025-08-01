@@ -574,9 +574,8 @@ auto MI2String = [](const MachineInstr& MI) {
     return InstrStr;
 };
 
-auto log_backend_event = [](const std::string& stage, const std::string& pattern_file, const std::string& pattern_name, const std::string& pattern_type, const std::string& mbb, bool match_success) {
-    // data_globalisel.emplace_back({to_string(current_stage), event, MI.getParent()->getParent(), MI.getParent(), MI2String(MI), MI2String(MI), pattern});
-    data_globalisel_patterns.emplace_back(GlobalISelDataPattern{stage, pattern_file, pattern_name, pattern_type, mbb, match_success});
+auto log_backend_event = [](auto&&... args) {
+    data_globalisel_patterns.emplace_back(GlobalISelDataPattern{std::forward<decltype(args)>(args)...});
 };
 } // end namespace llvm...
 
@@ -667,3 +666,26 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   llvm::log_backend_event(llvm::to_string(llvm::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
   return result;
 }
+
+// used in llvm-project/llvm/utils/TableGen/GlobalISelCombinerEmitter.cpp
+auto escapeString = [](const std::string& input) -> std::string {
+        std::string out;
+        for (char c : input) {
+            switch (c) {
+                case '\\': out += "\\\\"; break;
+                case '\"': out += "\\\""; break;
+                case '\n': out += "\\n"; break;
+                case '\r': out += "\\r"; break;
+                case '\t': out += "\\t"; break;
+                default:
+                    if (static_cast<unsigned char>(c) < 32 || static_cast<unsigned char>(c) > 126) {
+                        char buf[8];
+                        snprintf(buf, sizeof(buf), "\\x%02x", static_cast<unsigned char>(c));
+                        out += buf;
+                    } else {
+                        out += c;
+                    }
+            }
+        }
+        return out;
+    };
