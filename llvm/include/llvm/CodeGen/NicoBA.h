@@ -541,6 +541,7 @@ struct GlobalISelDataPattern {
     std::string pattern_match_file;
     std::string pattern_match_name;
     std::string pattern_match_type; 
+    std::string mbb; // mbb name
     bool match_success;
 };
 
@@ -573,9 +574,9 @@ auto MI2String = [](MachineInstr& MI) {
     return InstrStr;
 };
 
-auto log_backend_event = [](const std::string& stage, const std::string& pattern_file, const std::string& pattern_name, const std::string& pattern_type, bool match_success) {
+auto log_backend_event = [](const std::string& stage, const std::string& pattern_file, const std::string& pattern_name, const std::string& pattern_type, const std::string& mbb, bool match_success) {
     // data_globalisel.emplace_back({to_string(current_stage), event, MI.getParent()->getParent(), MI.getParent(), MI2String(MI), MI2String(MI), pattern});
-    data_globalisel_patterns.emplace_back(GlobalISelDataPattern{stage, pattern_file, pattern_name, pattern_type, match_success});
+    data_globalisel_patterns.emplace_back(GlobalISelDataPattern{stage, pattern_file, pattern_name, pattern_type, mbb, match_success});
 };
 } // end namespace llvm...
 

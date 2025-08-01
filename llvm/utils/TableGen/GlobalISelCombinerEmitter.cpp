@@ -1944,17 +1944,17 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // }
 
     OS << "std::string obs_created = \"\";\n";  
-    OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += MI2String(*C); obs_created += \" | \"; }\n";
+    OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C); obs_created += \" | \"; }\n";
 
     OS << "std::string obs_changed = \"\";\n";
-    OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += MI2String(*C); obs_changed += \" | \"; }\n";
+    OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += llvm::MI2String(*C); obs_changed += \" | \"; }\n";
 
     OS << "std::string obs_deleted = \"\";\n";
-    OS << "for (const auto& C : nico::DeletedInstrsNico) { obs_deleted += MI2String(*C); obs_deleted += \" | \"; }\n";
+    OS << "for (const auto& C : nico::DeletedInstrsNico) { obs_deleted += llvm::MI2String(*C); obs_deleted += \" | \"; }\n";
 
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp_after = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp_after += MI2String(*C); temp_after += \" | \"; }\n";
+    OS << "for (const auto& C : State.MIs) { temp_after += llvm::MI2String(*C); temp_after += \" | \"; }\n";
     auto escapeString = [](const std::string& input) -> std::string {
         std::string out;
         for (char c : input) {
@@ -1989,6 +1989,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << "\" + obs_changed + \"\", "
        << "obs_deleted=\"" 
        << "\" + obs_deleted + \"\", "
+       << "\"mbb_name_placeholder\", "
        << "\", true);\n";
 
     OS << "nico::DeletedInstrsNico.clear();\n";
