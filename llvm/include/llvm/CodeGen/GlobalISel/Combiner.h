@@ -71,10 +71,10 @@ public:
   bool combineMachineInstrs();
 
   // getter for WLObserver.
-  WorkListMaintainer &getWorkListObserver() const {
-    assert(WLObserver && "WorkListMaintainer is not initialized");
-    return *WLObserver;
-  }
+  // WorkListMaintainer &getWorkListObserver() const {
+  //   assert(WLObserver && "WorkListMaintainer is not initialized");
+  //   return *WLObserver;
+  // }
 
 protected:
   CombinerInfo &CInfo;

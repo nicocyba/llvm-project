@@ -30,6 +30,10 @@ class MachineRegisterInfo;
 /// notified earlier (consider using GISelWorkList).
 class GISelChangeObserver {
   SmallPtrSet<MachineInstr *, 4> ChangingAllUsesOfReg;
+  
+  SmallSetVector<const MachineInstr *, 32> CreatedInstrsNico;
+  SmallSetVector<const MachineInstr *, 32> DeletedInstrsNico;
+  SmallSetVector<const MachineInstr *, 32> ChangedInstrsNico;
 
 public:
   virtual ~GISelChangeObserver() = default;

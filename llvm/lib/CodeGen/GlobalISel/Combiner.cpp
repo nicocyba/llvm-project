@@ -57,9 +57,6 @@ public:
   /// The instructions that have been created but we want to report once they
   /// have their operands. This is only maintained if debug output is requested.
   SmallSetVector<const MachineInstr *, 32> CreatedInstrs;
-  SmallSetVector<const MachineInstr *, 32> CreatedInstrsNico;
-  SmallSetVector<const MachineInstr *, 32> DeletedInstrsNico;
-  SmallSetVector<const MachineInstr *, 32> ChangedInstrsNico;
   
 // #endif
   using Level = CombinerInfo::ObserverLevel;
