@@ -14,7 +14,7 @@ namespace nico {
 
 // function to get index of mi in mbb
 inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
-    return std::distance(MBB->begin(), MI->getIterator());
+    return std::distance(MBB->begin(), MachineBasicBlock::iterator(MI));
 }
 
 
