@@ -14,9 +14,9 @@ namespace nico {
 inline std::string getUnixTimestampStringChrono() {
     auto currentTimePoint = std::chrono::system_clock::now();
     auto durationSinceEpoch = currentTimePoint.time_since_epoch();
-    auto secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(durationSinceEpoch);
+    auto millisecondsSinceEpoch = std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch);
 
-    long long timestamp = secondsSinceEpoch.count();
+    long long timestamp = millisecondsSinceEpoch.count();
 
     return std::to_string(timestamp);
 }
@@ -548,15 +548,15 @@ struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
     }
 };
 
-struct GlobalISelData {
-    std::string caller; // irtranslator, legalizer, ...
-    std::string event; // created, deleted, special
-    std::string mf; // mf name
-    std::string mbb; // mbb name
-    std::string mi_before; // mi name
-    std::string mi_after; // mi name
-    std::string pattern; // MIPattern
-};
+// struct GlobalISelData {
+//     std::string caller; // irtranslator, legalizer, ...
+//     std::string event; // created, deleted, special
+//     std::string mf; // mf name
+//     std::string mbb; // mbb name
+//     std::string mi_before; // mi name
+//     std::string mi_after; // mi name
+//     std::string pattern; // MIPattern
+// };
 
 struct GlobalISelDataPattern {
     std::string stage; // irtranslator, legalizer, ...
@@ -582,7 +582,7 @@ struct GlobalISelDataVector : public std::vector<T> {
 inline thread_local std::set<std::string> used_matchers;
 
 inline thread_local MachineCombinerDataVector data_machinecombiner;
-inline thread_local GlobalISelDataVector<GlobalISelData> data_globalisel;
+// inline thread_local GlobalISelDataVector<GlobalISelData> data_globalisel;
 inline thread_local GlobalISelDataVector<GlobalISelDataPattern> data_globalisel_patterns;
 
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
