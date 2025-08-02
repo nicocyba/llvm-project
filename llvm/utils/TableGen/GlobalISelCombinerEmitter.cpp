@@ -1964,7 +1964,7 @@ llvm::log_backend_event(
 );
 
 nico::reset_observerdata();
-)"cpp;
+)";
 
     OS << formatv("", RuleID, RuleDef.getName());
 
