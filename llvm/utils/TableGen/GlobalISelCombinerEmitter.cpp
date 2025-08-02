@@ -1967,7 +1967,7 @@ llvm::log_backend_event(
 nico::reset_observerdata();
 )";
 
-    OS << formatv(content, RuleID, RuleDef.getName());
+    OS << formatv(StringRef(content), RuleID, RuleDef.getName());
 
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
