@@ -1919,7 +1919,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     }
 
     OS << "std::string temp_before = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \"// idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
+    OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
     
     OS << "// Apply Patterns\n";
@@ -1933,45 +1933,41 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     }
 
     // NICO
-    OS << "\n\n// Nico\n";
-    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\\n\";\n\n";
+    OS << R"(
+// Nico
+outs() << formatv("\t\t\t\t\tCombiner Rule #{{0}}: {{1}}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 
-    OS << "std::string obs_created = \"\";\n";  
-    OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C) + \"// idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
-    OS << "if (!obs_created.empty() && obs_created.size() >= 3) obs_created.erase(obs_created.size() - 3);\n";
+std::string obs_created;
+for (const auto &C : nico::CreatedInstrsNico)
+    obs_created += formatv("{0} // idx: {1}, mbb: {2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
+if (!obs_created.empty() && obs_created.size() >= 3)
+    obs_created.erase(obs_created.size() - 3);
 
-    OS << "std::string obs_changed = \"\";\n";
-    OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += llvm::MI2String(*C) + \"// idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
-    OS << "if (!obs_changed.empty() && obs_changed.size() >= 3) obs_changed.erase(obs_changed.size() - 3);\n";
+std::string obs_changed;
+for (const auto &C : nico::ChangedInstrsNico)
+    obs_changed += formatv("{0} // idx: {1}, mbb: {2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
+if (!obs_changed.empty() && obs_changed.size() >= 3)
+    obs_changed.erase(obs_changed.size() - 3);
 
-    OS << "std::string obs_deleted = std::to_string(nico::DeletedInstrsNico.size());\n";
-   
-    // Escape special characters in CodeStrNico for C++ string literal
-    OS << "std::string temp_after = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp_after += llvm::MI2String(*C); temp_after += \" | \"; }\n";
-    OS << "if (!temp_after.empty() && temp_after.size() >= 3) temp_after.erase(temp_after.size() - 3);\n";
-    
-    OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \""
-       << RuleID << "###" << RuleDef.getName().str() << "###"
-    //    << escapeString(CodeStrNico)
-       << "\" +temp_before+\""
-       << " -> "
-       << "\" +temp_after+\""
-       << " ### "
-       << "obs_created=\" + obs_created + \" ### "
-       << "obs_changed=\" + obs_changed + \" ### "
-       << "obs_deleted=\" + obs_deleted, "
-       << "\"mbb_name_placeholder\""
-       << ", true);\n";
+std::string obs_deleted = formatv("{0}", nico::DeletedInstrsNico.size());
 
-    // OS << "nico::DeletedInstrsNico.clear();\n";
-    // OS << "nico::ChangedInstrsNico.clear();\n";
-    // OS << "nico::CreatedInstrsNico.clear();\n";
-    OS << "nico::reset_observerdata();\n";
+std::string temp_after;
+for (const auto &C : State.MIs)
+    temp_after += formatv("{0} | ", llvm::MI2String(*C));
+if (!temp_after.empty() && temp_after.size() >= 3)
+    temp_after.erase(temp_after.size() - 3);
 
-    // if (!AdditionalComment.isTriviallyEmpty()) {
-    //     OS << "; " << AdditionalComment;
-    // }
+llvm::log_backend_event(
+    llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__,
+    formatv("{0}###{1}###{2} -> {3} ### obs_created={4} ### obs_changed={5} ### obs_deleted={6}",
+        static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), "mbb_name_placeholder", true
+);
+
+nico::reset_observerdata();
+)"sv;
+
+    OS << formatv("", RuleID, RuleDef.getName());
+
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
     
