@@ -1896,10 +1896,11 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     declareAllMatchDatasExpansions(CE);
 
     std::string CodeStrNico;
-    OS << "nico::reset_observerdata();\n";
+    
     
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
+    OS << "nico::reset_observerdata();\n";
 
     for (auto& MD : MatchDatas) {
         OS << MD.Type << " " << MD.getVarName() << ";\n";
