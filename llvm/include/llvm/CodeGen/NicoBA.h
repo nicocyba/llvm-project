@@ -14,9 +14,9 @@ namespace nico {
 inline std::string getUnixTimestampStringChrono() {
     auto currentTimePoint = std::chrono::system_clock::now();
     auto durationSinceEpoch = currentTimePoint.time_since_epoch();
-    auto millisecondsSinceEpoch = std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch);
+    auto microsecondsSinceEpoch = std::chrono::duration_cast<std::chrono::microseconds>(durationSinceEpoch);
 
-    long long timestamp = millisecondsSinceEpoch.count();
+    long long timestamp = microsecondsSinceEpoch.count();
 
     return std::to_string(timestamp);
 }

@@ -169,14 +169,14 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     CInfo.MaxIterations = 1;
 
     AArch64O0PreLegalizerCombinerImpl Impl(MF, CInfo, &TPC, *KB, /*CSEInfo*/ nullptr, RuleConfig, ST);
-    bool res = Impl.combineMachineInstrs();
-    outs() << "\tAfter Instructions: " << MF.getInstructionCount();
-    if (res) {
-        outs() << " (changed)\n";
-    } else {
-        outs() << " (no changes)\n";
+    
+    bool status = Impl.combineMachineInstrs();
+    outs() << "--> status = " << status << "\n";
+
+    if (status) {
+      return true;
     }
-    return res;
+    return false;
 }
 
 char AArch64O0PreLegalizerCombiner::ID = 0;

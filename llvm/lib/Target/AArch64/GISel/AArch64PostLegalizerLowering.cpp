@@ -1401,7 +1401,13 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction &MF) {
   CInfo.EnableFullDCE = false;
   AArch64PostLegalizerLoweringImpl Impl(MF, CInfo, TPC, /*CSEInfo*/ nullptr,
                                         RuleConfig, ST);
-  return Impl.combineMachineInstrs();
+  bool status = Impl.combineMachineInstrs();
+  outs() << "--> status = " << status << "\n";
+
+  if (status) {
+    return true;
+  }
+  return false;
 }
 
 char AArch64PostLegalizerLowering::ID = 0;

@@ -600,6 +600,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction &MF) {
   auto MIB = CSEMIRBuilder(MF);
   MIB.setCSEInfo(CSEInfo);
   Changed |= optimizeConsecutiveMemOpAddressing(MF, MIB);
+  outs() << "--> status = " << Changed << "\n";
   return Changed;
 }
 

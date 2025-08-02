@@ -859,7 +859,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
 
     bool status = Impl.combineMachineInstrs();
     outs() << "--> status = " << status << "\n";
-    // Impl.WLObserver->reportFullyCreatedInstrs();
+
     if (status) {
       return true;
     }
