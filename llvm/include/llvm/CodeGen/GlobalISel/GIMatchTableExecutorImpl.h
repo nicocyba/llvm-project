@@ -47,7 +47,6 @@ bool GIMatchTableExecutor::executeMatchTable(
     MachineIRBuilder& Builder, const uint8_t* MatchTable, const TargetInstrInfo& TII, MachineRegisterInfo& MRI, 
     const TargetRegisterInfo& TRI, const RegisterBankInfo& RBI, const PredicateBitset& AvailableFeatures, CodeGenCoverage* CoverageInfo) const {
 
-    outs() << "\t\t\t\t\tExecuting match table\n";
     uint64_t CurrentIdx = 0;
     SmallVector<uint64_t, 4> OnFailResumeAt;
     NewMIVector OutMIs;
@@ -144,6 +143,7 @@ bool GIMatchTableExecutor::executeMatchTable(
     while (true) {
         assert(CurrentIdx != ~0u && "Invalid MatchTable index");
         uint8_t MatcherOpcode = MatchTable[CurrentIdx++];
+        outs() << "\t\t\t\t\tExecuting match table: " << (int)MatcherOpcode << "\n";
         switch (MatcherOpcode) {
             case GIM_Try: {
                 DEBUG_WITH_TYPE(TgtExecutor::getName(),
