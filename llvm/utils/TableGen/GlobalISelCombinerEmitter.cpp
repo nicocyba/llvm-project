@@ -1940,27 +1940,27 @@ outs() << formatv("\t\t\t\t\tCombiner Rule #{{0}}: {{1}}\n", static_cast<unsigne
 
 std::string obs_created;
 for (const auto &C : nico::CreatedInstrsNico)
-    obs_created += formatv("{0} // idx: {1}, mbb: {2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
+    obs_created += formatv("{{0}} // idx: {{1}}, mbb: {{2}} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
 if (!obs_created.empty() && obs_created.size() >= 3)
     obs_created.erase(obs_created.size() - 3);
 
 std::string obs_changed;
 for (const auto &C : nico::ChangedInstrsNico)
-    obs_changed += formatv("{0} // idx: {1}, mbb: {2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
+    obs_changed += formatv("{{0}} // idx: {{1}}, mbb: {{2}} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
 if (!obs_changed.empty() && obs_changed.size() >= 3)
     obs_changed.erase(obs_changed.size() - 3);
 
-std::string obs_deleted = formatv("{0}", nico::DeletedInstrsNico.size());
+std::string obs_deleted = formatv("{{0}}", nico::DeletedInstrsNico.size());
 
 std::string temp_after;
 for (const auto &C : State.MIs)
-    temp_after += formatv("{0} | ", llvm::MI2String(*C));
+    temp_after += formatv("{{0}} | ", llvm::MI2String(*C));
 if (!temp_after.empty() && temp_after.size() >= 3)
     temp_after.erase(temp_after.size() - 3);
 
 llvm::log_backend_event(
     llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__,
-    formatv("{0}###{1}###{2} -> {3} ### obs_created={4} ### obs_changed={5} ### obs_deleted={6}",
+    formatv("{{0}}###{{1}}###{{2}} -> {{3}} ### obs_created={{4}} ### obs_changed={{5}} ### obs_deleted={{6}}",
         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
 );
 

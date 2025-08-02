@@ -2114,8 +2114,7 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
     return true;
 }
 
-bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI,
-    unsigned& ShiftVal) const {
+bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI, unsigned& ShiftVal) const {
     assert(MI.getOpcode() == TargetOpcode::G_MUL && "Expected a G_MUL");
     auto MaybeImmVal = getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(), MRI);
     if (!MaybeImmVal) {
