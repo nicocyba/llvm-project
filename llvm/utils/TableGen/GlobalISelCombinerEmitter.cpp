@@ -1933,7 +1933,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     }
 
     // NICO
-    OS << R"(
+    std::string content = R"(
 // Nico
 outs() << formatv("\t\t\t\t\tCombiner Rule #{{0}}: {{1}}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 
@@ -1966,7 +1966,7 @@ llvm::log_backend_event(
 nico::reset_observerdata();
 )";
 
-    OS << formatv("", RuleID, RuleDef.getName());
+    OS << formatv(content, RuleID, RuleDef.getName());
 
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
