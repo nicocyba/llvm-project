@@ -8,9 +8,18 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <chrono>
 
 namespace nico {
+std::string getUnixTimestampStringChrono() {
+    auto currentTimePoint = std::chrono::system_clock::now();
+    auto durationSinceEpoch = currentTimePoint.time_since_epoch();
+    auto secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(durationSinceEpoch);
 
+    long long timestamp = secondsSinceEpoch.count();
+
+    return std::to_string(timestamp);
+}
 
 // function to get index of mi in mbb
 inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
