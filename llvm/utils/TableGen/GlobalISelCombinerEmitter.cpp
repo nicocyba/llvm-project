@@ -1926,8 +1926,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     ListSeparator LS("\n");
     for (auto& Pat : ApplyPats) {
         auto* CXXPat = cast<CXXPattern>(Pat.second.get());
-        CodeExpander Expander(CXXPat->getRawCode(), CE, RuleDef.getLoc(),
-            /*ShowExpansions=*/false);
+        CodeExpander Expander(CXXPat->getRawCode(), CE, RuleDef.getLoc(), /*ShowExpansions=*/false);
         OS << LS;
         Expander.emit(OS);
         CodeStrNico += CXXPat->getRawCode().str() + " | ";
@@ -1935,7 +1934,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
 
     // NICO
     OS << "\n\n// Nico\n";
-    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\";\n\n";
+    OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\\n\";\n\n";
 
     OS << "std::string obs_created = \"\";\n";  
     OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C); obs_created += \" | \"; }\n";

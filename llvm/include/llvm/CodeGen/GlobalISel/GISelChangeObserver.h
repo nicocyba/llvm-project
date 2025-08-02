@@ -16,7 +16,6 @@
 
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/CodeGen/MachineFunction.h"
-// #include "llvm/ADT/Statistic.h"
 #include "llvm/ADT/SetVector.h"
 #include "llvm/CodeGen/NicoBA.h"
 
@@ -31,10 +30,6 @@ class MachineRegisterInfo;
 /// notified earlier (consider using GISelWorkList).
 class GISelChangeObserver {
   SmallPtrSet<MachineInstr *, 4> ChangingAllUsesOfReg;
-// public:
-//   SmallSetVector<const MachineInstr *, 32> CreatedInstrsNico;
-//   SmallSetVector<const MachineInstr *, 32> DeletedInstrsNico;
-//   SmallSetVector<const MachineInstr *, 32> ChangedInstrsNico;
 
 public:
   virtual ~GISelChangeObserver() = default;
@@ -64,10 +59,6 @@ public:
   /// finished being changed.
   void finishedChangingAllUsesOfReg();
 
-
-  void log2Nico(const GlobalISelData &data) {
-    data_globalisel.emplace_back(data);
-  }
 };
 
 /// Simple wrapper observer that takes several observers, and calls

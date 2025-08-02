@@ -812,8 +812,7 @@ bool CombinerHelper::matchCombineExtendingLoads(
                 LLT UseTy = MRI.getType(UseMI.getOperand(0).getReg());
                 LLT SrcTy = MRI.getType(LoadMI->getPointerReg());
                 if (LI->getAction({CandidateLoadOpc, {UseTy, SrcTy}, {MMDesc}})
-                        .Action
-                    != LegalizeActions::Legal) {
+                    .Action != LegalizeActions::Legal) {
                     continue;
                 }
             }
@@ -5979,7 +5978,6 @@ bool CombinerHelper::matchDivByPow2(MachineInstr& MI, bool IsSigned) const {
         return true;
     }
     return false;
-
 }
 
 void CombinerHelper::applySDivByPow2(MachineInstr& MI) const {

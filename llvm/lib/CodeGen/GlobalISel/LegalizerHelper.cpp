@@ -135,7 +135,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
         Result = LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
         if (Result == Legalized) {
           data.mi_after = MI2String(MI);
-          LocObserver.log2Nico(std::move(data));
+        //   LocObserver.log2Nico(std::move(data));
         }
     } else {
         auto Step = LI.getAction(MI, MRI);
@@ -230,7 +230,7 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
           }
         }
         MIRBuilder.last_mibs.clear();
-        LocObserver.log2Nico(std::move(data));
+        // LocObserver.log2Nico(std::move(data));
         
     }
 

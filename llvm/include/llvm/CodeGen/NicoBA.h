@@ -5,6 +5,7 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <set>
 
 namespace nico {
 
@@ -557,6 +558,7 @@ struct GlobalISelDataVector : public std::vector<T> {
 };
 
 
+inline thread_local std::set<std::string> used_matchers;
 
 inline thread_local MachineCombinerDataVector data_machinecombiner;
 inline thread_local GlobalISelDataVector<GlobalISelData> data_globalisel;
