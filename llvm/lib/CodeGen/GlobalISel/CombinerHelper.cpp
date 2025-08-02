@@ -2129,8 +2129,7 @@ bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI, unsigned& ShiftVal) 
     return false;
 }
 
-void CombinerHelper::applyCombineMulToShl(MachineInstr& MI,
-    unsigned& ShiftVal) const {
+void CombinerHelper::applyCombineMulToShl(MachineInstr& MI, unsigned& ShiftVal) const {
     assert(MI.getOpcode() == TargetOpcode::G_MUL && "Expected a G_MUL");
     MachineIRBuilder MIB(MI);
     LLT ShiftTy = MRI.getType(MI.getOperand(0).getReg());
