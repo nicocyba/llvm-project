@@ -2,12 +2,21 @@
 
 #include "llvm/CodeGen/MachineCombinerPattern.h"
 #include "llvm/CodeGen/MachineInstr.h"
+#include "llvm/CodeGen/MachineBasicBlock.h"
+#include <iterator>
 #include <regex>
 #include <string>
 #include <vector>
 #include <set>
 
 namespace nico {
+
+
+// function to get index of mi in mbb
+inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
+    return std::distance(MBB->begin(), MI->getIterator());
+}
+
 
 enum MachineCombinerPattern2 : unsigned {
     // These are commutative variants for reassociating a computation chain. See

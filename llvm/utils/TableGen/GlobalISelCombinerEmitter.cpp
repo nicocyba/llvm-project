@@ -1919,7 +1919,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     }
 
     OS << "std::string temp_before = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \"// idx: \" + std::to_string(C->getIndex()) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \"; temp_before += \" | \"; }\n";
+    OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \"// idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
     
     OS << "// Apply Patterns\n";
@@ -1937,11 +1937,11 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     OS << "outs() << \"\\t\\t\\t\\t\\tCombiner Rule #" << RuleID << ": " << RuleDef.getName() << "\\n\";\n\n";
 
     OS << "std::string obs_created = \"\";\n";  
-    OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C) + \"// idx: \" + std::to_string(C->getIndex()) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \"; obs_created += \" | \"; }\n";
+    OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C) + \"// idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     OS << "if (!obs_created.empty() && obs_created.size() >= 3) obs_created.erase(obs_created.size() - 3);\n";
 
     OS << "std::string obs_changed = \"\";\n";
-    OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += llvm::MI2String(*C) + \"// idx: \" + std::to_string(C->getIndex()) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \"; obs_changed += \" | \"; }\n";
+    OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += llvm::MI2String(*C) + \"// idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     OS << "if (!obs_changed.empty() && obs_changed.size() >= 3) obs_changed.erase(obs_changed.size() - 3);\n";
 
     OS << "std::string obs_deleted = std::to_string(nico::DeletedInstrsNico.size());\n";
