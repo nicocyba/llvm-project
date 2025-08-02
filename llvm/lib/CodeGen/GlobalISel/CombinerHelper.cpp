@@ -1714,8 +1714,7 @@ bool CombinerHelper::matchOptBrCondByInvertingCond(
     return false;
 }
 
-void CombinerHelper::applyOptBrCondByInvertingCond(
-    MachineInstr& MI, MachineInstr*& BrCond) const {
+void CombinerHelper::applyOptBrCondByInvertingCond(MachineInstr& MI, MachineInstr*& BrCond) const {
     MachineBasicBlock* BrTarget = MI.getOperand(0).getMBB();
     Builder.setInstrAndDebugLoc(*BrCond);
     LLT Ty = MRI.getType(BrCond->getOperand(0).getReg());
@@ -1723,7 +1722,8 @@ void CombinerHelper::applyOptBrCondByInvertingCond(
     // this to i1 only since we might not know for sure what kind of
     // compare generated the condition value.
     auto True = Builder.buildConstant(
-        Ty, getICmpTrueVal(getTargetLowering(), false, false));
+        Ty, getICmpTrueVal(getTargetLowering(), false, false)
+    ).getReg(0);
     auto Xor = Builder.buildXor(Ty, BrCond->getOperand(0), True);
 
     auto* FallthroughBB = BrCond->getOperand(1).getMBB();
@@ -1807,8 +1807,7 @@ void CombinerHelper::applyCombineConstantFoldFpUnary(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI,
-    PtrAddChain& MatchInfo) const {
+bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchInfo) const {
     // We're trying to match the following pattern:
     //   %t1 = G_PTR_ADD %base, G_CONSTANT imm1
     //   %root = G_PTR_ADD %t1, G_CONSTANT imm2

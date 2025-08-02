@@ -1574,8 +1574,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
     };
 
     if (const auto* CGP = dyn_cast<CodeGenInstructionPattern>(&IP)) {
-        if (!emitCodeGenInstructionMatchPattern(CE, Alts, M, IM, *CGP, SeenPats,
-                FindOperandDef)) {
+        if (!emitCodeGenInstructionMatchPattern(CE, Alts, M, IM, *CGP, SeenPats, FindOperandDef)) {
             return false;
         }
     } else if (const auto* PFP = dyn_cast<PatFragPattern>(&IP)) {
@@ -1921,6 +1920,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
 
     OS << "std::string temp_before = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C); temp_before += \" | \"; }\n";
+    OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
     
     OS << "// Apply Patterns\n";
     ListSeparator LS("\n");
@@ -1938,17 +1938,18 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
 
     OS << "std::string obs_created = \"\";\n";  
     OS << "for (const auto& C : nico::CreatedInstrsNico) { obs_created += llvm::MI2String(*C); obs_created += \" | \"; }\n";
+    OS << "if (!obs_created.empty() && obs_created.size() >= 3) obs_created.erase(obs_created.size() - 3);\n";
 
     OS << "std::string obs_changed = \"\";\n";
     OS << "for (const auto& C : nico::ChangedInstrsNico) { obs_changed += llvm::MI2String(*C); obs_changed += \" | \"; }\n";
+    OS << "if (!obs_changed.empty() && obs_changed.size() >= 3) obs_changed.erase(obs_changed.size() - 3);\n";
 
     OS << "std::string obs_deleted = std::to_string(nico::DeletedInstrsNico.size());\n";
-    // OS << "std::string obs_deleted = \"\";\n";
-    // OS << "for (const auto& C : nico::DeletedInstrsNico) { obs_deleted += llvm::MI2String(*C); obs_deleted += \" | \"; }\n";
-
+   
     // Escape special characters in CodeStrNico for C++ string literal
     OS << "std::string temp_after = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_after += llvm::MI2String(*C); temp_after += \" | \"; }\n";
+    OS << "if (!temp_after.empty() && temp_after.size() >= 3) temp_after.erase(temp_after.size() - 3);\n";
     
     OS << "llvm::log_backend_event(llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__, \""
        << RuleID << "###" << RuleDef.getName().str() << "###"
