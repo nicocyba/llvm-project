@@ -54,6 +54,7 @@
 #include "llvm/TableGen/TGTimer.h"
 #include "llvm/TableGen/TableGenBackend.h"
 #include <cstdint>
+#include "llvm/Support/FormatVariadic.h"
 
 using namespace llvm;
 using namespace llvm::gi;
