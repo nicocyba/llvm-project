@@ -2833,6 +2833,7 @@ void GICombinerEmitter::run(raw_ostream& OS) {
     OS << "#ifdef GET_GICOMBINER_DEPS\n"
        << "#include \"llvm/ADT/SparseBitVector.h\"\n"
        << "#include \"llvm/CodeGen/GlobalISel/Combiner.h\"\n"
+       << "#include \"llvm/Support/FormatVariadic.h\"\n"
        << "namespace llvm {\n"
        << "extern cl::OptionCategory GICombinerOptionCategory;\n"
        << "} // end namespace llvm\n"
