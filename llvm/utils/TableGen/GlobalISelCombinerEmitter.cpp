@@ -1960,7 +1960,7 @@ if (!temp_after.empty() && temp_after.size() >= 3)
 
 llvm::log_backend_event(
     llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__,
-    formatv("{{0}###{{1}###{{2} -> {{3} ### obs_created={{4} ### obs_changed={{5} ### obs_deleted={{6}",
+    formatv("{{0}###{{1}###{{2} -> {{3}###obs_created={{4}###obs_changed={{5}###obs_deleted={{6}",
         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
 );
 
