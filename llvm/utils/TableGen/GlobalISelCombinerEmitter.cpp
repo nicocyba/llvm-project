@@ -1954,16 +1954,16 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
        << "\" +temp_before+\""
        << " -> "
        << "\" +temp_after+\""
-       << " -> "
-       << "obs_created=\" + obs_created + \", "
-       << "obs_changed=\" + obs_changed + \", "
+       << " ### "
+       << "obs_created=\" + obs_created + \" ### "
+       << "obs_changed=\" + obs_changed + \" ### "
        << "obs_deleted=\" + obs_deleted, "
        << "\"mbb_name_placeholder\""
        << ", true);\n";
 
-    OS << "nico::DeletedInstrsNico.clear();\n";
-    OS << "nico::ChangedInstrsNico.clear();\n";
-    OS << "nico::CreatedInstrsNico.clear();\n";
+    // OS << "nico::DeletedInstrsNico.clear();\n";
+    // OS << "nico::ChangedInstrsNico.clear();\n";
+    // OS << "nico::CreatedInstrsNico.clear();\n";
     OS << "nico::reset_observerdata();\n";
 
     // if (!AdditionalComment.isTriviallyEmpty()) {
