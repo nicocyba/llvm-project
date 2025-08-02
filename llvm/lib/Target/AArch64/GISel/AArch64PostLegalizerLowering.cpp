@@ -1382,6 +1382,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction &MF) {
     return false;
 
   outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  current_stage = CurrentBackendStage::POSTLEGALIZERLOWERING;
 
   assert(MF.getProperties().hasProperty(
              MachineFunctionProperties::Property::Legalized) &&
