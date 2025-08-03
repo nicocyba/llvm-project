@@ -573,9 +573,13 @@ struct GlobalISelDataInstruction {
     std::vector<std::tuple<std::string, unsigned, unsigned>> deleted;
 };
 
-inline thread_local std::vector<NewData> total_data;
-// inline thread_local std::unique_ptr<NewData> current_data;
+inline thread_local std::vector<GlobalISelDataInstruction> total_data;
 
+inline void reset_observerdata() {
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
 inline void reset_observerdata(const std::string& filename, const std::string& function_name, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_before_loc, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_after_loc) {
     total_data.back().state_before = std::move(state_before_loc);
     total_data.back().state_after = std::move(state_after_loc);
