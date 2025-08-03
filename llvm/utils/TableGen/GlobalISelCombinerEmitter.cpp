@@ -1902,9 +1902,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     raw_string_ostream OS(CodeStr);
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     std::string content0 = R"(
-outs() << formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
+outs() << formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
 nico::reset_observerdata();
-nico::total_data.back().logs.push_back(formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}")));
+nico::total_data.back().logs.push_back(formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}")));
 )";
 OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
     
@@ -1927,7 +1927,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
     }
 
     std::string content1 = R"(
-outs() << "\\t\\t\\t\\t\\t\\t-> Match success\\n";
+outs() << "\t\t\t\t\t\t-> Match success\\n";
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;
 for (const auto& C : State.MIs) { 
     temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 
@@ -1951,7 +1951,7 @@ OS << content1;
     // NICO
     std::string content = R"(
 // Nico
-//outs() << formatv("\\t\\t\\t\\t\\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
+//outs() << formatv("\t\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 /*
 std::string obs_created;
 for (const auto &C : nico::CreatedInstrsNico)
