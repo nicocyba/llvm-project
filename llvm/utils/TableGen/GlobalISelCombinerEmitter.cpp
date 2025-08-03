@@ -1917,12 +1917,15 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
         OS << "// Match Patterns\n";
         for (auto* M : Matchers) {
             OS << "if(![&](){";
-            CodeExpander Expander(M->getRawCode(), CE, RuleDef.getLoc(),
-                /*ShowExpansions=*/false);
-            Expander.emit(OS);
+            CodeExpander Expander(M->getRawCode(), CE, RuleDef.getLoc(), /*ShowExpansions=*/false);
+            std::string codestring;
+            llvm::raw_string_ostream OS2(codestring);
+            Expander.emit(OS2);
+            OS2.flush();
+            OS << OS2.str() << "\n";
             OS << "}()) {\n"
                << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
-               << "  nico::total_data.back().logs[idxdata] += \" -> Match failed\";\n"
+               << "  nico::total_data.back().logs[idxdata] += \" --> Match failed\";\n"
                << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
@@ -1931,7 +1934,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
 
     std::string content1 = R"(
 outs() << "\t\t\t\t\t\t-> Match success\n";
-nico::total_data.back().logs[idxdata] += " -> Match success";
+nico::total_data.back().logs[idxdata] += " --> Match success";
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;
 for (const auto& C : State.MIs) { 
     temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 

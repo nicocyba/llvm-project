@@ -277,7 +277,7 @@ bool Combiner::combineMachineInstrs() {
   if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
     
-  outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  // outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
   // nico::total_data.back().logs.push_back("\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
   // We can't call this in the constructor because the derived class is
   // uninitialized at that time.
@@ -337,12 +337,13 @@ bool Combiner::combineMachineInstrs() {
       nico::total_data.back().stage = nico::to_string(nico::current_stage);
       nico::total_data.back().mf = MF.getName().str();
       nico::total_data.back().mi = nico::MI2String(CurrInst);
+      unsigned idxdata = nico::total_data.back().logs.size();
       nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__));
 
       bool AppliedCombine = tryCombineAll(CurrInst);
       nico::total_data.back().status = AppliedCombine; 
       // llvm::outs() << "\t\t\t--> Status = 1\n";
-        nico::total_data.back().logs.push_back("--> status = "+ std::to_string(AppliedCombine));
+      nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(AppliedCombine);
       // WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
