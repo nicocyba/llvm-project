@@ -154,7 +154,7 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
 
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
+    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
     outs() << "\tBefore Instructions: " << MF.getInstructionCount() << "\n";
     nico::current_stage = nico::CurrentBackendStage::PRELEGALIZERCOMBINERO0;
     auto& TPC = getAnalysis<TargetPassConfig>();

@@ -27,6 +27,20 @@ inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::
     return std::distance(MBB->begin(), llvm::MachineBasicBlock::const_iterator(MI));
 }
 
+enum CurrentBackendStage : unsigned {
+    INIT,
+    IRTRANSLATOR,
+    PRELEGALIZERCOMBINER,
+    PRELEGALIZERCOMBINERO0,
+    LEGALIZER,
+    POSTLEGALIZERCOMBINER,
+    POSTLEGALIZERLOWERING,
+    REGBANKSELECT,
+    INSTRUCTIONSELECT,
+    COMBINER,
+    MACHINECOMBINER
+};
+
 struct GlobalISelData {
     std::string caller; // irtranslator, legalizer, ...
     std::string event; // created, deleted, special
@@ -60,11 +74,6 @@ struct MachineCombinerData {
     std::string pattern;
 };
 
-
-inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
-inline thread_local std::set<const std::string> DeletedInstrsNico;
-inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
-
 struct GlobalISelDataInstruction {
     std::string stage;
     std::vector<std::string> logs;
@@ -76,6 +85,37 @@ struct GlobalISelDataInstruction {
     bool status;
 };
 
+
+
+// thread local wrapper to clear data after each run
+struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
+    ~MachineCombinerDataVector() {
+        for (auto& i : *this) {
+            i.inserted.clear();
+            i.deleted.clear();
+        }
+        this->clear();
+    }
+};
+
+template <typename T>
+struct GlobalISelDataVector : public std::vector<T> {
+    ~GlobalISelDataVector() {
+        // for (auto &i : *this) {
+        //   i.inserted.clear();
+        //   i.deleted.clear();
+        // }
+        this->clear();
+    }
+};
+
+
+inline thread_local nico::CurrentBackendStage current_stage = INIT;
+inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
+inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
+inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
+inline thread_local std::set<const std::string> DeletedInstrsNico;
+inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
 inline thread_local std::vector<GlobalISelDataInstruction> total_data;
 
 inline void reset_observerdata() {
@@ -126,39 +166,6 @@ inline void reset_observerdata(const std::string& filename, const std::string& f
 
 
 
-
-// thread local wrapper to clear data after each run
-struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
-    ~MachineCombinerDataVector() {
-        for (auto& i : *this) {
-            i.inserted.clear();
-            i.deleted.clear();
-        }
-        this->clear();
-    }
-};
-
-
-
-template <typename T>
-struct GlobalISelDataVector : public std::vector<T> {
-    ~GlobalISelDataVector() {
-        // for (auto &i : *this) {
-        //   i.inserted.clear();
-        //   i.deleted.clear();
-        // }
-        this->clear();
-    }
-};
-
-
-inline thread_local std::set<std::string> used_matchers;
-
-inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
-inline thread_local nico::GlobalISelDataVector<nico::GlobalISelData> data_globalisel;
-inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
-
-inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
 inline std::string to_string(int value) {
     switch (value) {
@@ -709,21 +716,7 @@ auto log_backend_event = [](auto&&... args) {
     data_globalisel_patterns.emplace_back(nico::GlobalISelDataPattern{std::forward<decltype(args)>(args)...});
 };
 
-enum CurrentBackendStage : unsigned {
-    INIT,
-    IRTRANSLATOR,
-    PRELEGALIZERCOMBINER,
-    PRELEGALIZERCOMBINERO0,
-    LEGALIZER,
-    POSTLEGALIZERCOMBINER,
-    POSTLEGALIZERLOWERING,
-    REGBANKSELECT,
-    INSTRUCTIONSELECT,
-    COMBINER,
-    MACHINECOMBINER
-};
 
-inline thread_local nico::CurrentBackendStage current_stage = INIT;
 
 inline std::string to_string(nico::CurrentBackendStage stage) {
     switch (stage) {
@@ -832,16 +825,8 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   file_cleaned = std::regex_replace(file_cleaned, std::regex("/libraries/llvm-project/build/"), "");
   std::string pattern = *nico::extractT3Type(__PRETTY_FUNCTION__);
   nico::simplifyBindTy(pattern);
-  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
-  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
-  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
-  // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
 
-  
-  // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
-  // if (!is_T1_Register) {
-  //   log_backend_event("mi_match", caller, pattern, true);
-  // }
+  // call original function
   bool result = llvm::MIPatternMatch::mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
   nico::log_backend_event(nico::to_string(nico::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " | status: " << (result ? "Success" : "Failure") << " (" << file_cleaned << ":" << line << ")\n";
