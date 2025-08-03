@@ -855,7 +855,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   bool result = llvm::MIPatternMatch::mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
   nico::log_backend_event(nico::to_string(nico::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " | status: " << (result ? "Success" : "Failure") << " (" << file_cleaned << ":" << line << ")\n";
-  nico::total_data.back().logs.push_back("\t\t\t\t\t\t" + std::to_string(__FUNCTION__) + " | " + pattern + " --> " + (result ? "true" : "false"));
+  nico::total_data.back().logs.push_back("\t\t\t\t\t\t" + std::string(__func__) + " | " + pattern + " --> " + (result ? "true" : "false"));
   return result;
 }
 

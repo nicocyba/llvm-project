@@ -364,13 +364,24 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 
 bool InstructionSelect::selectInstr(MachineInstr& MI) {
     MachineRegisterInfo& MRI = ISel->MF->getRegInfo();
+
     outs() << "\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << nico::MI2String(MI) << "\n";
+
+    nico::total_data.push_back(nico::GlobalISelDataInstruction());
+    nico::total_data.back().stage = nico::to_string(nico::current_stage);
+    nico::total_data.back().mf = MI.getMF()->getName().str();
+    nico::total_data.back().mi = nico::MI2String(MI);
+    unsigned idxdata = nico::total_data.back().logs.size();
+    nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__));
+
     // We could have folded this instruction away already, making it dead.
     // If so, erase it.
     if (isTriviallyDead(MI, MRI)) {
         LLVM_DEBUG(dbgs() << "Is dead.\n");
         salvageDebugInfo(MRI, MI);
         MI.eraseFromParent();
+        nico::total_data.back().status = true;
+        nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(true);
         return true;
     }
 
@@ -389,15 +400,21 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         assert(canReplaceReg(DstReg, SrcReg, MRI) && "Must be able to replace dst with src!");
         MI.eraseFromParent();
         MRI.replaceRegWith(DstReg, SrcReg);
+        nico::total_data.back().status = true; 
+        nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(true);
         return true;
     }
 
     if (MI.getOpcode() == TargetOpcode::G_INVOKE_REGION_START) {
         MI.eraseFromParent();
+        nico::total_data.back().status = true;
+        nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(true);
         return true;
     }
     bool status = ISel->select(MI);
     outs() << "\t--> status = " << status << "\n";
+    nico::total_data.back().status = status;
+    nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(status);
     // outs() << "\t\tStatus: " << (status ? "Success" : "Failure") << " | " << MI2String(MI) << "\n";
     return status;
 }
