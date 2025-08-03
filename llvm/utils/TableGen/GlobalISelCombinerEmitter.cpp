@@ -1904,7 +1904,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     std::string content0 = R"(
 outs() << formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 nico::reset_observerdata();
-nico::total_data.back().logs.push_back(formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}")));
+nico::total_data.back().logs.push_back(formatv("\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}")));
 )";
 OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
     
@@ -2582,7 +2582,7 @@ void GICombinerEmitter::emitAdditionalImpl(raw_ostream& OS) {
        << "  const TargetSubtargetInfo &ST = MF.getSubtarget();\n"
        << "  const PredicateBitset AvailableFeatures = getAvailableFeatures();\n"
        << "  B.setInstrAndDebugLoc(I);\n"
-       << "  nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\" + nico::getFunctionName(__PRETTY_FUNCTION__));\n"
+       << "  nico::total_data.back().logs.push_back(\"\\t\" + nico::getFunctionName(__PRETTY_FUNCTION__));\n"
        << "  outs() << \"\\t\\t\\t\\t\" << nico::getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << nico::MI2String(I) << \"\\n\";\n"
        << "  State.MIs.clear();\n"
        << "  State.MIs.push_back(&I);\n"

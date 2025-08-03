@@ -341,13 +341,13 @@ bool Combiner::combineMachineInstrs() {
 
       bool AppliedCombine = tryCombineAll(CurrInst);
       nico::total_data.back().status = AppliedCombine; 
+      // llvm::outs() << "\t\t\t--> Status = 1\n";
+        nico::total_data.back().logs.push_back("--> status = "+ std::to_string(AppliedCombine));
       // WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
       if (AppliedCombine) {
         WLObserver->appliedCombine();
-        llvm::outs() << "\t\t\t--> Status = 1\n";
-        nico::total_data.back().logs.push_back("\t\t\t--> status = 1");
       }
         
     }
@@ -385,7 +385,7 @@ bool Combiner::combineMachineInstrs() {
   }
 #endif
   outs() << "\t\t\tIterations - Iteration: " << Iteration <<  "\n";
-  nico::total_data.back().logs.push_back("\t\t\tIterations - Iteration: " + std::to_string(Iteration));
+  nico::total_data.back().logs.push_back("--> iterations = " + std::to_string(Iteration));
   // outs() << "\t\t\tIterations - NumOneIteration: " << NumOneIteration <<  "\n";
   // outs() << "\t\t\tIterations - NumTwoIterations: " << NumTwoIterations <<  "\n";
   // outs() << "\t\t\tIterations - NumThreeOrMoreIterations: " << NumThreeOrMoreIterations <<  "\n";
