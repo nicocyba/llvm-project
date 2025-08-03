@@ -560,7 +560,7 @@ inline std::string to_string(AArch64MachineCombinerPattern2 pattern) {
 
 
 inline thread_local std::set<const llvm::MachineInstr *> CreatedInstrsNico;
-inline thread_local std::set<const llvm::MachineInstr *> DeletedInstrsNico;
+inline thread_local std::set<const std::string> DeletedInstrsNico;
 inline thread_local std::set<const llvm::MachineInstr *> ChangedInstrsNico;
 
 inline void reset_observerdata() {

@@ -1953,7 +1953,12 @@ for (const auto &C : nico::ChangedInstrsNico)
 if (!obs_changed.empty() && obs_changed.size() >= 3)
     obs_changed.erase(obs_changed.size() - 3);
 
-std::string obs_deleted = formatv("{{0}", nico::DeletedInstrsNico.size());
+// std::string obs_deleted = formatv("{{0}", nico::DeletedInstrsNico.size());
+std::string obs_deleted;
+for (const auto &C : nico::DeletedInstrsNico)
+    obs_deleted += formatv("{{0} | ", C);
+if (!obs_deleted.empty() && obs_deleted.size() >= 3)
+    obs_deleted.erase(obs_deleted.size() - 3);
 
 std::string temp_after;
 for (const auto &C : State.MIs)
