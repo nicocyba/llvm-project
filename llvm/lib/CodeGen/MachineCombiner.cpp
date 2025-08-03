@@ -469,7 +469,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
 
     TII->finalizeInsInstrs(MI, Pattern, InsInstrs);
 
-    MachineCombinerData data;
+    nico::MachineCombinerData data;
     data.inserted.reserve(InsInstrs.size());
     data.deleted.reserve(DelInstrs.size());
     data.idx = idx;
@@ -508,7 +508,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         // rso.flush();
         // instrStr = std::regex_replace(instrStr, std::regex("\\n"), "");
  
-        data.inserted.push_back(MI2String(*InstrPtr));
+        data.inserted.push_back(nico::MI2String(*InstrPtr));
     }
 
     for (auto* InstrPtr : DelInstrs) {
@@ -519,7 +519,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
         // idx = std::distance(MBB->begin(), MachineBasicBlock::iterator(InstrPtr));
         // instrStr = std::regex_replace(instrStr, std::regex("\\n"), "");
         // instrStr += " | idx=" + std::to_string(idx);
-        data.deleted.push_back(MI2String(*InstrPtr));
+        data.deleted.push_back(nico::MI2String(*InstrPtr));
 
         // llvm::outs() << "\tDelete Instruction: " << "opcode: " << InstrPtr->getOpcode() << ", inst:" << *InstrPtr;
         InstrPtr->eraseFromParent();
