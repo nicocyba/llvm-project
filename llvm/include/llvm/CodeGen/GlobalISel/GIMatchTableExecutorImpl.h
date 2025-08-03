@@ -255,7 +255,7 @@ bool GIMatchTableExecutor::executeMatchTable(
                            << LowerBound << ", " << UpperBound << "), Default=" << Default
                            << ", JumpTable...) // Got=" << Opcode << "\n";
                 });
-                outs() << CurrentIdx << ": GIM_SwitchOpcode(MIs[" << InsnID << "], ["
+                outs() << "\t\t\t\t\t" << CurrentIdx << ": GIM_SwitchOpcode(MIs[" << InsnID << "], ["
                            << LowerBound << ", " << UpperBound << "), Default=" << Default
                            << ", JumpTable...) // Got=" << Opcode << "\n";
                 if (Opcode < LowerBound || UpperBound <= Opcode) {
