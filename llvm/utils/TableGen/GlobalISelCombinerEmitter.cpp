@@ -1903,7 +1903,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     OS << "outs() << formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     OS << "nico::reset_observerdata();\n";
-    OS << "nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
+    OS << "nico::total_data.back().logs.push_back(\"\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     for (auto& MD : MatchDatas) {
         OS << MD.Type << " " << MD.getVarName() << ";\n";
     }
@@ -1923,10 +1923,10 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     }
     OS << "outs() << \"\\t\\t\\t\\t\\t\\t-> Match success\\n\";\n";
     OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;\n";
-    OS << "for (const auto& C : State.MIs) { temp_before.push_back(std::make_tuple(MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); }\n";
+    OS << "for (const auto& C : State.MIs) { temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); }\n";
     
     // OS << "std::string temp_before = \"\";\n";
-    // OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
+    // OS << "for (const auto& C : State.MIs) { temp_before += nico::MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     // OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
     
     OS << "// Apply Patterns\n";
@@ -1946,13 +1946,13 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
 /*
 std::string obs_created;
 for (const auto &C : nico::CreatedInstrsNico)
-    obs_created += formatv("{{0} // idx: {{1}, mbb: {{2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
+    obs_created += formatv("{{0} // idx: {{1}, mbb: {{2} | ", nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
 if (!obs_created.empty() && obs_created.size() >= 3)
     obs_created.erase(obs_created.size() - 3);
 
 std::string obs_changed;
 for (const auto &C : nico::ChangedInstrsNico)
-    obs_changed += formatv("{{0} // idx: {{1}, mbb: {{2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
+    obs_changed += formatv("{{0} // idx: {{1}, mbb: {{2} | ", nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
 if (!obs_changed.empty() && obs_changed.size() >= 3)
     obs_changed.erase(obs_changed.size() - 3);
 
@@ -1965,7 +1965,7 @@ if (!obs_deleted.empty() && obs_deleted.size() >= 3)
 
 std::string temp_after;
 for (const auto &C : State.MIs)
-    temp_after += formatv("{{0} | ", llvm::MI2String(*C));
+    temp_after += formatv("{{0} | ", nico::MI2String(*C));
 if (!temp_after.empty() && temp_after.size() >= 3)
     temp_after.erase(temp_after.size() - 3);
 
@@ -1977,7 +1977,7 @@ llvm::log_backend_event(
 */
 
 OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;\n";
-OS << "for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(MI2String(*C), -1, -1)); }\n";
+OS << "for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); }\n";
 
 nico::reset_observerdata(std::to_string(__FILE__), std::to_string(__FUNCTION__), temp_before, temp_after);
 )";
