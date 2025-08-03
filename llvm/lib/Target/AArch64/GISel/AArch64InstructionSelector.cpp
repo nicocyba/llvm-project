@@ -2514,6 +2514,9 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     assert(I.getParent()->getParent() && "Instruction should be in a function!");
 
     outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    unsigned idxdata = nico::total_data.back().logs.size();
+    nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
+
     MachineBasicBlock& MBB = *I.getParent();
     MachineFunction& MF = *MBB.getParent();
     MachineRegisterInfo& MRI = MF.getRegInfo();
@@ -2534,6 +2537,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
         outs() << "\t\t\t!isPreISelOpcode " << Opcode << "\n";
+        nico::total_data.back().logs[idxdata] += " --> !isPreISelOpcode || G_PHI";
         if (Opcode == TargetOpcode::LOAD_STACK_GUARD) {
             return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
         }
@@ -2575,6 +2579,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     }
 
     if (I.getNumOperands() != I.getNumExplicitOperands()) {
+        nico::total_data.back().logs[idxdata] += " --> getNumOperands != getNumExplicitOperands";
         LLVM_DEBUG(
             dbgs() << "Generic instruction has unexpected implicit operands\n");
         return false;
@@ -2596,6 +2601,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // selection attempt here to give priority to certain selection routines
     // over the imported ones.
     if (earlySelect(I)) {
+        nico::total_data.back().logs[idxdata] += " --> earlySelect";
         outs() << "\t\t\tearlySelect\n";
         return true;
     }
@@ -2603,6 +2609,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     
     if (selectImpl(I, *CoverageInfo)) {
         outs() << "\t\t\tselectImpl\n";
+        nico::total_data.back().logs[idxdata] += " --> selectImpl";
         for (const auto& cov : CoverageInfo->covered()) {
             outs() << "\t\t\t\tcoverage: " << cov<< "\n";
         }
@@ -2612,6 +2619,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
     outs() << "\t\t\tswitch\n";
+    nico::total_data.back().logs[idxdata] += " --> switch";
     switch (Opcode) {
         case TargetOpcode::G_SBFX:
         case TargetOpcode::G_UBFX: {
