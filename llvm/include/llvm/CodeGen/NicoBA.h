@@ -630,24 +630,24 @@ inline void reset_observerdata(const std::string& filename, const std::string& f
     // created
     for (const auto &C : nico::CreatedInstrsNico)
         total_data.back().created.push_back(
-            std::make_tuple(llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
+            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
         );
     
     // changed
     for (const auto &C : nico::ChangedInstrsNico)
         total_data.back().changed.push_back(
-            std::make_tuple(llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
+            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
         );
 
     // deleted
     for (const auto &C : nico::DeletedInstrsNico)
         total_data.back().deleted.push_back(
-            std::make_tuple(llvm::MI2String(*C), -1, -1)
+            std::make_tuple(nico::MI2String(*C), -1, -1)
         );
 
     // std::string temp_after;
     // for (const auto &C : MIs)
-    //     temp_after += formatv("{0} | ", llvm::MI2String(*C));
+    //     temp_after += formatv("{0} | ", nico::MI2String(*C));
     // if (!temp_after.empty() && temp_after.size() >= 3)
     //     temp_after.erase(temp_after.size() - 3);
 
@@ -839,8 +839,8 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   // if (!is_T1_Register) {
   //   log_backend_event("mi_match", caller, pattern, true);
   // }
-  bool result = mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
-  llvm::log_backend_event(llvm::to_string(llvm::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
+  bool result = llvm::mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
+  nico::log_backend_event(nico::to_string(nico::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " | status: " << (result ? "Success" : "Failure") << " (" << file_cleaned << ":" << line << ")\n";
   return result;
 }
