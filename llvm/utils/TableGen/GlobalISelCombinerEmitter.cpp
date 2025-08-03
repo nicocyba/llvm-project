@@ -1001,7 +1001,7 @@ void CombineRuleBuilder::print(raw_ostream& OS,
 
 bool CombineRuleBuilder::addApplyPattern(std::unique_ptr<Pattern> Pat) {
     StringRef Name = Pat->getName();
-    outs() << "Adding apply pattern '" << Name << "'\n";
+    // outs() << "Adding apply pattern '" << Name << "'\n";
     if (ApplyPats.contains(Name)) {
         PrintError("'" + Name + "' apply pattern defined more than once!");
         return false;
@@ -1027,7 +1027,7 @@ bool CombineRuleBuilder::addApplyPattern(std::unique_ptr<Pattern> Pat) {
 
 bool CombineRuleBuilder::addMatchPattern(std::unique_ptr<Pattern> Pat) {
     StringRef Name = Pat->getName();
-    outs() << "Adding match pattern '" << Name << "'\n";
+    // outs() << "Adding match pattern '" << Name << "'\n";
     if (MatchPats.contains(Name)) {
         PrintError("'" + Name + "' match pattern defined more than once!");
         return false;
@@ -1563,7 +1563,7 @@ bool CombineRuleBuilder::parseDefs(const DagInit& Def) {
 
 bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlternatives& Alts, const InstructionPattern& IP) {
     auto StackTrace = PrettyStackTraceEmit(RuleDef, &IP);
-    outs() << "emitting match pattern for '" << IP.getName() << "'\n";
+    // outs() << "emitting match pattern for '" << IP.getName() << "'\n";
     auto& M = addRuleMatcher(Alts);
     InstructionMatcher& IM = M.addInstructionMatcher(IP.getName());
     declareInstExpansion(CE, IM, IP.getName());
@@ -1597,7 +1597,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
     const bool IsUsingCustomCXXAction = hasOnlyCXXApplyPatterns();
     SmallVector<CXXPattern*, 2> CXXMatchers;
     for (auto& Pat : values(MatchPats)) {
-        outs() << "\tProcessing match pattern '" << Pat->getName() << "'\n";
+        // outs() << "\tProcessing match pattern '" << Pat->getName() << "'\n";
         if (SeenPats.contains(Pat.get())) {
             continue;
         }
@@ -1655,7 +1655,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
         // Emit remaining patterns.
         SmallVector<CXXPattern*, 2> CXXMatchers;
         for (auto& Pat : values(MatchPats)) {
-            outs() << "\tProcessing match pattern '" << Pat->getName() << "'\n";
+            // outs() << "\tProcessing match pattern '" << Pat->getName() << "'\n";
             if (Pat.get() == &AOP) {
                 continue;
             }
@@ -1915,12 +1915,12 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
                 /*ShowExpansions=*/false);
             Expander.emit(OS);
             OS << "}()) {\n"
-               << "  outs() << \"\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
+               << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
-    OS << "outs() << \"\\t\\t\\t\\t\\t-> Match success\\n\";\n";
+    OS << "outs() << \"\\t\\t\\t\\t\\t\\t-> Match success\\n\";\n";
 
     OS << "std::string temp_before = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
@@ -2775,10 +2775,10 @@ void GICombinerEmitter::gatherRules(std::vector<RuleMatcher>& ActiveRules,
             continue;
         }
     }
-    outs() << "Gathered " << ActiveRules.size()
-       << " rules for combiner '" << Name << "'\n";
-    outs() << "  - " << AllCombineRules.size()
-       << " rules are enabled by default\n";
+    // outs() << "Gathered " << ActiveRules.size()
+    //    << " rules for combiner '" << Name << "'\n";
+    // outs() << "  - " << AllCombineRules.size()
+    //    << " rules are enabled by default\n";
 
     // please print all combinerules
     // for (const auto& [ID, Name] : AllCombineRules) {
