@@ -4142,8 +4142,6 @@ bool IRTranslator::runOnMachineFunction(MachineFunction& CurMF) {
         return false;
     }
 
-    llvm::is_globalisel = true;
-
     // Lower the actual args into this basic block.
     SmallVector<ArrayRef<Register>, 8> VRegArgs;
     for (const Argument& Arg : F.args()) {

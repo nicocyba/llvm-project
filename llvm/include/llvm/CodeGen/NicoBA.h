@@ -716,6 +716,8 @@ enum CurrentBackendStage : unsigned {
     MACHINECOMBINER
 };
 
+inline thread_local nico::CurrentBackendStage current_stage = INIT;
+
 inline std::string to_string(nico::CurrentBackendStage stage) {
     switch (stage) {
         case INIT: return "init";
@@ -750,15 +752,6 @@ inline std::string getFunctionName(const std::string& prettyFunction) {
     size_t end = prettyFunction.find('(', start);
     return prettyFunction.substr(start, end - start);
 }
-
-inline thread_local nico::CurrentBackendStage current_stage = INIT;
-
-inline thread_local bool is_globalisel = false;
-
-
-
-
-
 
 inline std::optional<std::string> extractT3Type(const std::string& input) {
     // Define the start and end markers
