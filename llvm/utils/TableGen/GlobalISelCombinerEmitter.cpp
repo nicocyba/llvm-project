@@ -1902,9 +1902,9 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     raw_string_ostream OS(CodeStr);
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     std::string content0 = R"(
-outs() << formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
+outs() << formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 nico::reset_observerdata();
-nico::total_data.back().logs.push_back(formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}")));
+nico::total_data.back().logs.push_back(formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}")));
 )";
 OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
     
@@ -1920,7 +1920,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
                 /*ShowExpansions=*/false);
             Expander.emit(OS);
             OS << "}()) {\n"
-               << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
+               << "  outs() << \"\t\t\t\t\t\t-> Match failed\\n\";\n"
                << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";

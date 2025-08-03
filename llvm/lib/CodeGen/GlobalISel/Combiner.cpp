@@ -335,7 +335,9 @@ bool Combiner::combineMachineInstrs() {
 
       nico::total_data.push_back(nico::GlobalISelDataInstruction());
       nico::total_data.back().stage = nico::to_string(nico::current_stage);
-      nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__) + " - " + nico::MI2String(CurrInst));
+      nico::total_data.back().mf = MF.getName().str();
+      nico::total_data.back().mi = nico::MI2String(CurrInst);
+      nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__));
 
       bool AppliedCombine = tryCombineAll(CurrInst);
       nico::total_data.back().status = AppliedCombine; 

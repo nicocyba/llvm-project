@@ -193,6 +193,8 @@ struct MachineCombinerData {
 
 struct GlobalISelDataInstruction {
     std::string stage;
+    std::string mf; // mf name
+    std::string mi; // mi name
     std::vector<std::string> logs;
     std::vector<std::tuple<std::string, unsigned, bool, std::string>> patterns; // name, id, status, timestamp 
     std::vector<std::tuple<std::string, unsigned, unsigned>> state_before;
