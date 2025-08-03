@@ -144,7 +144,7 @@ bool GIMatchTableExecutor::executeMatchTable(
         assert(CurrentIdx != ~0u && "Invalid MatchTable index");
         uint8_t MatcherOpcode = MatchTable[CurrentIdx++];
         outs() << "\t\t\t\t\tExecuting match table: " << nico::to_string((int)MatcherOpcode) << " (" << (int)MatcherOpcode << ")\n";
-        nico::total_data.back().logs.push_back("\t\tExecuting match table: " + nico::to_string((int)MatcherOpcode) + " (" + std::to_string((int)MatcherOpcode) + ")");
+        nico::total_data.back().logs.push_back("\t\t\tExecuting match table: " + nico::to_string((int)MatcherOpcode) + " (" + std::to_string((int)MatcherOpcode) + ")");
         switch (MatcherOpcode) {
             case GIM_Try: {
                 DEBUG_WITH_TYPE(TgtExecutor::getName(),
