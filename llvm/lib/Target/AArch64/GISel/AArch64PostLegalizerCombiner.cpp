@@ -548,6 +548,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     }
 
     outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    
     current_stage = CurrentBackendStage::POSTLEGALIZERCOMBINER;
 
     assert(MF.getProperties().hasProperty(
@@ -582,6 +583,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     MIB.setCSEInfo(CSEInfo);
     Changed |= optimizeConsecutiveMemOpAddressing(MF, MIB);
     outs() << "--> status = " << Changed << "\n";
+
     return Changed;
 }
 

@@ -1900,7 +1900,8 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
-    OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
+    //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
+    OS << "outs() << formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     OS << "nico::reset_observerdata();\n";
 
     for (auto& MD : MatchDatas) {
@@ -1939,8 +1940,8 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // NICO
     std::string content = R"(
 // Nico
-outs() << formatv("\t\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
-
+//outs() << formatv("\t\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
+/*
 std::string obs_created;
 for (const auto &C : nico::CreatedInstrsNico)
     obs_created += formatv("{{0} // idx: {{1}, mbb: {{2} | ", llvm::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
@@ -1971,8 +1972,8 @@ llvm::log_backend_event(
     formatv("{{0}###{{1}###{{2} -> {{3}###{{4}###{{5}###{{6}",
         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
 );
-
-nico::reset_observerdata();
+*/
+nico::reset_observerdata(std::to_string(__FILE__), std::to_string(__FUNCTION__), );
 )";
 
     OS << formatv(content.c_str(), RuleID, RuleDef.getName());
@@ -2598,6 +2599,7 @@ void GICombinerEmitter::emitAdditionalImpl(raw_ostream& OS) {
        << "  const TargetSubtargetInfo &ST = MF.getSubtarget();\n"
        << "  const PredicateBitset AvailableFeatures = getAvailableFeatures();\n"
        << "  B.setInstrAndDebugLoc(I);\n"
+       << "  nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\" + getFunctionName(__PRETTY_FUNCTION__));\n"
        << "  outs() << \"\\t\\t\\t\\t\" << getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << MI2String(I) << \"\\n\";\n"
        << "  State.MIs.clear();\n"
        << "  State.MIs.push_back(&I);\n"

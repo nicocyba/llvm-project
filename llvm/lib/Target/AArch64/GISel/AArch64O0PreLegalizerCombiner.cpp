@@ -79,6 +79,7 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
     outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI2String(MI) << "\n";
+    nico::total_data.back().logs.push_back("\t\t\t" + getFunctionName(__PRETTY_FUNCTION__));
     if (tryCombineAllImpl(MI)) {
         return true;
     }
@@ -152,6 +153,7 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
+
     outs() << getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
     outs() << "\tBefore Instructions: " << MF.getInstructionCount() << "\n";
     current_stage = CurrentBackendStage::PRELEGALIZERCOMBINERO0;

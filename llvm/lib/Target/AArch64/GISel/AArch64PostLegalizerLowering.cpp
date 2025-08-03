@@ -1397,7 +1397,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction& MF) {
         RuleConfig, ST);
     bool status = Impl.combineMachineInstrs();
     outs() << "--> status = " << status << "\n";
-
+ 
     return status;
 }
 

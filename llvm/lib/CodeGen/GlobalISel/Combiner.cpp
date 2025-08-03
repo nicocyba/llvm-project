@@ -290,6 +290,7 @@ bool Combiner::combineMachineInstrs() {
     return false;
     
   outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  nico::total_data.back().logs.push_back("\t\t" + getFunctionName(__PRETTY_FUNCTION__));
   // We can't call this in the constructor because the derived class is
   // uninitialized at that time.
   if (!HasSetupMF) {
@@ -343,6 +344,11 @@ bool Combiner::combineMachineInstrs() {
     while (!WorkList.empty()) {
       MachineInstr &CurrInst = *WorkList.pop_back_val();
       // llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
+
+      nico::total_data.push_back(nico::GlobalISelDataInstruction());
+      nico::total_data.back().stage = to_string(current_stage);
+      nico::total_data.back().logs.push_back(getFunctionName(__PRETTY_FUNCTION__) + " - " + MI2String(CurrInst));
+
       bool AppliedCombine = tryCombineAll(CurrInst);
       // WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
@@ -350,6 +356,7 @@ bool Combiner::combineMachineInstrs() {
       if (AppliedCombine) {
         WLObserver->appliedCombine();
         llvm::outs() << "\t\t\t--> Status = 1\n";
+        nico::total_data.back().logs.push_back("\t\t\t--> status = 1");
       }
         
     }
@@ -387,6 +394,7 @@ bool Combiner::combineMachineInstrs() {
   }
 #endif
   outs() << "\t\t\tIterations - Iteration: " << Iteration <<  "\n";
+  nico::total_data.back().logs.push_back("\t\t\tIterations - Iteration: " + std::to_string(Iteration));
   // outs() << "\t\t\tIterations - NumOneIteration: " << NumOneIteration <<  "\n";
   // outs() << "\t\t\tIterations - NumTwoIterations: " << NumTwoIterations <<  "\n";
   // outs() << "\t\t\tIterations - NumThreeOrMoreIterations: " << NumThreeOrMoreIterations <<  "\n";
