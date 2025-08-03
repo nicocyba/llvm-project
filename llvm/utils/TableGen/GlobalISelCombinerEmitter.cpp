@@ -1901,9 +1901,13 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
-    OS << "outs() << formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
-    OS << "nico::reset_observerdata();\n";
-    OS << "nico::total_data.back().logs.push_back(formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
+    std::string content0 = R"(
+outs() << formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
+nico::reset_observerdata();
+nico::total_data.back().logs.push_back(formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
+)";
+OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
+    
     for (auto& MD : MatchDatas) {
         OS << MD.Type << " " << MD.getVarName() << ";\n";
     }
@@ -1921,10 +1925,15 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
-    OS << "outs() << \"\\t\\t\\t\\t\\t\\t-> Match success\\n\";\n";
-    OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;\n";
-    OS << "for (const auto& C : State.MIs) { temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); }\n";
-    
+
+    std::string content1 = R"(
+outs() << "\\t\\t\\t\\t\\t\\t-> Match success\\n";
+std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;
+for (const auto& C : State.MIs) { 
+    temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 
+}
+)";
+OS << content1;
     // OS << "std::string temp_before = \"\";\n";
     // OS << "for (const auto& C : State.MIs) { temp_before += nico::MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     // OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
