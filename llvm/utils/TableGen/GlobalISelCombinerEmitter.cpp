@@ -1900,6 +1900,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
+    OS << "outs() << \"\t\t\t\t\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     OS << "nico::reset_observerdata();\n";
 
     for (auto& MD : MatchDatas) {
@@ -1936,7 +1937,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // NICO
     std::string content = R"(
 // Nico
-outs() << formatv("\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
+outs() << formatv("\t\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 
 std::string obs_created;
 for (const auto &C : nico::CreatedInstrsNico)
