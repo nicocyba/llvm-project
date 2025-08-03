@@ -1903,7 +1903,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     OS << "outs() << formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     OS << "nico::reset_observerdata();\n";
-
+    OS << "nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     for (auto& MD : MatchDatas) {
         OS << MD.Type << " " << MD.getVarName() << ";\n";
     }
@@ -1922,10 +1922,12 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
         }
     }
     OS << "outs() << \"\\t\\t\\t\\t\\t\\t-> Match success\\n\";\n";
-
-    OS << "std::string temp_before = \"\";\n";
-    OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
-    OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
+    OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;\n";
+    OS << "for (const auto& C : State.MIs) { temp_before.push_back(std::make_tuple(MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); }\n";
+    
+    // OS << "std::string temp_before = \"\";\n";
+    // OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
+    // OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
     
     OS << "// Apply Patterns\n";
     ListSeparator LS("\n");
@@ -1973,7 +1975,11 @@ llvm::log_backend_event(
         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
 );
 */
-nico::reset_observerdata(std::to_string(__FILE__), std::to_string(__FUNCTION__), );
+
+OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;\n";
+OS << "for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(MI2String(*C), -1, -1)); }\n";
+
+nico::reset_observerdata(std::to_string(__FILE__), std::to_string(__FUNCTION__), temp_before, temp_after);
 )";
 
     OS << formatv(content.c_str(), RuleID, RuleDef.getName());
