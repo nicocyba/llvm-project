@@ -745,8 +745,9 @@ AArch64PreLegalizerCombinerImpl::AArch64PreLegalizerCombinerImpl(
 }
 
 bool AArch64PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI2String(MI) << "\n";
+    outs() << "\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << nico::MI2String(MI) << "\n";
     nico::total_data.back().logs.push_back("\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
+
     if (tryCombineAllImpl(MI)) {
         return true;
     }
@@ -831,7 +832,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     }
     outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
-    current_stage = CurrentBackendStage::PRELEGALIZERCOMBINER;
+    nico::current_stage = nico::CurrentBackendStage::PRELEGALIZERCOMBINER;
 
     auto& TPC = getAnalysis<TargetPassConfig>();
 

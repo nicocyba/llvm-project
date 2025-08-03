@@ -1376,7 +1376,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction& MF) {
     }
 
     outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    current_stage = CurrentBackendStage::POSTLEGALIZERLOWERING;
+    nico::current_stage = nico::CurrentBackendStage::POSTLEGALIZERLOWERING;
 
     assert(MF.getProperties().hasProperty(
                MachineFunctionProperties::Property::Legalized)

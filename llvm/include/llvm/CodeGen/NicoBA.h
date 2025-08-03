@@ -61,6 +61,54 @@ struct GlobalISelDataInstruction {
     bool status;
 };
 
+inline thread_local std::vector<GlobalISelDataInstruction> total_data;
+
+inline void reset_observerdata() {
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
+inline void reset_observerdata(const std::string& filename, const std::string& function_name, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_before_loc, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_after_loc) {
+    total_data.back().state_before = std::move(state_before_loc);
+    total_data.back().state_after = std::move(state_after_loc);
+
+    // created
+    for (const auto &C : nico::CreatedInstrsNico)
+        total_data.back().created.push_back(
+            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
+        );
+    
+    // changed
+    for (const auto &C : nico::ChangedInstrsNico)
+        total_data.back().changed.push_back(
+            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
+        );
+
+    // deleted
+    for (const auto &C : nico::DeletedInstrsNico)
+        total_data.back().deleted.push_back(
+            std::make_tuple(C, -1, -1)
+        );
+
+    // std::string temp_after;
+    // for (const auto &C : MIs)
+    //     temp_after += formatv("{0} | ", nico::MI2String(*C));
+    // if (!temp_after.empty() && temp_after.size() >= 3)
+    //     temp_after.erase(temp_after.size() - 3);
+
+    // llvm::log_backend_event(
+    //     llvm::to_string(llvm::current_stage), filename, function_name,
+    //     formatv("{0}###{1}###{2} -> {3}###{4}###{5}###{6}",
+    //         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
+    // );
+
+    // clear the thread local data
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
+
+
 auto MI2String = [](const llvm::MachineInstr& MI) {
     std::string InstrStr;
     llvm::raw_string_ostream OS(InstrStr);
@@ -652,54 +700,6 @@ inline std::string to_string(nico::AArch64MachineCombinerPattern2 pattern) {
     }
 }
 
-
-
-inline thread_local std::vector<GlobalISelDataInstruction> total_data;
-
-inline void reset_observerdata() {
-    CreatedInstrsNico.clear();
-    DeletedInstrsNico.clear();
-    ChangedInstrsNico.clear();
-}
-inline void reset_observerdata(const std::string& filename, const std::string& function_name, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_before_loc, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_after_loc) {
-    total_data.back().state_before = std::move(state_before_loc);
-    total_data.back().state_after = std::move(state_after_loc);
-
-    // created
-    for (const auto &C : nico::CreatedInstrsNico)
-        total_data.back().created.push_back(
-            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
-        );
-    
-    // changed
-    for (const auto &C : nico::ChangedInstrsNico)
-        total_data.back().changed.push_back(
-            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
-        );
-
-    // deleted
-    for (const auto &C : nico::DeletedInstrsNico)
-        total_data.back().deleted.push_back(
-            std::make_tuple(C, -1, -1)
-        );
-
-    // std::string temp_after;
-    // for (const auto &C : MIs)
-    //     temp_after += formatv("{0} | ", nico::MI2String(*C));
-    // if (!temp_after.empty() && temp_after.size() >= 3)
-    //     temp_after.erase(temp_after.size() - 3);
-
-    // llvm::log_backend_event(
-    //     llvm::to_string(llvm::current_stage), filename, function_name,
-    //     formatv("{0}###{1}###{2} -> {3}###{4}###{5}###{6}",
-    //         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
-    // );
-
-    // clear the thread local data
-    CreatedInstrsNico.clear();
-    DeletedInstrsNico.clear();
-    ChangedInstrsNico.clear();
-}
 
 auto log_backend_event = [](auto&&... args) {
     data_globalisel_patterns.emplace_back(nico::GlobalISelDataPattern{std::forward<decltype(args)>(args)...});

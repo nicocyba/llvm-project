@@ -549,7 +549,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
 
     outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     
-    current_stage = CurrentBackendStage::POSTLEGALIZERCOMBINER;
+    nico::current_stage = nico::CurrentBackendStage::POSTLEGALIZERCOMBINER;
 
     assert(MF.getProperties().hasProperty(
                MachineFunctionProperties::Property::Legalized)
