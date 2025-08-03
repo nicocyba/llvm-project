@@ -3,6 +3,7 @@
 #include "llvm/CodeGen/MachineCombinerPattern.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
+#include "llvm/CodeGen/GlobalISel/MIPatternMatch.h"
 #include <iterator>
 #include <regex>
 #include <string>
@@ -642,7 +643,7 @@ inline void reset_observerdata(const std::string& filename, const std::string& f
     // deleted
     for (const auto &C : nico::DeletedInstrsNico)
         total_data.back().deleted.push_back(
-            std::make_tuple(nico::MI2String(*C), -1, -1)
+            std::make_tuple(C, -1, -1)
         );
 
     // std::string temp_after;
