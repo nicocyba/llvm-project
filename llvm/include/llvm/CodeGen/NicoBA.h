@@ -45,6 +45,22 @@ struct MachineCombinerData {
     std::string pattern;
 };
 
+
+inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
+inline thread_local std::set<const std::string> DeletedInstrsNico;
+inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
+
+struct GlobalISelDataInstruction {
+    std::string stage;
+    std::vector<std::string> logs;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> state_before;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> state_after;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> created;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> changed;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> deleted;
+    bool status;
+};
+
 auto MI2String = [](const llvm::MachineInstr& MI) {
     std::string InstrStr;
     llvm::raw_string_ostream OS(InstrStr);
@@ -637,19 +653,6 @@ inline std::string to_string(nico::AArch64MachineCombinerPattern2 pattern) {
 }
 
 
-inline thread_local std::set<const llvm::MachineInstr *> CreatedInstrsNico;
-inline thread_local std::set<const std::string> DeletedInstrsNico;
-inline thread_local std::set<const llvm::MachineInstr *> ChangedInstrsNico;
-
-struct GlobalISelDataInstruction {
-    std::string stage;
-    std::vector<std::string> logs;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> state_before;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> state_after;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> created;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> changed;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> deleted;
-};
 
 inline thread_local std::vector<GlobalISelDataInstruction> total_data;
 

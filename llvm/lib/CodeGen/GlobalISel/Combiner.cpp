@@ -350,6 +350,7 @@ bool Combiner::combineMachineInstrs() {
       nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__) + " - " + nico::MI2String(CurrInst));
 
       bool AppliedCombine = tryCombineAll(CurrInst);
+      nico::total_data.back().status = AppliedCombine; 
       // WLObserver->reportFullyCreatedInstrs();
       // LLVM_DEBUG(WLObserver->reportFullyCreatedInstrs());
       Changed |= AppliedCombine;
