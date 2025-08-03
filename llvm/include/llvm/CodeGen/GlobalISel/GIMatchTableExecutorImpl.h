@@ -143,7 +143,7 @@ bool GIMatchTableExecutor::executeMatchTable(
     while (true) {
         assert(CurrentIdx != ~0u && "Invalid MatchTable index");
         uint8_t MatcherOpcode = MatchTable[CurrentIdx++];
-        outs() << "\t\t\t\t\tExecuting match table: " << (int)MatcherOpcode << "\n";
+        outs() << "\t\t\t\t\tExecuting match table: " << nico::to_string((int)MatcherOpcode) << " (" << (int)MatcherOpcode << ")\n";
         switch (MatcherOpcode) {
             case GIM_Try: {
                 DEBUG_WITH_TYPE(TgtExecutor::getName(),
