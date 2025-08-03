@@ -129,9 +129,9 @@ void InstructionSelect::getAnalysisUsage(AnalysisUsage& AU) const {
 
 bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
     // If the ISel pipeline failed, do not bother running that pass.
-    if (MF.getProperties().hasProperty(
-            MachineFunctionProperties::Property::FailedISel)) {
+    if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel)) {
         return false;
+    }
     nico::current_stage = nico::CurrentBackendStage::INSTRUCTIONSELECT;
     outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 

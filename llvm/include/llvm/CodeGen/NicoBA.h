@@ -188,7 +188,7 @@ inline std::string to_string(int value) {
         case 94: return "GIR_Done";
         case 95: return "GIR_Coverage";
         case 96: return "GIU_NumOpcodes";
-        // default: return "<unknown>";
+        default: return "<unknown>";
     }
 }
 

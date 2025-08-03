@@ -1070,7 +1070,7 @@ bool CombinerHelper::matchSextTruncSextLoad(MachineInstr& MI) const {
     }
 
     Register TruncSrc;
-    if (mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_Reg(TruncSrc)))) {
+    if (nico::mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_Reg(TruncSrc)))) {
         LoadUser = TruncSrc;
     }
 
@@ -1356,7 +1356,7 @@ bool CombinerHelper::findPreIndexCandidate(GLoadStore& LdSt, Register& Addr, Reg
     const auto& TLI = *MF.getSubtarget().getTargetLowering();
 
     Addr = LdSt.getPointerReg();
-    if (!mi_match_wrapper(Addr, MRI, m_GPtrAdd(m_Reg(Base), m_Reg(Offset))) || MRI.hasOneNonDBGUse(Addr)) {
+    if (!nico::mi_match_wrapper(Addr, MRI, m_GPtrAdd(m_Reg(Base), m_Reg(Offset))) || MRI.hasOneNonDBGUse(Addr)) {
         return false;
     }
 
@@ -2091,14 +2091,14 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
         return false;
     }
 
-    if (!mi_match_wrapper(SrcReg, MRI,
+    if (!nico::mi_match_wrapper(SrcReg, MRI,
             m_OneNonDBGUse(m_any_of(m_GAdd(m_Reg(X), m_Reg(C1)),
                 m_GOr(m_Reg(X), m_Reg(C1)))))) {
         return false;
     }
 
     APInt C1Val, C2Val;
-    if (!mi_match_wrapper(C1, MRI, m_ICstOrSplat(C1Val)) || !mi_match_wrapper(ShiftReg, MRI, m_ICstOrSplat(C2Val))) {
+    if (!nico::mi_match_wrapper(C1, MRI, m_ICstOrSplat(C1Val)) || !nico::mi_match_wrapper(ShiftReg, MRI, m_ICstOrSplat(C2Val))) {
         return false;
     }
 
@@ -2182,7 +2182,7 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
     Register LHS = MI.getOperand(1).getReg();
 
     Register ExtSrc;
-    if (!mi_match_wrapper(LHS, MRI, m_GAnyExt(m_Reg(ExtSrc))) && !mi_match_wrapper(LHS, MRI, m_GZExt(m_Reg(ExtSrc))) && !mi_match_wrapper(LHS, MRI, m_GSExt(m_Reg(ExtSrc)))) {
+    if (!nico::mi_match_wrapper(LHS, MRI, m_GAnyExt(m_Reg(ExtSrc))) && !nico::mi_match_wrapper(LHS, MRI, m_GZExt(m_Reg(ExtSrc))) && !nico::mi_match_wrapper(LHS, MRI, m_GSExt(m_Reg(ExtSrc)))) {
         return false;
     }
 
@@ -2257,7 +2257,7 @@ bool CombinerHelper::matchCombineMergeUnmerge(MachineInstr& MI,
 
 static Register peekThroughBitcast(Register Reg,
     const MachineRegisterInfo& MRI) {
-    while (mi_match_wrapper(Reg, MRI, m_GBitcast(m_Reg(Reg))))
+    while (nico::mi_match_wrapper(Reg, MRI, m_GBitcast(m_Reg(Reg))))
         ;
 
     return Reg;
@@ -2418,7 +2418,7 @@ bool CombinerHelper::matchCombineUnmergeZExtToZExt(MachineInstr& MI) const {
     }
 
     Register ZExtSrcReg;
-    if (!mi_match_wrapper(SrcReg, MRI, m_GZExt(m_Reg(ZExtSrcReg)))) {
+    if (!nico::mi_match_wrapper(SrcReg, MRI, m_GZExt(m_Reg(ZExtSrcReg)))) {
         return false;
     }
 
@@ -2582,7 +2582,7 @@ bool CombinerHelper::matchCombineI2PToP2I(MachineInstr& MI,
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
     Register SrcReg = MI.getOperand(1).getReg();
-    if (mi_match_wrapper(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg))))) {
+    if (nico::mi_match_wrapper(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg))))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2616,7 +2616,7 @@ bool CombinerHelper::matchCombineAddP2IToPtrAdd(
     // instruction.
     PtrReg.second = false;
     for (Register SrcReg : {LHS, RHS}) {
-        if (mi_match_wrapper(SrcReg, MRI, m_GPtrToInt(m_Reg(PtrReg.first)))) {
+        if (nico::mi_match_wrapper(SrcReg, MRI, m_GPtrToInt(m_Reg(PtrReg.first)))) {
             // Don't handle cases where the integer is implicitly converted to the
             // pointer width.
             LLT PtrTy = MRI.getType(PtrReg.first);
@@ -2660,7 +2660,7 @@ bool CombinerHelper::matchCombineConstPtrAddToI2P(MachineInstr& MI,
 
     if (auto RHSCst = getIConstantVRegVal(RHS, MRI)) {
         APInt Cst;
-        if (mi_match_wrapper(LHS, MRI, m_GIntToPtr(m_ICst(Cst)))) {
+        if (nico::mi_match_wrapper(LHS, MRI, m_GIntToPtr(m_ICst(Cst)))) {
             auto DstTy = MRI.getType(PtrAdd.getReg(0));
             // G_INTTOPTR uses zero-extension
             NewCst = Cst.zextOrTrunc(DstTy.getSizeInBits());
@@ -2692,7 +2692,7 @@ bool CombinerHelper::matchCombineAnyExtTrunc(MachineInstr& MI,
         SrcReg = OriginalSrcReg;
     }
     LLT DstTy = MRI.getType(DstReg);
-    if (mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
+    if (nico::mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -2705,7 +2705,7 @@ bool CombinerHelper::matchCombineZextTrunc(MachineInstr& MI,
     Register DstReg = MI.getOperand(0).getReg();
     Register SrcReg = MI.getOperand(1).getReg();
     LLT DstTy = MRI.getType(DstReg);
-    if (mi_match_wrapper(SrcReg, MRI,
+    if (nico::mi_match_wrapper(SrcReg, MRI,
             m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
         unsigned DstSize = DstTy.getScalarSizeInBits();
         unsigned SrcSize = MRI.getType(SrcReg).getScalarSizeInBits();
@@ -3046,7 +3046,7 @@ bool CombinerHelper::matchConstantFPOp(const MachineOperand& MOP,
         return false;
     }
     std::optional<FPValueAndVReg> MaybeCst;
-    if (!mi_match_wrapper(MOP.getReg(), MRI, m_GFCstOrSplat(MaybeCst))) {
+    if (!nico::mi_match_wrapper(MOP.getReg(), MRI, m_GFCstOrSplat(MaybeCst))) {
         return false;
     }
 
@@ -3208,7 +3208,7 @@ bool CombinerHelper::matchSimplifyAddToSub(
     // ((0-A) + B) -> B - A
     // (A + (0-B)) -> A - B
     auto CheckFold = [&](Register& MaybeSub, Register& MaybeNewLHS) {
-        if (!mi_match_wrapper(MaybeSub, MRI, m_Neg(m_Reg(NewRHS)))) {
+        if (!nico::mi_match_wrapper(MaybeSub, MRI, m_Neg(m_Reg(NewRHS)))) {
             return false;
         }
         NewLHS = MaybeNewLHS;
@@ -3244,7 +3244,7 @@ bool CombinerHelper::matchCombineInsertVecElts(
     int64_t IntImm;
     Register TmpReg;
     MatchInfo.resize(NumElts);
-    while (mi_match_wrapper(
+    while (nico::mi_match_wrapper(
         CurrInst->getOperand(0).getReg(), MRI,
         m_GInsertVecElt(m_MInstr(TmpInst), m_Reg(TmpReg), m_ICst(IntImm)))) {
         if (IntImm >= NumElts || IntImm < 0) {
@@ -3437,7 +3437,7 @@ bool CombinerHelper::matchAshrShlToSextInreg(
     assert(MI.getOpcode() == TargetOpcode::G_ASHR);
     int64_t ShlCst, AshrCst;
     Register Src;
-    if (!mi_match_wrapper(MI.getOperand(0).getReg(), MRI,
+    if (!nico::mi_match_wrapper(MI.getOperand(0).getReg(), MRI,
             m_GAShr(m_GShl(m_Reg(Src), m_ICstOrSplat(ShlCst)),
                 m_ICstOrSplat(AshrCst)))) {
         return false;
@@ -3477,7 +3477,7 @@ bool CombinerHelper::matchOverlappingAnd(
     Register R;
     int64_t C1;
     int64_t C2;
-    if (!mi_match_wrapper(
+    if (!nico::mi_match_wrapper(
             Dst, MRI,
             m_GAnd(m_GAnd(m_Reg(R), m_ICst(C1)), m_ICst(C2)))) {
         return false;
@@ -3734,7 +3734,7 @@ bool CombinerHelper::matchNotCmp(
     Register XorSrc;
     Register CstReg;
     // We match xor(src, true) here.
-    if (!mi_match_wrapper(MI.getOperand(0).getReg(), MRI,
+    if (!nico::mi_match_wrapper(MI.getOperand(0).getReg(), MRI,
             m_GXor(m_Reg(XorSrc), m_Reg(CstReg)))) {
         return false;
     }
@@ -3801,7 +3801,7 @@ bool CombinerHelper::matchNotCmp(
             return false;
         }
     } else {
-        if (!mi_match_wrapper(CstReg, MRI, m_ICst(Cst))) {
+        if (!nico::mi_match_wrapper(CstReg, MRI, m_ICst(Cst))) {
             return false;
         }
         if (!isConstValidTrue(TLI, Ty.getSizeInBits(), Cst, false, IsFP)) {
@@ -3858,9 +3858,9 @@ bool CombinerHelper::matchXorOfAndWithSameReg(
     //
     // (xor (and x, y), SharedReg)
     // (xor SharedReg, (and x, y))
-    if (!mi_match_wrapper(AndReg, MRI, m_GAnd(m_Reg(X), m_Reg(Y)))) {
+    if (!nico::mi_match_wrapper(AndReg, MRI, m_GAnd(m_Reg(X), m_Reg(Y)))) {
         std::swap(AndReg, SharedReg);
-        if (!mi_match_wrapper(AndReg, MRI, m_GAnd(m_Reg(X), m_Reg(Y)))) {
+        if (!nico::mi_match_wrapper(AndReg, MRI, m_GAnd(m_Reg(X), m_Reg(Y)))) {
             return false;
         }
     }
@@ -4113,7 +4113,7 @@ matchLoadAndBytePosition(Register Reg, unsigned MemSizeInBits, const MachineRegi
     assert(MRI.hasOneNonDBGUse(Reg) && "Expected Reg to only have one non-debug use?");
     Register MaybeLoad;
     int64_t Shift;
-    if (!mi_match_wrapper(Reg, MRI,
+    if (!nico::mi_match_wrapper(Reg, MRI,
             m_OneNonDBGUse(m_GShl(m_Reg(MaybeLoad), m_ICst(Shift))))) {
         Shift = 0;
         MaybeLoad = Reg;
@@ -4205,7 +4205,7 @@ CombinerHelper::findLoadOffsetsForLoadOrCombine(
         // Find out what the base pointer and index for the load is.
         Register LoadPtr;
         int64_t Idx;
-        if (!mi_match_wrapper(Load->getOperand(1).getReg(), MRI,
+        if (!nico::mi_match_wrapper(Load->getOperand(1).getReg(), MRI,
                 m_GPtrAdd(m_Reg(LoadPtr), m_ICst(Idx)))) {
             LoadPtr = Load->getOperand(1).getReg();
             Idx = 0;
@@ -4655,7 +4655,7 @@ bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
     unsigned FshOpc = 0;
 
     // Match (or (shl ...), (lshr ...)).
-    if (!mi_match_wrapper(Dst, MRI,
+    if (!nico::mi_match_wrapper(Dst, MRI,
             // m_GOr() handles the commuted version as well.
             m_GOr(m_GShl(m_Reg(ShlSrc), m_Reg(ShlAmt)),
                 m_GLShr(m_Reg(LShrSrc), m_Reg(LShrAmt))))) {
@@ -4665,17 +4665,17 @@ bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
     // Given constants C0 and C1 such that C0 + C1 is bit-width:
     // (or (shl x, C0), (lshr y, C1)) -> (fshl x, y, C0) or (fshr x, y, C1)
     int64_t CstShlAmt, CstLShrAmt;
-    if (mi_match_wrapper(ShlAmt, MRI, m_ICstOrSplat(CstShlAmt)) && mi_match_wrapper(LShrAmt, MRI, m_ICstOrSplat(CstLShrAmt)) && CstShlAmt + CstLShrAmt == BitWidth) {
+    if (nico::mi_match_wrapper(ShlAmt, MRI, m_ICstOrSplat(CstShlAmt)) && nico::mi_match_wrapper(LShrAmt, MRI, m_ICstOrSplat(CstLShrAmt)) && CstShlAmt + CstLShrAmt == BitWidth) {
         FshOpc = TargetOpcode::G_FSHR;
         Amt = LShrAmt;
 
-    } else if (mi_match_wrapper(LShrAmt, MRI,
+    } else if (nico::mi_match_wrapper(LShrAmt, MRI,
                    m_GSub(m_SpecificICstOrSplat(BitWidth), m_Reg(Amt)))
         && ShlAmt == Amt) {
         // (or (shl x, amt), (lshr y, (sub bw, amt))) -> (fshl x, y, amt)
         FshOpc = TargetOpcode::G_FSHL;
 
-    } else if (mi_match_wrapper(ShlAmt, MRI,
+    } else if (nico::mi_match_wrapper(ShlAmt, MRI,
                    m_GSub(m_SpecificICstOrSplat(BitWidth), m_Reg(Amt)))
         && LShrAmt == Amt) {
         // (or (shl x, (sub bw, amt)), (lshr y, amt)) -> (fshr x, y, amt)
@@ -4830,7 +4830,7 @@ bool CombinerHelper::matchICmpToLHSKnownBits(
         return false;
     }
     int64_t OneOrZero = Pred == CmpInst::ICMP_EQ;
-    if (!mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICst(OneOrZero))) {
+    if (!nico::mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICst(OneOrZero))) {
         return false;
     }
     Register LHS = MI.getOperand(2).getReg();
@@ -4871,7 +4871,7 @@ bool CombinerHelper::matchAndOrDisjointMask(
     Register AndMaskReg;
     int64_t AndMaskBits;
     int64_t OrMaskBits;
-    if (!mi_match_wrapper(MI, MRI,
+    if (!nico::mi_match_wrapper(MI, MRI,
             m_GAnd(m_GOr(m_Reg(Src), m_ICst(OrMaskBits)),
                 m_all_of(m_ICst(AndMaskBits), m_Reg(AndMaskReg))))) {
         return false;
@@ -4910,7 +4910,7 @@ bool CombinerHelper::matchBitfieldExtractFromSExtInReg(
     int64_t Width = MI.getOperand(2).getImm();
     Register ShiftSrc;
     int64_t ShiftImm;
-    if (!mi_match_wrapper(
+    if (!nico::mi_match_wrapper(
             Src, MRI,
             m_OneNonDBGUse(m_any_of(m_GAShr(m_Reg(ShiftSrc), m_ICst(ShiftImm)),
                 m_GLShr(m_Reg(ShiftSrc), m_ICst(ShiftImm)))))) {
@@ -4945,7 +4945,7 @@ bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
     int64_t AndImm, LSBImm;
     Register ShiftSrc;
     const unsigned Size = Ty.getScalarSizeInBits();
-    if (!mi_match_wrapper(And->getReg(0), MRI,
+    if (!nico::mi_match_wrapper(And->getReg(0), MRI,
             m_GAnd(m_OneNonDBGUse(m_GLShr(m_Reg(ShiftSrc), m_ICst(LSBImm))),
                 m_ICst(AndImm)))) {
         return false;
@@ -4997,7 +4997,7 @@ bool CombinerHelper::matchBitfieldExtractFromShr(
     const unsigned Size = Ty.getScalarSizeInBits();
 
     // Try to match shr (shl x, c1), c2
-    if (!mi_match_wrapper(Dst, MRI,
+    if (!nico::mi_match_wrapper(Dst, MRI,
             m_BinOp(Opcode,
                 m_OneNonDBGUse(m_GShl(m_Reg(ShlSrc), m_ICst(ShlAmt))),
                 m_ICst(ShrAmt)))) {
@@ -5044,7 +5044,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
     Register AndSrc;
     int64_t ShrAmt;
     int64_t SMask;
-    if (!mi_match_wrapper(Dst, MRI,
+    if (!nico::mi_match_wrapper(Dst, MRI,
             m_BinOp(Opcode,
                 m_OneNonDBGUse(m_GAnd(m_Reg(AndSrc), m_ICst(SMask))),
                 m_ICst(ShrAmt)))) {
@@ -5201,7 +5201,7 @@ bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI,
     // if and only if (G_PTR_ADD X, C) has one use.
     Register LHSBase;
     std::optional<ValueAndVReg> LHSCstOff;
-    if (!mi_match_wrapper(MI.getBaseReg(), MRI,
+    if (!nico::mi_match_wrapper(MI.getBaseReg(), MRI,
             m_OneNonDBGUse(m_GPtrAdd(m_Reg(LHSBase), m_GCst(LHSCstOff))))) {
         return false;
     }
@@ -5529,7 +5529,7 @@ bool CombinerHelper::matchMulOBy2(MachineInstr& MI,
     unsigned Opc = MI.getOpcode();
     assert(Opc == TargetOpcode::G_UMULO || Opc == TargetOpcode::G_SMULO);
 
-    if (!mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(2))) {
+    if (!nico::mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(2))) {
         return false;
     }
 
@@ -5549,7 +5549,7 @@ bool CombinerHelper::matchMulOBy0(MachineInstr& MI,
     BuildFnTy& MatchInfo) const {
     // (G_*MULO x, 0) -> 0 + no carry out
     assert(MI.getOpcode() == TargetOpcode::G_UMULO || MI.getOpcode() == TargetOpcode::G_SMULO);
-    if (!mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(0))) {
+    if (!nico::mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(0))) {
         return false;
     }
     Register Dst = MI.getOperand(0).getReg();
@@ -5570,7 +5570,7 @@ bool CombinerHelper::matchAddEToAddO(MachineInstr& MI,
     // (G_*ADDE x, y, 0) -> (G_*ADDO x, y)
     // (G_*SUBE x, y, 0) -> (G_*SUBO x, y)
     assert(MI.getOpcode() == TargetOpcode::G_UADDE || MI.getOpcode() == TargetOpcode::G_SADDE || MI.getOpcode() == TargetOpcode::G_USUBE || MI.getOpcode() == TargetOpcode::G_SSUBE);
-    if (!mi_match_wrapper(MI.getOperand(4).getReg(), MRI, m_SpecificICstOrSplat(0))) {
+    if (!nico::mi_match_wrapper(MI.getOperand(4).getReg(), MRI, m_SpecificICstOrSplat(0))) {
         return false;
     }
     MatchInfo = [&](MachineIRBuilder& B) {
@@ -5605,12 +5605,12 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
     // (x + y) - z -> x (if y == z)
     // (x + y) - z -> y (if x == z)
     Register X, Y, Z;
-    if (mi_match_wrapper(Dst, MRI, m_GSub(m_GAdd(m_Reg(X), m_Reg(Y)), m_Reg(Z)))) {
+    if (nico::mi_match_wrapper(Dst, MRI, m_GSub(m_GAdd(m_Reg(X), m_Reg(Y)), m_Reg(Z)))) {
         Register ReplaceReg;
         int64_t CstX, CstY;
-        if (Y == Z || (mi_match_wrapper(Y, MRI, m_ICstOrSplat(CstY)) && mi_match_wrapper(Z, MRI, m_SpecificICstOrSplat(CstY)))) {
+        if (Y == Z || (nico::mi_match_wrapper(Y, MRI, m_ICstOrSplat(CstY)) && nico::mi_match_wrapper(Z, MRI, m_SpecificICstOrSplat(CstY)))) {
             ReplaceReg = X;
-        } else if (X == Z || (mi_match_wrapper(X, MRI, m_ICstOrSplat(CstX)) && mi_match_wrapper(Z, MRI, m_SpecificICstOrSplat(CstX)))) {
+        } else if (X == Z || (nico::mi_match_wrapper(X, MRI, m_ICstOrSplat(CstX)) && nico::mi_match_wrapper(Z, MRI, m_SpecificICstOrSplat(CstX)))) {
             ReplaceReg = Y;
         }
         if (ReplaceReg) {
@@ -5622,12 +5622,12 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
 
     // x - (y + z) -> 0 - y (if x == z)
     // x - (y + z) -> 0 - z (if x == y)
-    if (mi_match_wrapper(Dst, MRI, m_GSub(m_Reg(X), m_GAdd(m_Reg(Y), m_Reg(Z))))) {
+    if (nico::mi_match_wrapper(Dst, MRI, m_GSub(m_Reg(X), m_GAdd(m_Reg(Y), m_Reg(Z))))) {
         Register ReplaceReg;
         int64_t CstX;
-        if (X == Z || (mi_match_wrapper(X, MRI, m_ICstOrSplat(CstX)) && mi_match_wrapper(Z, MRI, m_SpecificICstOrSplat(CstX)))) {
+        if (X == Z || (nico::mi_match_wrapper(X, MRI, m_ICstOrSplat(CstX)) && nico::mi_match_wrapper(Z, MRI, m_SpecificICstOrSplat(CstX)))) {
             ReplaceReg = Y;
-        } else if (X == Y || (mi_match_wrapper(X, MRI, m_ICstOrSplat(CstX)) && mi_match_wrapper(Y, MRI, m_SpecificICstOrSplat(CstX)))) {
+        } else if (X == Y || (nico::mi_match_wrapper(X, MRI, m_ICstOrSplat(CstX)) && nico::mi_match_wrapper(Y, MRI, m_SpecificICstOrSplat(CstX)))) {
             ReplaceReg = Z;
         }
         if (ReplaceReg) {
@@ -6098,18 +6098,18 @@ bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI,
     // fold (fadd x, fneg(y)) -> (fsub x, y)
     // fold (fadd fneg(y), x) -> (fsub x, y)
     // G_ADD is commutative so both cases are checked by m_GFAdd
-    if (mi_match_wrapper(Dst, MRI, m_GFAdd(m_Reg(X), m_GFNeg(m_Reg(Y)))) && isLegalOrBeforeLegalizer({TargetOpcode::G_FSUB, {Type}})) {
+    if (nico::mi_match_wrapper(Dst, MRI, m_GFAdd(m_Reg(X), m_GFNeg(m_Reg(Y)))) && isLegalOrBeforeLegalizer({TargetOpcode::G_FSUB, {Type}})) {
         Opc = TargetOpcode::G_FSUB;
     }
     /// fold (fsub x, fneg(y)) -> (fadd x, y)
-    else if (mi_match_wrapper(Dst, MRI, m_GFSub(m_Reg(X), m_GFNeg(m_Reg(Y)))) && isLegalOrBeforeLegalizer({TargetOpcode::G_FADD, {Type}})) {
+    else if (nico::mi_match_wrapper(Dst, MRI, m_GFSub(m_Reg(X), m_GFNeg(m_Reg(Y)))) && isLegalOrBeforeLegalizer({TargetOpcode::G_FADD, {Type}})) {
         Opc = TargetOpcode::G_FADD;
     }
     // fold (fmul fneg(x), fneg(y)) -> (fmul x, y)
     // fold (fdiv fneg(x), fneg(y)) -> (fdiv x, y)
     // fold (fmad fneg(x), fneg(y), z) -> (fmad x, y, z)
     // fold (fma fneg(x), fneg(y), z) -> (fma x, y, z)
-    else if ((Opc == TargetOpcode::G_FMUL || Opc == TargetOpcode::G_FDIV || Opc == TargetOpcode::G_FMAD || Opc == TargetOpcode::G_FMA) && mi_match_wrapper(X, MRI, m_GFNeg(m_Reg(X))) && mi_match_wrapper(Y, MRI, m_GFNeg(m_Reg(Y)))) {
+    else if ((Opc == TargetOpcode::G_FMUL || Opc == TargetOpcode::G_FDIV || Opc == TargetOpcode::G_FMAD || Opc == TargetOpcode::G_FMA) && nico::mi_match_wrapper(X, MRI, m_GFNeg(m_Reg(X))) && nico::mi_match_wrapper(Y, MRI, m_GFNeg(m_Reg(Y)))) {
         // no opcode change
     } else {
         return false;
@@ -6295,7 +6295,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
 
     // fold (fadd (fpext (fmul x, y)), z) -> (fma (fpext x), (fpext y), z)
     MachineInstr* FpExtSrc;
-    if (mi_match_wrapper(LHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
+    if (nico::mi_match_wrapper(LHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             auto FpExtX = B.buildFPExt(DstType, FpExtSrc->getOperand(1).getReg());
             auto FpExtY = B.buildFPExt(DstType, FpExtSrc->getOperand(2).getReg());
@@ -6308,7 +6308,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
 
     // fold (fadd z, (fpext (fmul x, y))) -> (fma (fpext x), (fpext y), z)
     // Note: Commutes FADD operands.
-    if (mi_match_wrapper(RHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
+    if (nico::mi_match_wrapper(RHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             auto FpExtX = B.buildFPExt(DstType, FpExtSrc->getOperand(1).getReg());
             auto FpExtY = B.buildFPExt(DstType, FpExtSrc->getOperand(2).getReg());
@@ -6426,7 +6426,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
     MachineInstr *FMulMI, *FMAMI;
     // fold (fadd (fma x, y, (fpext (fmul u, v))), z)
     //   -> (fma x, y, (fma (fpext u), (fpext v), z))
-    if (LHS.MI->getOpcode() == PreferredFusedOpcode && mi_match_wrapper(LHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+    if (LHS.MI->getOpcode() == PreferredFusedOpcode && nico::mi_match_wrapper(LHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
         MatchInfo = [=](MachineIRBuilder& B) {
             buildMatchInfo(FMulMI->getOperand(1).getReg(),
                 FMulMI->getOperand(2).getReg(), RHS.Reg,
@@ -6442,7 +6442,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
     // FIXME: This turns two single-precision and one double-precision
     // operation into two double-precision operations, which might not be
     // interesting for all targets, especially GPUs.
-    if (mi_match_wrapper(LHS.Reg, MRI, m_GFPExt(m_MInstr(FMAMI))) && FMAMI->getOpcode() == PreferredFusedOpcode) {
+    if (nico::mi_match_wrapper(LHS.Reg, MRI, m_GFPExt(m_MInstr(FMAMI))) && FMAMI->getOpcode() == PreferredFusedOpcode) {
         MachineInstr* FMulMI = MRI.getVRegDef(FMAMI->getOperand(3).getReg());
         if (isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMAMI->getOperand(0).getReg()))) {
             MatchInfo = [=](MachineIRBuilder& B) {
@@ -6460,7 +6460,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
 
     // fold (fadd z, (fma x, y, (fpext (fmul u, v)))
     //   -> (fma x, y, (fma (fpext u), (fpext v), z))
-    if (RHS.MI->getOpcode() == PreferredFusedOpcode && mi_match_wrapper(RHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+    if (RHS.MI->getOpcode() == PreferredFusedOpcode && nico::mi_match_wrapper(RHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
         MatchInfo = [=](MachineIRBuilder& B) {
             buildMatchInfo(FMulMI->getOperand(1).getReg(),
                 FMulMI->getOperand(2).getReg(), LHS.Reg,
@@ -6476,7 +6476,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
     // FIXME: This turns two single-precision and one double-precision
     // operation into two double-precision operations, which might not be
     // interesting for all targets, especially GPUs.
-    if (mi_match_wrapper(RHS.Reg, MRI, m_GFPExt(m_MInstr(FMAMI))) && FMAMI->getOpcode() == PreferredFusedOpcode) {
+    if (nico::mi_match_wrapper(RHS.Reg, MRI, m_GFPExt(m_MInstr(FMAMI))) && FMAMI->getOpcode() == PreferredFusedOpcode) {
         MachineInstr* FMulMI = MRI.getVRegDef(FMAMI->getOperand(3).getReg());
         if (isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMAMI->getOperand(0).getReg()))) {
             MatchInfo = [=](MachineIRBuilder& B) {
@@ -6563,7 +6563,7 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
 
     MachineInstr* FMulMI;
     // fold (fsub (fneg (fmul x, y)), z) -> (fma (fneg x), y, (fneg z))
-    if (mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(LHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg()))) && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
+    if (nico::mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(LHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg()))) && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register NegX = B.buildFNeg(DstTy, FMulMI->getOperand(1).getReg()).getReg(0);
             Register NegZ = B.buildFNeg(DstTy, RHSReg).getReg(0);
@@ -6575,7 +6575,7 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
     }
 
     // fold (fsub x, (fneg (fmul, y, z))) -> (fma y, z, x)
-    if (mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(RHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg()))) && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
+    if (nico::mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(RHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg()))) && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FMulMI->getOperand(1).getReg(),
@@ -6606,7 +6606,7 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
 
     MachineInstr* FMulMI;
     // fold (fsub (fpext (fmul x, y)), z) -> (fma (fpext x), (fpext y), (fneg z))
-    if (mi_match_wrapper(LHSReg, MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(LHSReg))) {
+    if (nico::mi_match_wrapper(LHSReg, MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(LHSReg))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register FpExtX = B.buildFPExt(DstTy, FMulMI->getOperand(1).getReg()).getReg(0);
             Register FpExtY = B.buildFPExt(DstTy, FMulMI->getOperand(2).getReg()).getReg(0);
@@ -6619,7 +6619,7 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
     }
 
     // fold (fsub x, (fpext (fmul y, z))) -> (fma (fneg (fpext y)), (fpext z), x)
-    if (mi_match_wrapper(RHSReg, MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(RHSReg))) {
+    if (nico::mi_match_wrapper(RHSReg, MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(RHSReg))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register FpExtY = B.buildFPExt(DstTy, FMulMI->getOperand(1).getReg()).getReg(0);
             Register NegY = B.buildFNeg(DstTy, FpExtY).getReg(0);
@@ -6663,7 +6663,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
     //      (fneg (fma (fpext x), (fpext y), z))
     // fold (fsub (fneg (fpext (fmul x, y))), z) ->
     //      (fneg (fma (fpext x), (fpext y), z))
-    if ((mi_match_wrapper(LHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI))))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+    if ((nico::mi_match_wrapper(LHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || nico::mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI))))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register FMAReg = MRI.createGenericVirtualRegister(DstTy);
             buildMatchInfo(FMAReg, FMulMI->getOperand(1).getReg(),
@@ -6676,7 +6676,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
 
     // fold (fsub x, (fpext (fneg (fmul y, z)))) -> (fma (fpext y), (fpext z), x)
     // fold (fsub x, (fneg (fpext (fmul y, z)))) -> (fma (fpext y), (fpext z), x)
-    if ((mi_match_wrapper(RHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI))))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+    if ((nico::mi_match_wrapper(RHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || nico::mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI))))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             buildMatchInfo(MI.getOperand(0).getReg(), FMulMI->getOperand(1).getReg(),
                 FMulMI->getOperand(2).getReg(), LHSReg, B);
@@ -6732,7 +6732,7 @@ bool CombinerHelper::matchAddSubSameReg(MachineInstr& MI, Register& Src) const {
     // (B - A) + A -> B
     auto CheckFold = [&](Register MaybeSub, Register MaybeSameReg) {
         Register Reg;
-        return mi_match_wrapper(MaybeSub, MRI, m_GSub(m_Reg(Src), m_Reg(Reg))) && Reg == MaybeSameReg;
+        return nico::mi_match_wrapper(MaybeSub, MRI, m_GSub(m_Reg(Src), m_Reg(Reg))) && Reg == MaybeSameReg;
     };
     if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
@@ -6764,7 +6764,7 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
 
     Register Lo, Hi;
 
-    if (mi_match_wrapper(MI, MRI, m_GBuildVector(m_GTrunc(m_GBitcast(m_Reg(Lo))), m_GImplicitDef()))) {
+    if (nico::mi_match_wrapper(MI, MRI, m_GBuildVector(m_GTrunc(m_GBitcast(m_Reg(Lo))), m_GImplicitDef()))) {
         MatchInfo = Lo;
         if (MRI.getType(MatchInfo) == DstVecTy) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
@@ -6776,7 +6776,7 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
     std::optional<ValueAndVReg> ShiftAmount;
     const auto LoPattern = m_GBitcast(m_Reg(Lo));
     const auto HiPattern = m_GLShr(m_GBitcast(m_Reg(Hi)), m_GCst(ShiftAmount));
-    if (mi_match_wrapper(
+    if (nico::mi_match_wrapper(
             MI, MRI,
             m_any_of(m_GBuildVectorTrunc(LoPattern, HiPattern),
                 m_GBuildVector(m_GTrunc(LoPattern), m_GTrunc(HiPattern))))) {
@@ -6797,7 +6797,7 @@ bool CombinerHelper::matchTruncBuildVectorFold(MachineInstr& MI,
     Register& MatchInfo) const {
     // Replace (G_TRUNC (G_BITCAST (G_BUILD_VECTOR x, y)) with just x
     // if type(x) == type(G_TRUNC)
-    if (!mi_match_wrapper(MI.getOperand(1).getReg(), MRI,
+    if (!nico::mi_match_wrapper(MI.getOperand(1).getReg(), MRI,
             m_GBitcast(m_GBuildVector(m_Reg(MatchInfo), m_Reg())))) {
         return false;
     }
@@ -6814,7 +6814,7 @@ bool CombinerHelper::matchTruncLshrBuildVectorFold(MachineInstr& MI,
     // Replace (G_TRUNC (G_LSHR (G_BITCAST (G_BUILD_VECTOR x, y)), K)) with
     //    y if K == size of vector element type
     std::optional<ValueAndVReg> ShiftAmt;
-    if (!mi_match_wrapper(MI.getOperand(1).getReg(), MRI,
+    if (!nico::mi_match_wrapper(MI.getOperand(1).getReg(), MRI,
             m_GLShr(m_GBitcast(m_GBuildVector(m_Reg(), m_Reg(MatchInfo))),
                 m_GCst(ShiftAmt)))) {
         return false;
@@ -6909,7 +6909,7 @@ bool CombinerHelper::matchFPSelectToMinMax(Register Dst, Register Cond, Register
     // TODO: Allow multiple users of the compare if they are all selects.
     CmpInst::Predicate Pred;
     Register CmpLHS, CmpRHS;
-    if (!mi_match_wrapper(Cond, MRI,
+    if (!nico::mi_match_wrapper(Cond, MRI,
             m_OneNonDBGUse(
                 m_GFCmp(m_Pred(Pred), m_Reg(CmpLHS), m_Reg(CmpRHS))))
         || CmpInst::isEquality(Pred)) {
@@ -6964,7 +6964,7 @@ bool CombinerHelper::matchSimplifySelectToMinMax(MachineInstr& MI,
     // Condition may be fed by a truncated compare.
     Register Cond = MI.getOperand(1).getReg();
     Register MaybeTrunc;
-    if (mi_match_wrapper(Cond, MRI, m_OneNonDBGUse(m_GTrunc(m_Reg(MaybeTrunc))))) {
+    if (nico::mi_match_wrapper(Cond, MRI, m_OneNonDBGUse(m_GTrunc(m_Reg(MaybeTrunc))))) {
         Cond = MaybeTrunc;
     }
     Register Dst = MI.getOperand(0).getReg();
@@ -6989,14 +6989,14 @@ bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
     Register Dst = MI.getOperand(0).getReg();
     CmpInst::Predicate Pred;
     Register X, Y, OpLHS, OpRHS;
-    bool MatchedSub = mi_match_wrapper(
+    bool MatchedSub = nico::mi_match_wrapper(
         Dst, MRI,
         m_c_GICmp(m_Pred(Pred), m_Reg(X), m_GSub(m_Reg(OpLHS), m_Reg(Y))));
     if (MatchedSub && X != OpLHS) {
         return false;
     }
     if (!MatchedSub) {
-        if (!mi_match_wrapper(Dst, MRI,
+        if (!nico::mi_match_wrapper(Dst, MRI,
                 m_c_GICmp(m_Pred(Pred), m_Reg(X),
                     m_any_of(m_GAdd(m_Reg(OpLHS), m_Reg(OpRHS)),
                         m_GXor(m_Reg(OpLHS), m_Reg(OpRHS)))))) {
@@ -7110,10 +7110,10 @@ bool CombinerHelper::matchCommuteFPConstantToRHS(MachineInstr& MI) const {
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
     std::optional<FPValueAndVReg> ValAndVReg;
-    if (!mi_match_wrapper(LHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
+    if (!nico::mi_match_wrapper(LHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
         return false;
     }
-    if (!mi_match_wrapper(RHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
+    if (!nico::mi_match_wrapper(RHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
@@ -7575,7 +7575,7 @@ bool CombinerHelper::matchSimplifyNegMinMax(MachineInstr& MI,
     Register X;
     Register Sub0;
     auto NegPattern = m_all_of(m_Neg(m_DeferredReg(X)), m_Reg(Sub0));
-    if (mi_match_wrapper(DestReg, MRI,
+    if (nico::mi_match_wrapper(DestReg, MRI,
             m_Neg(m_OneUse(m_any_of(m_GSMin(m_Reg(X), NegPattern),
                 m_GSMax(m_Reg(X), NegPattern),
                 m_GUMin(m_Reg(X), NegPattern),
