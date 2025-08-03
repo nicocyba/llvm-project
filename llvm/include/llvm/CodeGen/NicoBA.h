@@ -114,7 +114,7 @@ inline thread_local nico::CurrentBackendStage current_stage = INIT;
 inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
 inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
 inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
-inline thread_local std::set<const std::string> DeletedInstrsNico;
+inline thread_local std::set<std::string> DeletedInstrsNico;
 inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
 inline thread_local std::vector<GlobalISelDataInstruction> total_data;
 
@@ -140,7 +140,7 @@ inline void reset_observerdata(const std::string& filename, const std::string& f
         );
 
     // deleted
-    for (const auto &C : nico::DeletedInstrsNico)
+    for (auto& C : nico::DeletedInstrsNico)
         total_data.back().deleted.push_back(
             std::make_tuple(C, -1, -1)
         );
