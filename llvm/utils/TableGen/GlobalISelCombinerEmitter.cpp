@@ -1921,7 +1921,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
                 /*ShowExpansions=*/false);
             Expander.emit(OS);
             OS << "}()) {\n"
-               << "  outs() << \"\t\t\t\t\t\t-> Match failed\\n\";\n"
+               << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
                << "  nico::total_data.back().logs[idxdata] += \" -> Match failed\";\n"
                << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
                << "  return false;\n}\n";
@@ -1930,7 +1930,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
     }
 
     std::string content1 = R"(
-outs() << "\t\t\t\t\t\t-> Match success\\n";
+outs() << "\t\t\t\t\t\t-> Match success\n";
 nico::total_data.back().logs[idxdata] += " -> Match success";
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;
 for (const auto& C : State.MIs) { 
