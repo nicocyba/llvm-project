@@ -1951,47 +1951,13 @@ OS << content1;
     // NICO
     std::string content = R"(
 // Nico
-//outs() << formatv("\t\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
-/*
-std::string obs_created;
-for (const auto &C : nico::CreatedInstrsNico)
-    obs_created += formatv("{{0} // idx: {{1}, mbb: {{2} | ", nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
-if (!obs_created.empty() && obs_created.size() >= 3)
-    obs_created.erase(obs_created.size() - 3);
-
-std::string obs_changed;
-for (const auto &C : nico::ChangedInstrsNico)
-    obs_changed += formatv("{{0} // idx: {{1}, mbb: {{2} | ", nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber());
-if (!obs_changed.empty() && obs_changed.size() >= 3)
-    obs_changed.erase(obs_changed.size() - 3);
-
-// std::string obs_deleted = formatv("{{0}", nico::DeletedInstrsNico.size());
-std::string obs_deleted;
-for (const auto &C : nico::DeletedInstrsNico)
-    obs_deleted += formatv("{{0} | ", C);
-if (!obs_deleted.empty() && obs_deleted.size() >= 3)
-    obs_deleted.erase(obs_deleted.size() - 3);
-
-std::string temp_after;
-for (const auto &C : State.MIs)
-    temp_after += formatv("{{0} | ", nico::MI2String(*C));
-if (!temp_after.empty() && temp_after.size() >= 3)
-    temp_after.erase(temp_after.size() - 3);
-
-llvm::log_backend_event(
-    llvm::to_string(llvm::current_stage), __FILE__, __FUNCTION__,
-    formatv("{{0}###{{1}###{{2} -> {{3}###{{4}###{{5}###{{6}",
-        static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
-);
-*/
-
-OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;\n";
-OS << "for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); }\n";
+std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;
+for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); }
 
 nico::reset_observerdata(__FILE__, __FUNCTION__, temp_before, temp_after);
 )";
 
-    OS << formatv(content.c_str(), RuleID, RuleDef.getName());
+    OS << content;
 
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);
