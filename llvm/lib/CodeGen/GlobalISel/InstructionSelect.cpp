@@ -398,6 +398,7 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         return true;
     }
     bool status = ISel->select(MI);
+    outs() << "\t--> status = " << status << "\n";
     // outs() << "\t\tStatus: " << (status ? "Success" : "Failure") << " | " << MI2String(MI) << "\n";
     return status;
 }
