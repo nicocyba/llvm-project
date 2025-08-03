@@ -44,7 +44,7 @@ struct MachineCombinerData {
     std::string pattern;
 };
 
-auto MI2String = [](const MachineInstr& MI) {
+auto MI2String = [](const llvm::MachineInstr& MI) {
     std::string InstrStr;
     llvm::raw_string_ostream OS(InstrStr);
     MI.print(OS);
@@ -184,7 +184,7 @@ enum MachineCombinerPattern2 : unsigned {
     TARGET_PATTERN_START
 };
 
-inline std::string to_string(MachineCombinerPattern2 pattern) {
+inline std::string to_string(nico::MachineCombinerPattern2 pattern) {
     switch (pattern) {
         case REASSOC_AX_BY:
             return "REASSOC_AX_BY";
@@ -342,7 +342,7 @@ enum AArch64MachineCombinerPattern2 : unsigned {
     FNMADD,
 };
 
-inline std::string to_string(AArch64MachineCombinerPattern2 pattern) {
+inline std::string to_string(nico::Arch64MachineCombinerPattern2 pattern) {
     switch (pattern) {
         case SUBADD_OP1:
             return "SUBADD_OP1";
@@ -664,7 +664,7 @@ inline void reset_observerdata(const std::string& filename, const std::string& f
 }
 
 auto log_backend_event = [](auto&&... args) {
-    data_globalisel_patterns.emplace_back(GlobalISelDataPattern{std::forward<decltype(args)>(args)...});
+    data_globalisel_patterns.emplace_back(nico::GlobalISelDataPattern{std::forward<decltype(args)>(args)...});
 };
 
 enum CurrentBackendStage : unsigned {
@@ -681,7 +681,7 @@ enum CurrentBackendStage : unsigned {
     MACHINECOMBINER
 };
 
-inline std::string to_string(CurrentBackendStage stage) {
+inline std::string to_string(nico::CurrentBackendStage stage) {
     switch (stage) {
         case INIT: return "init";
         case IRTRANSLATOR:
@@ -716,14 +716,14 @@ inline std::string getFunctionName(const std::string& prettyFunction) {
     return prettyFunction.substr(start, end - start);
 }
 
-inline thread_local CurrentBackendStage current_stage = INIT;
+inline thread_local nico::CurrentBackendStage current_stage = INIT;
 
 inline thread_local bool is_globalisel = false;
 
 
 
 // thread local wrapper to clear data after each run
-struct MachineCombinerDataVector : public std::vector<MachineCombinerData> {
+struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
     ~MachineCombinerDataVector() {
         for (auto& i : *this) {
             i.inserted.clear();
@@ -749,9 +749,9 @@ struct GlobalISelDataVector : public std::vector<T> {
 
 inline thread_local std::set<std::string> used_matchers;
 
-inline thread_local MachineCombinerDataVector data_machinecombiner;
-inline thread_local GlobalISelDataVector<GlobalISelData> data_globalisel;
-inline thread_local GlobalISelDataVector<GlobalISelDataPattern> data_globalisel_patterns;
+inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
+inline thread_local nico::GlobalISelDataVector<nico::GlobalISelData> data_globalisel;
+inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
 
 inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
@@ -827,8 +827,8 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
 
   std::string file_cleaned = std::regex_replace(file, std::regex("/libraries/llvm-project/llvm/"), "");
   file_cleaned = std::regex_replace(file_cleaned, std::regex("/libraries/llvm-project/build/"), "");
-  std::string pattern = *extractT3Type(__PRETTY_FUNCTION__);
-  simplifyBindTy(pattern);
+  std::string pattern = *nico::extractT3Type(__PRETTY_FUNCTION__);
+  nico::simplifyBindTy(pattern);
   // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<Register>"), "Register");
   // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<MachineInstr*>"), "MachineInstr*");
   // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");

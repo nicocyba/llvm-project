@@ -532,7 +532,7 @@ insertDeleteInstructions(MachineBasicBlock* MBB, MachineInstr& MI, SmallVectorIm
             }
         }
     }
-    data_machinecombiner.push_back(std::move(data));
+    nico::data_machinecombiner.push_back(std::move(data));
 
     if (IncrementalUpdate) {
         for (auto* InstrPtr : InsInstrs) {
