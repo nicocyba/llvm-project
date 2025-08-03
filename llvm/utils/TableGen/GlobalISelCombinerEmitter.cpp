@@ -1639,7 +1639,7 @@ bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlter
 
 bool CombineRuleBuilder::emitMatchPattern(CodeExpansions& CE, const PatternAlternatives& Alts, const AnyOpcodePattern& AOP) {
     auto StackTrace = PrettyStackTraceEmit(RuleDef, &AOP);
-    outs() << "emitting match pattern for wip_match_opcode '" << AOP.getName() << "'\n";
+    // outs() << "emitting match pattern for wip_match_opcode '" << AOP.getName() << "'\n";
     const bool IsUsingCustomCXXAction = hasOnlyCXXApplyPatterns();
     for (const CodeGenInstruction* CGI : AOP.insts()) {
         auto& M = addRuleMatcher(Alts, "wip_match_opcode '" + CGI->TheDef->getName() + "'");
@@ -1842,7 +1842,7 @@ bool CombineRuleBuilder::emitPatFragMatchPattern(
 
 bool CombineRuleBuilder::emitApplyPatterns(CodeExpansions& CE, RuleMatcher& M) {
     assert(MatchDatas.empty());
-    outs() << "// Emitting 'apply' patterns for rule '" << RuleDef.getName() << "'\n";
+    // outs() << "// Emitting 'apply' patterns for rule '" << RuleDef.getName() << "'\n";
     DenseSet<const Pattern*> SeenPats;
     StringMap<unsigned> OperandToTempRegID;
 
