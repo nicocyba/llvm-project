@@ -55,6 +55,40 @@ auto MI2String = [](const llvm::MachineInstr& MI) {
     return InstrStr;
 };
 
+
+// thread local wrapper to clear data after each run
+struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
+    ~MachineCombinerDataVector() {
+        for (auto& i : *this) {
+            i.inserted.clear();
+            i.deleted.clear();
+        }
+        this->clear();
+    }
+};
+
+
+
+template <typename T>
+struct GlobalISelDataVector : public std::vector<T> {
+    ~GlobalISelDataVector() {
+        // for (auto &i : *this) {
+        //   i.inserted.clear();
+        //   i.deleted.clear();
+        // }
+        this->clear();
+    }
+};
+
+
+inline thread_local std::set<std::string> used_matchers;
+
+inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
+inline thread_local nico::GlobalISelDataVector<nico::GlobalISelData> data_globalisel;
+inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
+
+inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
+
 inline std::string to_string(int value) {
     switch (value) {
         case 0: return "GIM_Try";
@@ -723,38 +757,6 @@ inline thread_local bool is_globalisel = false;
 
 
 
-// thread local wrapper to clear data after each run
-struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
-    ~MachineCombinerDataVector() {
-        for (auto& i : *this) {
-            i.inserted.clear();
-            i.deleted.clear();
-        }
-        this->clear();
-    }
-};
-
-
-
-template <typename T>
-struct GlobalISelDataVector : public std::vector<T> {
-    ~GlobalISelDataVector() {
-        // for (auto &i : *this) {
-        //   i.inserted.clear();
-        //   i.deleted.clear();
-        // }
-        this->clear();
-    }
-};
-
-
-inline thread_local std::set<std::string> used_matchers;
-
-inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
-inline thread_local nico::GlobalISelDataVector<nico::GlobalISelData> data_globalisel;
-inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
-
-inline thread_local std::vector<std::tuple<const std::string, const std::string, unsigned>> data_gicombiner;
 
 
 
@@ -840,7 +842,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   // if (!is_T1_Register) {
   //   log_backend_event("mi_match", caller, pattern, true);
   // }
-  bool result = llvm::mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
+  bool result = llvm::MIPatternMatch::mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
   nico::log_backend_event(nico::to_string(nico::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " | status: " << (result ? "Success" : "Failure") << " (" << file_cleaned << ":" << line << ")\n";
   return result;
