@@ -1921,6 +1921,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
             Expander.emit(OS);
             OS << "}()) {\n"
                << "  outs() << \"\t\t\t\t\t\t-> Match failed\\n\";\n"
+               << "  nico::total_data.back().logs.back() += \" -> Match failed\";\n"
                << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
@@ -1929,6 +1930,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
 
     std::string content1 = R"(
 outs() << "\t\t\t\t\t\t-> Match success\\n";
+nico::total_data.back().logs.back() += " -> Match success";
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;
 for (const auto& C : State.MIs) { 
     temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 
