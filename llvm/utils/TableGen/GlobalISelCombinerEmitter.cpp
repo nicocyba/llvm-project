@@ -1900,7 +1900,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
-    OS << "outs() << \"\t\t\t\t\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
+    OS << "outs() << \"\t\t\t\t\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\";\n";
     OS << "nico::reset_observerdata();\n";
 
     for (auto& MD : MatchDatas) {
@@ -1915,11 +1915,13 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
                 /*ShowExpansions=*/false);
             Expander.emit(OS);
             OS << "}()) {\n"
+               << "  outs() << \"Match failed\\n\";\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
-
+    OS << "outs() << \"Match success\\n\";\n"
+    
     OS << "std::string temp_before = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
