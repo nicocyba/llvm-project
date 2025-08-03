@@ -1895,8 +1895,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     assert(hasOnlyCXXApplyPatterns());
     declareAllMatchDatasExpansions(CE);
 
-    std::string CodeStrNico;
-    
+    // std::string CodeStrNico;
     
     std::string CodeStr;
     raw_string_ostream OS(CodeStr);
@@ -1923,15 +1922,27 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
             Expander.emit(OS2);
             OS2.flush();
             OS << OS2.str() << "\n";
-            OS << "}()) {\n"
-               << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
-               << "  nico::total_data.back().logs[idxdata] += \" --> Match failed\";\n"
-               << "  nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t" + codestring + "\");\n"
-               << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
-               << "  return false;\n}\n"
-               << "nico::total_data.back().logs[idxdata] += \" --> Match success\";\n"
-               << "nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t" + codestring + "\");\n";
-            CodeStrNico += M->getRawCode().str() + " | ";
+            std::string contentmatch = R"(
+}()) {
+  outs() << "\t\t\t\t\t\t-> Match failed\n";
+  nico::total_data.back().logs[idxdata] += " --> Match failed";
+  nico::total_data.back().logs.push_back("\t\t\t\t\t\t" + codestring);
+  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, {0}, {1});
+  return false;
+}
+nico::total_data.back().logs[idxdata] += " --> Match success";
+nico::total_data.back().logs.push_back("\t\t\t\t\t{2}");
+)";
+            OS << formatv(contentmatch.c_str(), RuleDef.getName(), RuleID, codestring);
+            // OS << "}()) {\n"
+            //    << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
+            //    << "  nico::total_data.back().logs[idxdata] += \" --> Match failed\";\n"
+            //    << "  nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t" + codestring + "\");\n"
+            //    << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
+            //    << "  return false;\n}\n"
+            //    << "nico::total_data.back().logs[idxdata] += \" --> Match success\";\n"
+            //    << "nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t" + codestring + "\");\n";
+            // CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
 
@@ -1955,7 +1966,7 @@ OS << content1;
         CodeExpander Expander(CXXPat->getRawCode(), CE, RuleDef.getLoc(), /*ShowExpansions=*/false);
         OS << LS;
         Expander.emit(OS);
-        CodeStrNico += CXXPat->getRawCode().str() + " | ";
+        // CodeStrNico += CXXPat->getRawCode().str() + " | ";
     }
 
     // NICO
