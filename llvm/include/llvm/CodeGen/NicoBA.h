@@ -783,13 +783,14 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
   // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<LLT>"), "LLT");
   // pattern = std::regex_replace(pattern, std::regex("llvm::MIPatternMatch::bind_ty<CmpInst::Predicate>"), "CmpInst::Predicate");
 
-  llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " (" << file_cleaned << ":" << line << ")\n";
+  
   // llvm::outs() << "\t\t\t\t\tT1 is MachineInstr: " << is_T1_MachineInstr << ", T1 is Register: " << is_T1_Register << "\n";
   // if (!is_T1_Register) {
   //   log_backend_event("mi_match", caller, pattern, true);
   // }
   bool result = mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
   llvm::log_backend_event(llvm::to_string(llvm::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
+  llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " | status: " << (result ? "Success" : "Failure") << " (" << file_cleaned << ":" << line << ")\n";
   return result;
 }
 
