@@ -1916,7 +1916,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
             Expander.emit(OS);
             OS << "}()) {\n"
                << "  outs() << \"Match failed\\n\";\n"
-               << "  return false;\\n}\n";
+               << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
