@@ -278,7 +278,7 @@ bool Combiner::combineMachineInstrs() {
     return false;
     
   outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-  nico::total_data.back().logs.push_back("\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
+  // nico::total_data.back().logs.push_back("\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
   // We can't call this in the constructor because the derived class is
   // uninitialized at that time.
   if (!HasSetupMF) {

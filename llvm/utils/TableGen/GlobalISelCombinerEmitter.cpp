@@ -1921,6 +1921,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
             Expander.emit(OS);
             OS << "}()) {\n"
                << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
+               << "  nico::reset_observerdata_failure(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
         }
@@ -1954,10 +1955,10 @@ OS << content1;
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;
 for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); }
 
-nico::reset_observerdata(__FILE__, __FUNCTION__, temp_before, temp_after);
+nico::reset_observerdata_success(__FILE__, __FUNCTION__, temp_before, temp_after, {0}, {1});
 )";
 
-    OS << content;
+    OS << formatv(content.c_str(), RuleDef.getName(), RuleID);
 
 
     const auto& Code = CXXPredicateCode::getCustomActionCode(CodeStr);

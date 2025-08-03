@@ -12,159 +12,6 @@
 #include <chrono>
 
 namespace nico {
-auto MI2String = [](const llvm::MachineInstr& MI) {
-    std::string InstrStr;
-    llvm::raw_string_ostream OS(InstrStr);
-    MI.print(OS);
-    OS.flush();
-    InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
-    InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask...>");
-    return InstrStr;
-};
-
-// function to get index of mi in mbb
-inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
-    return std::distance(MBB->begin(), llvm::MachineBasicBlock::const_iterator(MI));
-}
-
-enum CurrentBackendStage : unsigned {
-    INIT,
-    IRTRANSLATOR,
-    PRELEGALIZERCOMBINER,
-    PRELEGALIZERCOMBINERO0,
-    LEGALIZER,
-    POSTLEGALIZERCOMBINER,
-    POSTLEGALIZERLOWERING,
-    REGBANKSELECT,
-    INSTRUCTIONSELECT,
-    COMBINER,
-    MACHINECOMBINER
-};
-
-struct GlobalISelData {
-    std::string caller; // irtranslator, legalizer, ...
-    std::string event; // created, deleted, special
-    std::string mf; // mf name
-    std::string mbb; // mbb name
-    std::string mi_before; // mi name
-    std::string mi_after; // mi name
-    std::string pattern; // MIPattern
-};
-
-struct GlobalISelDataPattern {
-    std::string stage; // irtranslator, legalizer, ...
-    std::string pattern_match_file;
-    std::string pattern_match_name;
-    std::string pattern_match_type; 
-    std::string mbb; // mbb name
-    bool match_success;
-};
-
-// definition of machinecombiner data structure
-struct MachineCombinerData {
-    unsigned idx;
-    unsigned mbb_pred;
-    unsigned mbb_succ;
-    unsigned mbb_size;
-    unsigned mf_size;
-    std::vector<std::string> inserted;
-    std::vector<std::string> deleted;
-    std::string mf;
-    std::string mbb;
-    std::string pattern;
-};
-
-struct GlobalISelDataInstruction {
-    std::string stage;
-    std::vector<std::string> logs;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> state_before;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> state_after;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> created;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> changed;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> deleted;
-    bool status;
-};
-
-
-
-// thread local wrapper to clear data after each run
-struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
-    ~MachineCombinerDataVector() {
-        for (auto& i : *this) {
-            i.inserted.clear();
-            i.deleted.clear();
-        }
-        this->clear();
-    }
-};
-
-template <typename T>
-struct GlobalISelDataVector : public std::vector<T> {
-    ~GlobalISelDataVector() {
-        // for (auto &i : *this) {
-        //   i.inserted.clear();
-        //   i.deleted.clear();
-        // }
-        this->clear();
-    }
-};
-
-
-inline thread_local nico::CurrentBackendStage current_stage = INIT;
-inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
-inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
-inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
-inline thread_local std::set<std::string> DeletedInstrsNico;
-inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
-inline thread_local std::vector<GlobalISelDataInstruction> total_data;
-
-inline void reset_observerdata() {
-    CreatedInstrsNico.clear();
-    DeletedInstrsNico.clear();
-    ChangedInstrsNico.clear();
-}
-inline void reset_observerdata(const std::string& filename, const std::string& function_name, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_before_loc, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_after_loc) {
-    total_data.back().state_before = std::move(state_before_loc);
-    total_data.back().state_after = std::move(state_after_loc);
-
-    // created
-    for (const auto &C : nico::CreatedInstrsNico)
-        total_data.back().created.push_back(
-            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
-        );
-    
-    // changed
-    for (const auto &C : nico::ChangedInstrsNico)
-        total_data.back().changed.push_back(
-            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
-        );
-
-    // deleted
-    for (auto& C : nico::DeletedInstrsNico)
-        total_data.back().deleted.push_back(
-            std::make_tuple(C, -1, -1)
-        );
-
-    // std::string temp_after;
-    // for (const auto &C : MIs)
-    //     temp_after += formatv("{0} | ", nico::MI2String(*C));
-    // if (!temp_after.empty() && temp_after.size() >= 3)
-    //     temp_after.erase(temp_after.size() - 3);
-
-    // llvm::log_backend_event(
-    //     llvm::to_string(llvm::current_stage), filename, function_name,
-    //     formatv("{0}###{1}###{2} -> {3}###{4}###{5}###{6}",
-    //         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
-    // );
-
-    // clear the thread local data
-    CreatedInstrsNico.clear();
-    DeletedInstrsNico.clear();
-    ChangedInstrsNico.clear();
-}
-
-
-
 
 
 inline std::string to_string(int value) {
@@ -279,6 +126,182 @@ inline std::string getUnixTimestampStringChrono() {
 
     return std::to_string(timestamp);
 }
+
+
+
+auto MI2String = [](const llvm::MachineInstr& MI) {
+    std::string InstrStr;
+    llvm::raw_string_ostream OS(InstrStr);
+    MI.print(OS);
+    OS.flush();
+    InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
+    InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask...>");
+    return InstrStr;
+};
+
+// function to get index of mi in mbb
+inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
+    return std::distance(MBB->begin(), llvm::MachineBasicBlock::const_iterator(MI));
+}
+
+enum CurrentBackendStage : unsigned {
+    INIT,
+    IRTRANSLATOR,
+    PRELEGALIZERCOMBINER,
+    PRELEGALIZERCOMBINERO0,
+    LEGALIZER,
+    POSTLEGALIZERCOMBINER,
+    POSTLEGALIZERLOWERING,
+    REGBANKSELECT,
+    INSTRUCTIONSELECT,
+    COMBINER,
+    MACHINECOMBINER
+};
+
+struct GlobalISelData {
+    std::string caller; // irtranslator, legalizer, ...
+    std::string event; // created, deleted, special
+    std::string mf; // mf name
+    std::string mbb; // mbb name
+    std::string mi_before; // mi name
+    std::string mi_after; // mi name
+    std::string pattern; // MIPattern
+};
+
+struct GlobalISelDataPattern {
+    std::string stage; // irtranslator, legalizer, ...
+    std::string pattern_match_file;
+    std::string pattern_match_name;
+    std::string pattern_match_type; 
+    std::string mbb; // mbb name
+    bool match_success;
+};
+
+// definition of machinecombiner data structure
+struct MachineCombinerData {
+    unsigned idx;
+    unsigned mbb_pred;
+    unsigned mbb_succ;
+    unsigned mbb_size;
+    unsigned mf_size;
+    std::vector<std::string> inserted;
+    std::vector<std::string> deleted;
+    std::string mf;
+    std::string mbb;
+    std::string pattern;
+};
+
+struct GlobalISelDataInstruction {
+    std::string stage;
+    std::vector<std::string> logs;
+    std::vector<std::tuple<std::string, unsigned, bool, std::string>> patterns; // name, id, status, timestamp 
+    std::vector<std::tuple<std::string, unsigned, unsigned>> state_before;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> state_after;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> created;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> changed;
+    std::vector<std::tuple<std::string, unsigned, unsigned>> deleted;
+    bool status;
+};
+
+
+
+// thread local wrapper to clear data after each run
+struct MachineCombinerDataVector : public std::vector<nico::MachineCombinerData> {
+    ~MachineCombinerDataVector() {
+        for (auto& i : *this) {
+            i.inserted.clear();
+            i.deleted.clear();
+        }
+        this->clear();
+    }
+};
+
+template <typename T>
+struct GlobalISelDataVector : public std::vector<T> {
+    ~GlobalISelDataVector() {
+        // for (auto &i : *this) {
+        //   i.inserted.clear();
+        //   i.deleted.clear();
+        // }
+        this->clear();
+    }
+};
+
+// variable to save current sŧage of the backend
+inline thread_local nico::CurrentBackendStage current_stage = INIT;
+
+// datastructure to collect data for machinecombiner
+inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
+inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
+
+// datastructure for each globalisel pattern (deleted before/after each pattern)
+inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
+inline thread_local std::set<std::string> DeletedInstrsNico;
+inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
+
+// datastructure to collect all globalisel patterns and pass it to client
+inline thread_local std::vector<GlobalISelDataInstruction> total_data;
+
+inline void reset_observerdata() {
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
+
+inline void reset_observerdata_success(const std::string& filename, const std::string& function_name, 
+    const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_before_loc, const std::vector<std::tuple<std::string, unsigned, unsigned>>& state_after_loc,
+    const std::string& pattern_name, unsigned pattern_id
+) {
+    total_data.back().state_before = std::move(state_before_loc);
+    total_data.back().state_after = std::move(state_after_loc);
+    total_data.back().pattern.push_back(std::make_tuple(pattern_name, pattern_id, true, nico::getUnixTimestampStringChrono()));
+
+    // created
+    for (const auto &C : nico::CreatedInstrsNico)
+        total_data.back().created.push_back(
+            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
+        );
+    
+    // changed
+    for (const auto &C : nico::ChangedInstrsNico)
+        total_data.back().changed.push_back(
+            std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())
+        );
+
+    // deleted
+    for (auto& C : nico::DeletedInstrsNico)
+        total_data.back().deleted.push_back(
+            std::make_tuple(C, -1, -1)
+        );
+
+    // std::string temp_after;
+    // for (const auto &C : MIs)
+    //     temp_after += formatv("{0} | ", nico::MI2String(*C));
+    // if (!temp_after.empty() && temp_after.size() >= 3)
+    //     temp_after.erase(temp_after.size() - 3);
+
+    // llvm::log_backend_event(
+    //     llvm::to_string(llvm::current_stage), filename, function_name,
+    //     formatv("{0}###{1}###{2} -> {3}###{4}###{5}###{6}",
+    //         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
+    // );
+
+    // clear the thread local data
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
+
+
+inline void reset_observerdata_failed(const std::string& filename, const std::string& function_name, const std::string& pattern_name, unsigned pattern_id) {
+    total_data.back().pattern.push_back(std::make_tuple(pattern_name, pattern_id, false, nico::getUnixTimestampStringChrono()));
+
+    // clear the thread local data
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
+
 
 
 
