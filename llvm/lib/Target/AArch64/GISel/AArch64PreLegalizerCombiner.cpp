@@ -860,10 +860,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     bool status = Impl.combineMachineInstrs();
     outs() << "--> status = " << status << "\n";
 
-    if (status) {
-      return true;
-    }
-    return false;
+    return status;
 }
 
 char AArch64PreLegalizerCombiner::ID = 0;

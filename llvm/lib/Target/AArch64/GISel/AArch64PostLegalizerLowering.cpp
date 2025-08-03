@@ -1398,10 +1398,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction& MF) {
     bool status = Impl.combineMachineInstrs();
     outs() << "--> status = " << status << "\n";
 
-    if (status) {
-        return true;
-    }
-    return false;
+    return status;
 }
 
 char AArch64PostLegalizerLowering::ID = 0;

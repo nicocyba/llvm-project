@@ -153,7 +153,10 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
         }
     }
 
-    return selectMachineFunction(MF);
+    bool status = selectMachineFunction(MF);
+    outs() << "--> status = " << status << "\n";
+
+    return status;
 }
 
 bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
@@ -216,8 +219,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 LLVM_DEBUG(dbgs() << "\nSelect:  " << MI);
                 if (!selectInstr(MI)) {
                     LLVM_DEBUG(dbgs() << "Selection failed!\n";
-                        MIIMaintainer.reportFullyCreatedInstrs()
-                    );
+                        MIIMaintainer.reportFullyCreatedInstrs());
                     reportGISelFailure(MF, TPC, MORE, "gisel-select", "cannot select", MI);
                     return false;
                 }
@@ -357,7 +359,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
     MRI.clearVirtRegTypes();
 
     // FIXME: Should we accurately track changes?
-    
+
     return true;
 }
 
