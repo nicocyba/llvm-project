@@ -342,7 +342,7 @@ enum AArch64MachineCombinerPattern2 : unsigned {
     FNMADD,
 };
 
-inline std::string to_string(nico::Arch64MachineCombinerPattern2 pattern) {
+inline std::string to_string(nico::AArch64MachineCombinerPattern2 pattern) {
     switch (pattern) {
         case SUBADD_OP1:
             return "SUBADD_OP1";
