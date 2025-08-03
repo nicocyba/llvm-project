@@ -12,6 +12,21 @@
 #include <chrono>
 
 namespace nico {
+auto MI2String = [](const llvm::MachineInstr& MI) {
+    std::string InstrStr;
+    llvm::raw_string_ostream OS(InstrStr);
+    MI.print(OS);
+    OS.flush();
+    InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
+    InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask...>");
+    return InstrStr;
+};
+
+// function to get index of mi in mbb
+inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
+    return std::distance(MBB->begin(), llvm::MachineBasicBlock::const_iterator(MI));
+}
+
 struct GlobalISelData {
     std::string caller; // irtranslator, legalizer, ...
     std::string event; // created, deleted, special
@@ -109,15 +124,7 @@ inline void reset_observerdata(const std::string& filename, const std::string& f
 }
 
 
-auto MI2String = [](const llvm::MachineInstr& MI) {
-    std::string InstrStr;
-    llvm::raw_string_ostream OS(InstrStr);
-    MI.print(OS);
-    OS.flush();
-    InstrStr = std::regex_replace(InstrStr, std::regex("\\n"), "");
-    InstrStr = std::regex_replace(InstrStr, std::regex("<regmask.*more...>"), "<regmask...>");
-    return InstrStr;
-};
+
 
 
 // thread local wrapper to clear data after each run
@@ -266,10 +273,7 @@ inline std::string getUnixTimestampStringChrono() {
     return std::to_string(timestamp);
 }
 
-// function to get index of mi in mbb
-inline unsigned get_index_of_mi(const llvm::MachineBasicBlock *MBB, const llvm::MachineInstr *MI) {
-    return std::distance(MBB->begin(), llvm::MachineBasicBlock::const_iterator(MI));
-}
+
 
 
 enum MachineCombinerPattern2 : unsigned {
