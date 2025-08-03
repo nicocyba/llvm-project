@@ -1915,12 +1915,12 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
                 /*ShowExpansions=*/false);
             Expander.emit(OS);
             OS << "}()) {\n"
-               << "  outs() << \"Match failed\\n\";\n"
+               << "  outs() << \" -> Match failed\\n\";\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
-    OS << "outs() << \"Match success\\n\";\n";
+    OS << "outs() << \" -> Match success\\n\";\n";
 
     OS << "std::string temp_before = \"\";\n";
     OS << "for (const auto& C : State.MIs) { temp_before += MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
