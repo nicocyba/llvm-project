@@ -126,15 +126,15 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
     LegalizeResult Result = UnableToLegalize;
 
     if (isa<GIntrinsic>(MI)) {
-        GlobalISelData data;
+        nico::GlobalISelData data;
         data.caller = DEBUG_TYPE;
         data.event = std::string(__func__) + " - Intrinsic";
         data.mf = MI.getParent()->getParent()->getName().str();
         data.mbb = MI.getParent()->getName().str();
-        data.mi_before = MI2String(MI);
+        data.mi_before = nico::MI2String(MI);
         Result = LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
         if (Result == Legalized) {
-          data.mi_after = MI2String(MI);
+          data.mi_after = nico::MI2String(MI);
         //   LocObserver.log2Nico(std::move(data));
         }
     } else {
@@ -165,12 +165,12 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
               return "UnableToLegalize";
             }
         };
-        GlobalISelData data;
+        nico::GlobalISelData data;
         data.caller = DEBUG_TYPE;
         data.event = std::string(__func__) + " - " + actionToStr(Step.Action);
         data.mf = MI.getParent()->getParent()->getName().str();
         data.mbb = MI.getParent()->getName().str();
-        data.mi_before = MI2String(MI);
+        data.mi_before = nico::MI2String(MI);
 
         LLVM_DEBUG(dbgs() << ".. Action: " << actionToStr(Step.Action) << "\n");
 
@@ -222,11 +222,11 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
           llvm::outs() << "Lower - idx: " << Step.TypeIdx << ", type: " << Step.NewType << "\n";
         }
 
-        data.mi_after = MI2String(MI);
+        data.mi_after = nico::MI2String(MI);
         if (data.mi_after.find("UNKNOWN") != std::string::npos){
           data.mi_after = "";
           for (const auto& i : MIRBuilder.last_mibs) {
-            data.mi_after += MI2String(*i.getInstr()) + " ; ";
+            data.mi_after += nico::MI2String(*i.getInstr()) + " ; ";
           }
         }
         MIRBuilder.last_mibs.clear();
