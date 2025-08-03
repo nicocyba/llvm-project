@@ -111,7 +111,7 @@ public:
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
-    nico::DeletedInstrsNico.insert(formatv("{{0} // idx: {{1}, mbb: {{2} | ", llvm::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+    nico::DeletedInstrsNico.insert(formatv("{{0} // idx: {{1}, mbb: {{2} | ", nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
     nico::CreatedInstrsNico.erase(&MI);
 
     CreatedInstrs.remove(&MI);
@@ -346,8 +346,8 @@ bool Combiner::combineMachineInstrs() {
       // llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
 
       nico::total_data.push_back(nico::GlobalISelDataInstruction());
-      nico::total_data.back().stage = nico::to_string(current_stage);
-      nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__) + " - " + MI2String(CurrInst));
+      nico::total_data.back().stage = nico::to_string(nico::current_stage);
+      nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__) + " - " + nico::MI2String(CurrInst));
 
       bool AppliedCombine = tryCombineAll(CurrInst);
       // WLObserver->reportFullyCreatedInstrs();
