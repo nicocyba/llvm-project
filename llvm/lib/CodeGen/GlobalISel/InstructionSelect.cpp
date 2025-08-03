@@ -132,9 +132,8 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
     if (MF.getProperties().hasProperty(
             MachineFunctionProperties::Property::FailedISel)) {
         return false;
-    }
-    current_stage = CurrentBackendStage::INSTRUCTIONSELECT;
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    nico::current_stage = nico::CurrentBackendStage::INSTRUCTIONSELECT;
+    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
     ISel = MF.getSubtarget().getInstructionSelector();
     ISel->TPC = &getAnalysis<TargetPassConfig>();
@@ -365,7 +364,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 
 bool InstructionSelect::selectInstr(MachineInstr& MI) {
     MachineRegisterInfo& MRI = ISel->MF->getRegInfo();
-    outs() << "\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << MI2String(MI) << "\n";
+    outs() << "\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << nico::MI2String(MI) << "\n";
     // We could have folded this instruction away already, making it dead.
     // If so, erase it.
     if (isTriviallyDead(MI, MRI)) {

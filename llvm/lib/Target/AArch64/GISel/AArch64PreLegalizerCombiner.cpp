@@ -59,7 +59,7 @@ bool matchFConstantToConstant(MachineInstr& MI, MachineRegisterInfo& MRI) {
     // it makes more sense to just use a GPR.
     if (all_of(MRI.use_nodbg_instructions(DstReg),
             [](const MachineInstr& Use) { return Use.mayStore(); })) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -104,7 +104,7 @@ bool matchICmpRedundantTrunc(MachineInstr& MI, MachineRegisterInfo& MRI, GISelKn
     }
 
     MatchInfo = WideReg;
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -197,7 +197,7 @@ bool matchFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
         return false;
     }
     MatchInfo = std::make_pair(NewOffset, MinOffset);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -293,7 +293,7 @@ bool matchExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, const AA
         return false;
     }
 
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -437,7 +437,7 @@ bool matchExtUaddvToUaddlv(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
     if ((DstTy.getScalarSizeInBits() == 16 && ExtSrcTy.getNumElements() % 8 == 0 && ExtSrcTy.getNumElements() < 256) || (DstTy.getScalarSizeInBits() == 32 && ExtSrcTy.getNumElements() % 4 == 0) || (DstTy.getScalarSizeInBits() == 64 && ExtSrcTy.getNumElements() % 4 == 0)) {
         std::get<0>(MatchInfo) = ExtSrcReg;
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -565,7 +565,7 @@ bool matchPushAddSubExt(MachineInstr& MI, MachineRegisterInfo& MRI, Register Dst
     unsigned ExtDstScal = MRI.getType(ExtDstReg).getScalarSizeInBits();
     unsigned Ext1SrcScal = Ext1SrcTy.getScalarSizeInBits();
     if (((Ext1SrcScal == 8 && ExtDstScal == 32) || ((Ext1SrcScal == 8 || Ext1SrcScal == 16) && ExtDstScal == 64)) && Ext1SrcTy == Ext2SrcTy) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     }
     return true;
 
@@ -745,8 +745,8 @@ AArch64PreLegalizerCombinerImpl::AArch64PreLegalizerCombinerImpl(
 }
 
 bool AArch64PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    outs() << "\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI2String(MI) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t" + getFunctionName(__PRETTY_FUNCTION__));
+    outs() << "\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << MI2String(MI) << "\n";
+    nico::total_data.back().logs.push_back("\t\t\t" + nico::nico::getFunctionName(__PRETTY_FUNCTION__));
     if (tryCombineAllImpl(MI)) {
         return true;
     }
@@ -829,7 +829,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
     current_stage = CurrentBackendStage::PRELEGALIZERCOMBINER;
 

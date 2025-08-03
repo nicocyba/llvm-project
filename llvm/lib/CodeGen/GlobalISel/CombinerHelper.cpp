@@ -233,7 +233,7 @@ bool CombinerHelper::matchCombineCopy(MachineInstr& MI) const {
     Register SrcReg = MI.getOperand(1).getReg();
 
     if (canReplaceReg(DstReg, SrcReg, MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -300,7 +300,7 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
             Observer.changedInstr(*OrigDef);
             B.buildCopy(DstOp, OrigOp);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -318,7 +318,7 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
             Freeze.getReg(0));
         replaceRegWith(MRI, DstOp, OrigOp);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -378,7 +378,7 @@ bool CombinerHelper::matchCombineConcatVectors(
     if (IsUndef) {
         Ops.clear();
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 void CombinerHelper::applyCombineConcatVectors(
@@ -466,7 +466,7 @@ bool CombinerHelper::matchCombineShuffleConcat(
     }
 
     if (!Ops.empty()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -585,7 +585,7 @@ bool CombinerHelper::matchCombineShuffleVector(
             Ops.push_back(Src2);
         }
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -610,7 +610,7 @@ bool CombinerHelper::matchShuffleToExtract(MachineInstr& MI) const {
 
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
     if (Mask.size() == 1) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -831,7 +831,7 @@ bool CombinerHelper::matchCombineExtendingLoads(
     assert(Preferred.Ty != LoadValueTy && "Extending to same type?");
 
     LLVM_DEBUG(dbgs() << "Preferred use is: " << *Preferred.MI);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1027,7 +1027,7 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
         B.buildLoadInstr(TargetOpcode::G_ZEXTLOAD, Dst, PtrReg, *NewMMO);
         LoadMI->eraseFromParent();
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1084,7 +1084,7 @@ bool CombinerHelper::matchSextTruncSextLoad(MachineInstr& MI) const {
             return false;
         }
         if (LoadSizeBits == SizeInBits) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -1152,7 +1152,7 @@ bool CombinerHelper::matchSextInRegOfLoad(
     }
 
     MatchInfo = std::make_tuple(LoadDef->getDstReg(), NewSizeBits);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1526,7 +1526,7 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
         LoadMI->eraseFromParent();
     };
 
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1544,7 +1544,7 @@ bool CombinerHelper::matchCombineIndexedLoadStore(
         return false;
     }
 
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1636,7 +1636,7 @@ bool CombinerHelper::matchCombineDivRem(MachineInstr& MI,
     for (auto& UseMI : MRI.use_nodbg_instructions(Src1)) {
         if (MI.getParent() == UseMI.getParent() && ((IsDiv && UseMI.getOpcode() == RemOpcode) || (!IsDiv && UseMI.getOpcode() == DivOpcode)) && matchEqualDefs(MI.getOperand(2), UseMI.getOperand(2)) && matchEqualDefs(MI.getOperand(1), UseMI.getOperand(1))) {
             OtherMI = &UseMI;
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -1708,7 +1708,7 @@ bool CombinerHelper::matchOptBrCondByInvertingCond(
     // that it isn't the same as the G_BR's target (otherwise, this will loop.)
     MachineBasicBlock* BrCondTarget = BrCond->getOperand(1).getMBB();
     if (BrCondTarget != MI.getOperand(0).getMBB() && MBB->isLayoutSuccessor(BrCondTarget)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -1869,7 +1869,7 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
     MatchInfo.Imm = AMNew.BaseOffs;
     MatchInfo.Base = Base;
     MatchInfo.Bank = getRegBank(Imm2);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1927,7 +1927,7 @@ bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI,
         return false;
     }
 
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2037,7 +2037,7 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
     }
 
     MatchInfo.Logic = LogicMI;
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2110,7 +2110,7 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
         auto S2 = B.buildShl(SrcTy, C1, ShiftReg);
         B.buildInstr(SrcDef->getOpcode(), {DstReg}, {S1, S2});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2123,7 +2123,7 @@ bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI, unsigned& ShiftVal) 
 
     ShiftVal = MaybeImmVal->Value.exactLogBase2();
     if (static_cast<int32_t>(ShiftVal) != -1) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2167,7 +2167,7 @@ bool CombinerHelper::matchCombineSubToAdd(MachineInstr& MI,
         MI.clearFlag(MachineInstr::MIFlag::NoUWrap);
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2213,7 +2213,7 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
     unsigned SrcTySize = MRI.getType(ExtSrc).getScalarSizeInBits();
 
     if (MinLeadingZeros >= ShiftAmt && ShiftAmt < SrcTySize) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2251,7 +2251,7 @@ bool CombinerHelper::matchCombineMergeUnmerge(MachineInstr& MI,
     }
 
     MatchInfo = Unmerge->getSourceReg();
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2286,7 +2286,7 @@ bool CombinerHelper::matchCombineUnmergeMergeToPlainValues(
     for (unsigned Idx = 0; Idx < SrcInstr->getNumSources(); ++Idx) {
         Operands.push_back(SrcInstr->getSourceReg(Idx));
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2341,7 +2341,7 @@ bool CombinerHelper::matchCombineUnmergeConstant(
         Csts.emplace_back(Val.trunc(ShiftAmt));
         Val = Val.lshr(ShiftAmt);
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2371,7 +2371,7 @@ bool CombinerHelper::matchCombineUnmergeUndef(
         }
     };
     if (isa<GImplicitDef>(MRI.getVRegDef(SrcReg))) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2389,7 +2389,7 @@ bool CombinerHelper::matchCombineUnmergeWithDeadLanesToTrunc(
             return false;
         }
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2427,7 +2427,7 @@ bool CombinerHelper::matchCombineUnmergeZExtToZExt(MachineInstr& MI) const {
     // all of ZExtSrc bits.
     LLT ZExtSrcTy = MRI.getType(ZExtSrcReg);
     if (ZExtSrcTy.getSizeInBits() <= Dst0Ty.getSizeInBits()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2485,7 +2485,7 @@ bool CombinerHelper::matchCombineShiftToUnmerge(MachineInstr& MI,
 
     ShiftVal = MaybeImmVal->Value.getSExtValue();
     if (ShiftVal >= Size / 2 && ShiftVal < Size) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2583,7 +2583,7 @@ bool CombinerHelper::matchCombineI2PToP2I(MachineInstr& MI,
     LLT DstTy = MRI.getType(DstReg);
     Register SrcReg = MI.getOperand(1).getReg();
     if (mi_match_wrapper(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg))))) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2621,7 +2621,7 @@ bool CombinerHelper::matchCombineAddP2IToPtrAdd(
             // pointer width.
             LLT PtrTy = MRI.getType(PtrReg.first);
             if (PtrTy.getScalarSizeInBits() == IntTy.getScalarSizeInBits()) {
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -2665,7 +2665,7 @@ bool CombinerHelper::matchCombineConstPtrAddToI2P(MachineInstr& MI,
             // G_INTTOPTR uses zero-extension
             NewCst = Cst.zextOrTrunc(DstTy.getSizeInBits());
             NewCst += RHSCst->sextOrTrunc(DstTy.getSizeInBits());
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -2693,7 +2693,7 @@ bool CombinerHelper::matchCombineAnyExtTrunc(MachineInstr& MI,
     }
     LLT DstTy = MRI.getType(DstReg);
     if (mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2710,7 +2710,7 @@ bool CombinerHelper::matchCombineZextTrunc(MachineInstr& MI,
         unsigned DstSize = DstTy.getScalarSizeInBits();
         unsigned SrcSize = MRI.getType(SrcReg).getScalarSizeInBits();
         if (KB->getKnownBits(Reg).countMinLeadingZeros() >= DstSize - SrcSize) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -2799,7 +2799,7 @@ bool CombinerHelper::matchCombineTruncOfShift(
     }
 
     MatchInfo = std::make_pair(SrcMI, NewShiftTy);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2832,7 +2832,7 @@ bool CombinerHelper::matchAnyExplicitUseIsUndef(MachineInstr& MI) const {
     if (any_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
             return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
         })) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2842,7 +2842,7 @@ bool CombinerHelper::matchAllExplicitUsesAreUndef(MachineInstr& MI) const {
     if (all_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
             return !MO.isReg() || getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
         })) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2852,7 +2852,7 @@ bool CombinerHelper::matchUndefShuffleVectorMask(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR);
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
     if (all_of(Mask, [](int Elt) { return Elt < 0; })) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2862,7 +2862,7 @@ bool CombinerHelper::matchUndefStore(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_STORE);
     if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(0).getReg(),
             MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2872,7 +2872,7 @@ bool CombinerHelper::matchUndefSelectCmp(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
     if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(1).getReg(),
             MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2892,7 +2892,7 @@ bool CombinerHelper::matchInsertExtractVecEltOutOfBounds(
         return false;
     }
     if (Idx->getZExtValue() >= VecTy.getNumElements()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -2906,7 +2906,7 @@ bool CombinerHelper::matchConstantSelectCmp(MachineInstr& MI,
         return false;
     }
     OpIdx = Cst->isZero() ? 3 : 2;
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -2936,7 +2936,7 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
     // the same values.
     if (I1 == I2) {
         if (MOP1.getReg() == MOP2.getReg()) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -2999,7 +2999,7 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         // From that, we know that they must have the same value, since they must
         // have come from the same COPY.
         if (I1->isIdenticalTo(*I2)) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -3018,7 +3018,7 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         // I1 and I2 are different instructions but produce same values,
         // %1 and %6 are same, %1 and %7 are not the same value.
         if (I1->findRegisterDefOperandIdx(InstAndDef1->Reg, /*TRI=*/nullptr) == I2->findRegisterDefOperandIdx(InstAndDef2->Reg, /*TRI=*/nullptr)) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -3034,7 +3034,7 @@ bool CombinerHelper::matchConstantOp(const MachineOperand& MOP,
     auto* MI = MRI.getVRegDef(MOP.getReg());
     auto MaybeCst = isConstantOrConstantSplatVector(*MI, MRI);
     if (MaybeCst && MaybeCst->getBitWidth() <= 64 && MaybeCst->getSExtValue() == C) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3051,7 +3051,7 @@ bool CombinerHelper::matchConstantFPOp(const MachineOperand& MOP,
     }
 
     if (MaybeCst->Value.isExactlyValue(C)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3089,7 +3089,7 @@ bool CombinerHelper::matchConstantLargerBitWidth(MachineInstr& MI,
 
     // Return true of shift amount >= Bitwidth
     if (VRegAndVal->Value.uge(DstTy.getSizeInBits())) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3121,7 +3121,7 @@ bool CombinerHelper::matchSelectSameVal(MachineInstr& MI) const {
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
     // Match (cond ? x : x)
     if (matchEqualDefs(MI.getOperand(2), MI.getOperand(3)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(2).getReg(), MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3129,7 +3129,7 @@ bool CombinerHelper::matchSelectSameVal(MachineInstr& MI) const {
 
 bool CombinerHelper::matchBinOpSameVal(MachineInstr& MI) const {
     if (matchEqualDefs(MI.getOperand(1), MI.getOperand(2)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(1).getReg(), MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3138,7 +3138,7 @@ bool CombinerHelper::matchBinOpSameVal(MachineInstr& MI) const {
 bool CombinerHelper::matchOperandIsZero(MachineInstr& MI,
     unsigned OpIdx) const {
     if (matchConstantOp(MI.getOperand(OpIdx), 0) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(OpIdx).getReg(), MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3148,7 +3148,7 @@ bool CombinerHelper::matchOperandIsUndef(MachineInstr& MI,
     unsigned OpIdx) const {
     MachineOperand& MO = MI.getOperand(OpIdx);
     if (MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3158,7 +3158,7 @@ bool CombinerHelper::matchOperandIsKnownToBeAPowerOfTwo(MachineInstr& MI,
     unsigned OpIdx) const {
     MachineOperand& MO = MI.getOperand(OpIdx);
     if (isKnownToBeAPowerOfTwo(MO.getReg(), MRI, KB)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3216,7 +3216,7 @@ bool CombinerHelper::matchSimplifyAddToSub(
     };
 
     if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3265,13 +3265,13 @@ bool CombinerHelper::matchCombineInsertVecElts(
                 MatchInfo[I - 1] = TmpInst->getOperand(I).getReg();
             }
         }
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     // If we didn't end in a G_IMPLICIT_DEF and the source is not fully
     // overwritten, bail out.
     if (TmpInst->getOpcode() == TargetOpcode::G_IMPLICIT_DEF || all_of(MatchInfo, [](Register Reg) { return !!Reg; })) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3414,7 +3414,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     InstructionBuildSteps HandSteps(HandOpcode, HandBuildSteps);
 
     MatchInfo = InstructionStepsMatchInfo({LogicSteps, HandSteps});
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3450,7 +3450,7 @@ bool CombinerHelper::matchAshrShlToSextInreg(
         return false;
     }
     MatchInfo = std::make_tuple(Src, ShlCst);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3491,7 +3491,7 @@ bool CombinerHelper::matchOverlappingAnd(
         auto Zero = B.buildConstant(Ty, 0);
         replaceRegWith(MRI, Dst, Zero->getOperand(0).getReg());
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3539,14 +3539,14 @@ bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
     // Check if we can replace AndDst with the LHS of the G_AND
     if (canReplaceReg(AndDst, LHS, MRI) && (LHSBits.Zero | RHSBits.One).isAllOnes()) {
         Replacement = LHS;
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Check if we can replace AndDst with the RHS of the G_AND
     if (canReplaceReg(AndDst, RHS, MRI) && (LHSBits.One | RHSBits.Zero).isAllOnes()) {
         Replacement = RHS;
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -3582,14 +3582,14 @@ bool CombinerHelper::matchRedundantOr(MachineInstr& MI,
     // Check if we can replace OrDst with the LHS of the G_OR
     if (canReplaceReg(OrDst, LHS, MRI) && (LHSBits.One | RHSBits.Zero).isAllOnes()) {
         Replacement = LHS;
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Check if we can replace OrDst with the RHS of the G_OR
     if (canReplaceReg(OrDst, RHS, MRI) && (LHSBits.Zero | RHSBits.One).isAllOnes()) {
         Replacement = RHS;
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -3602,7 +3602,7 @@ bool CombinerHelper::matchRedundantSExtInReg(MachineInstr& MI) const {
     unsigned ExtBits = MI.getOperand(2).getImm();
     unsigned TypeSize = MRI.getType(Src).getScalarSizeInBits();
     if (KB->computeNumSignBits(Src) >= (TypeSize - ExtBits + 1)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3694,7 +3694,7 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
             return false;
         }
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3808,7 +3808,7 @@ bool CombinerHelper::matchNotCmp(
             return false;
         }
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -3876,7 +3876,7 @@ bool CombinerHelper::matchXorOfAndWithSameReg(
         std::swap(X, Y);
     }
     if (Y == SharedReg) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3908,7 +3908,7 @@ bool CombinerHelper::matchPtrAddZero(MachineInstr& MI) const {
     if (Ty.isPointer()) {
         auto ConstVal = getIConstantVRegVal(PtrAdd.getBaseReg(), MRI);
         if (ConstVal && *ConstVal == 0) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -3917,7 +3917,7 @@ bool CombinerHelper::matchPtrAddZero(MachineInstr& MI) const {
     assert(Ty.isVector() && "Expecting a vector type");
     const MachineInstr* VecMI = MRI.getVRegDef(PtrAdd.getBaseReg());
     if (isBuildVectorAllZeros(*VecMI, MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -3984,14 +3984,14 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
     // variable.
     bool CanFoldNonConst = (BinOpcode == TargetOpcode::G_AND || BinOpcode == TargetOpcode::G_OR) && (isNullOrNullSplat(*SelectLHS, MRI) || isAllOnesOrAllOnesSplat(*SelectLHS, MRI)) && (isNullOrNullSplat(*SelectRHS, MRI) || isAllOnesOrAllOnesSplat(*SelectRHS, MRI));
     if (CanFoldNonConst) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (isConstantOrConstantVector(*MRI.getVRegDef(OtherOperandReg), MRI,
             /*AllowFP*/ true,
             /*AllowOpaqueConstants*/ false)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -4402,7 +4402,7 @@ bool CombinerHelper::matchLoadOrCombine(
             MIB.buildBSwap(Dst, LoadDst);
         }
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4424,7 +4424,7 @@ bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI,
     ExtMI = &*MRI.use_instr_nodbg_begin(DstReg);
     switch (ExtMI->getOpcode()) {
         case TargetOpcode::G_ANYEXT:
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true; // G_ANYEXT is usually free.
         case TargetOpcode::G_ZEXT:
         case TargetOpcode::G_SEXT:
@@ -4462,7 +4462,7 @@ bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI,
                 return false;
         }
     }
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4548,7 +4548,7 @@ bool CombinerHelper::matchExtractVecEltBuildVec(MachineInstr& MI,
     }
 
     Reg = SrcVecMI->getOperand(VecIdx + 1).getReg();
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4612,7 +4612,7 @@ bool CombinerHelper::matchExtractAllEltsFromBuildVector(
     }
     // Match if every element was extracted.
     if (ExtractedElts.all()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -4693,7 +4693,7 @@ bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
     MatchInfo = [=](MachineIRBuilder& B) {
         B.buildInstr(FshOpc, {Dst}, {ShlSrc, LShrSrc, Amt});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4708,7 +4708,7 @@ bool CombinerHelper::matchFunnelShiftToRotate(MachineInstr& MI) const {
     }
     unsigned RotateOpc = Opc == TargetOpcode::G_FSHL ? TargetOpcode::G_ROTL : TargetOpcode::G_ROTR;
     if (isLegalOrBeforeLegalizer({RotateOpc, {MRI.getType(X), MRI.getType(Y)}})) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -4738,7 +4738,7 @@ bool CombinerHelper::matchRotateOutOfRange(MachineInstr& MI) const {
         return true;
     };
     if (matchUnaryPredicate(MRI, AmtReg, MatchOutOfRange) && OutOfRange) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -4799,7 +4799,7 @@ bool CombinerHelper::matchICmpToTrueFalseKnownBits(MachineInstr& MI,
               MRI.getType(MI.getOperand(0).getReg()).isVector(),
               /* IsFP = */ false)
         : 0;
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4850,7 +4850,7 @@ bool CombinerHelper::matchICmpToLHSKnownBits(
         return false;
     }
     MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(Op, {Dst}, {LHS}); };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4891,7 +4891,7 @@ bool CombinerHelper::matchAndOrDisjointMask(
         MI.getOperand(1).setReg(Src);
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4925,7 +4925,7 @@ bool CombinerHelper::matchBitfieldExtractFromSExtInReg(
         auto Cst2 = B.buildConstant(ExtractTy, Width);
         B.buildSbfx(Dst, ShiftSrc, Cst1, Cst2);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -4968,7 +4968,7 @@ bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
         auto LSBCst = B.buildConstant(ExtractTy, LSBImm);
         B.buildInstr(TargetOpcode::G_UBFX, {Dst}, {ShiftSrc, LSBCst, WidthCst});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5023,7 +5023,7 @@ bool CombinerHelper::matchBitfieldExtractFromShr(
         auto PosCst = B.buildConstant(ExtractTy, Pos);
         B.buildInstr(ExtrOpcode, {Dst}, {ShlSrc, PosCst, WidthCst});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5061,7 +5061,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
         MatchInfo = [=](MachineIRBuilder& B) {
             B.buildConstant(Dst, 0);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -5088,7 +5088,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
         auto PosCst = B.buildConstant(ExtractTy, Pos);
         B.buildInstr(TargetOpcode::G_UBFX, {Dst}, {AndSrc, PosCst, WidthCst});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5187,7 +5187,7 @@ bool CombinerHelper::matchReassocConstantInnerRHS(GPtrAdd& MI,
         Observer.changedInstr(MI);
     };
     if (!reassociationCanBreakAddressingModePattern(MI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -5223,7 +5223,7 @@ bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI,
         Observer.changedInstr(*LHSPtrAdd);
     };
     if (!reassociationCanBreakAddressingModePattern(MI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -5257,7 +5257,7 @@ bool CombinerHelper::matchReassocFoldConstantsInSubTree(
         Observer.changedInstr(MI);
     };
     if (!reassociationCanBreakAddressingModePattern(MI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -5283,19 +5283,19 @@ bool CombinerHelper::matchReassocPtrAdd(MachineInstr& MI,
 
     // Try to match example 2.
     if (matchReassocFoldConstantsInSubTree(PtrAdd, LHS, RHS, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Try to match example 3.
     if (matchReassocConstantInnerLHS(PtrAdd, LHS, RHS, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // Try to match example 1.
     if (matchReassocConstantInnerRHS(PtrAdd, RHS, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -5350,11 +5350,11 @@ bool CombinerHelper::matchReassocCommBinOp(MachineInstr& MI,
     Register RHSReg = MI.getOperand(2).getReg();
 
     if (tryReassocBinOp(Opc, DstReg, LHSReg, RHSReg, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     if (tryReassocBinOp(Opc, DstReg, RHSReg, LHSReg, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -5367,7 +5367,7 @@ bool CombinerHelper::matchConstantFoldCastOp(MachineInstr& MI,
 
     if (auto MaybeCst = ConstantFoldCastOp(MI.getOpcode(), DstTy, SrcOp, MRI)) {
         MatchInfo = *MaybeCst;
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -5383,7 +5383,7 @@ bool CombinerHelper::matchConstantFoldBinOp(MachineInstr& MI,
         return false;
     }
     MatchInfo = *MaybeCst;
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5396,7 +5396,7 @@ bool CombinerHelper::matchConstantFoldFPBinOp(MachineInstr& MI,
         return false;
     }
     MatchInfo = ConstantFP::get(MI.getMF()->getFunction().getContext(), *MaybeCst);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5424,7 +5424,7 @@ bool CombinerHelper::matchConstantFoldFMA(MachineInstr& MI,
     Op1F.fusedMultiplyAdd(Op2Cst->getValueAPF(), Op3Cst->getValueAPF(),
         APFloat::rmNearestTiesToEven);
     MatchInfo = ConstantFP::get(MI.getMF()->getFunction().getContext(), Op1F);
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5520,7 +5520,7 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
         MI.getOperand(1).setReg(Ext.getReg(0));
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5541,7 +5541,7 @@ bool CombinerHelper::matchMulOBy2(MachineInstr& MI,
         MI.getOperand(3).setReg(MI.getOperand(2).getReg());
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5561,7 +5561,7 @@ bool CombinerHelper::matchMulOBy0(MachineInstr& MI,
         B.buildConstant(Dst, 0);
         B.buildConstant(Carry, 0);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5594,7 +5594,7 @@ bool CombinerHelper::matchAddEToAddO(MachineInstr& MI,
         MI.removeOperand(4);
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -5615,7 +5615,7 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
         }
         if (ReplaceReg) {
             MatchInfo = [=](MachineIRBuilder& B) { B.buildCopy(Dst, ReplaceReg); };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -5635,7 +5635,7 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
                 auto Zero = B.buildConstant(MRI.getType(Dst), 0);
                 B.buildSub(Dst, Zero, ReplaceReg);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -5848,7 +5848,7 @@ bool CombinerHelper::matchUDivByConst(MachineInstr& MI) const {
     }
 
     if (matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); })) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -5882,7 +5882,7 @@ bool CombinerHelper::matchSDivByConst(MachineInstr& MI) const {
     // If the sdiv has an 'exact' flag we can use a simpler lowering.
     if (MI.getFlag(MachineInstr::MIFlag::IsExact)) {
         if (matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); })) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -5971,7 +5971,7 @@ bool CombinerHelper::matchDivByPow2(MachineInstr& MI, bool IsSigned) const {
         return CI && (CI->getValue().isPowerOf2() || (IsSigned && CI->getValue().isNegatedPowerOf2()));
     };
     if (matchUnaryPredicate(MRI, RHS, MatchPow2, /*AllowUndefs=*/false)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -6064,7 +6064,7 @@ bool CombinerHelper::matchUMulHToLShr(MachineInstr& MI) const {
         return false;
     }
     if (isLegalOrBeforeLegalizer({TargetOpcode::G_LSHR, {Ty, ShiftAmtTy}})) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -6122,7 +6122,7 @@ bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI,
         MI.getOperand(2).setReg(Y);
         Observer.changedInstr(MI);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -6143,14 +6143,14 @@ bool CombinerHelper::matchFsubToFneg(MachineInstr& MI,
 
     // -0.0 is always allowed
     if (LHSCst->Value.isNegZero()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     // +0.0 is only allowed if nsz is set.
     if (LHSCst->Value.isPosZero()) {
         if (MI.getFlag(MachineInstr::FmNsz)) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -6248,7 +6248,7 @@ bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(
                 {LHS.MI->getOperand(1).getReg(),
                     LHS.MI->getOperand(2).getReg(), RHS.Reg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6259,7 +6259,7 @@ bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(
                 {RHS.MI->getOperand(1).getReg(),
                     RHS.MI->getOperand(2).getReg(), LHS.Reg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6302,7 +6302,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FpExtX.getReg(0), FpExtY.getReg(0), RHS.Reg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6315,7 +6315,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FpExtX.getReg(0), FpExtY.getReg(0), LHS.Reg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6374,7 +6374,7 @@ bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {X, Y, InnerFMA});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6433,7 +6433,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 LHS.MI->getOperand(1).getReg(),
                 LHS.MI->getOperand(2).getReg(), B);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6453,7 +6453,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 buildMatchInfo(FMulMI->getOperand(1).getReg(),
                     FMulMI->getOperand(2).getReg(), RHS.Reg, X, Y, B);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -6467,7 +6467,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 RHS.MI->getOperand(1).getReg(),
                 RHS.MI->getOperand(2).getReg(), B);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6487,7 +6487,7 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 buildMatchInfo(FMulMI->getOperand(1).getReg(),
                     FMulMI->getOperand(2).getReg(), LHS.Reg, X, Y, B);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -6528,7 +6528,7 @@ bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(
                 {LHS.MI->getOperand(1).getReg(),
                     LHS.MI->getOperand(2).getReg(), NegZ});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     // fold (fsub x, (fmul y, z)) -> (fma -y, z, x)
@@ -6538,7 +6538,7 @@ bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {NegY, RHS.MI->getOperand(2).getReg(), LHS.Reg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6570,7 +6570,7 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {NegX, FMulMI->getOperand(2).getReg(), NegZ});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6581,7 +6581,7 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
                 {FMulMI->getOperand(1).getReg(),
                     FMulMI->getOperand(2).getReg(), LHSReg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6614,7 +6614,7 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {FpExtX, FpExtY, NegZ});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6627,7 +6627,7 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
             B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
                 {NegY, FpExtZ, LHSReg});
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6670,7 +6670,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
                 FMulMI->getOperand(2).getReg(), RHSReg, B);
             B.buildFNeg(MI.getOperand(0).getReg(), FMAReg);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6681,7 +6681,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
             buildMatchInfo(MI.getOperand(0).getReg(), FMulMI->getOperand(1).getReg(),
                 FMulMI->getOperand(2).getReg(), LHSReg, B);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -6711,12 +6711,12 @@ bool CombinerHelper::matchCombineFMinMaxNaN(MachineInstr& MI,
             return false;
         }
         IdxToPropagate = PropagateNaN ? Idx : (Idx == 1 ? 2 : 1);
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     };
 
     if (MatchNaN(1) || MatchNaN(2)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -6735,7 +6735,7 @@ bool CombinerHelper::matchAddSubSameReg(MachineInstr& MI, Register& Src) const {
         return mi_match_wrapper(MaybeSub, MRI, m_GSub(m_Reg(Src), m_Reg(Reg))) && Reg == MaybeSameReg;
     };
     if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -6767,7 +6767,7 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
     if (mi_match_wrapper(MI, MRI, m_GBuildVector(m_GTrunc(m_GBitcast(m_Reg(Lo))), m_GImplicitDef()))) {
         MatchInfo = Lo;
         if (MRI.getType(MatchInfo) == DstVecTy) {
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         return false;
@@ -6783,7 +6783,7 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
         if (Lo == Hi && ShiftAmount->Value == DstEltTy.getSizeInBits()) {
             MatchInfo = Lo;
             if (MRI.getType(MatchInfo) == DstVecTy) {
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
             return false;
@@ -6803,7 +6803,7 @@ bool CombinerHelper::matchTruncBuildVectorFold(MachineInstr& MI,
     }
 
     if (MRI.getType(MatchInfo) == MRI.getType(MI.getOperand(0).getReg())) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -6822,7 +6822,7 @@ bool CombinerHelper::matchTruncLshrBuildVectorFold(MachineInstr& MI,
 
     LLT MatchTy = MRI.getType(MatchInfo);
     if (ShiftAmt->Value.getZExtValue() == MatchTy.getSizeInBits() && MatchTy == MRI.getType(MI.getOperand(0).getReg())) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -6953,7 +6953,7 @@ bool CombinerHelper::matchFPSelectToMinMax(Register Dst, Register Cond, Register
     MatchInfo = [=](MachineIRBuilder& B) {
         B.buildInstr(Opc, {Dst}, {CmpLHS, CmpRHS});
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -6971,7 +6971,7 @@ bool CombinerHelper::matchSimplifySelectToMinMax(MachineInstr& MI,
     Register TrueVal = MI.getOperand(2).getReg();
     Register FalseVal = MI.getOperand(3).getReg();
     if (matchFPSelectToMinMax(Dst, Cond, TrueVal, FalseVal, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -7010,7 +7010,7 @@ bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
         B.buildICmp(Pred, Dst, Y, Zero);
     };
     if (CmpInst::isEquality(Pred) && Y.isValid()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -7061,14 +7061,14 @@ bool CombinerHelper::matchShiftsTooBig(
         }
         if (CI->uge(ResTy.getScalarSizeInBits())) {
             MatchInfo = std::nullopt;
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         auto OptMaxUsefulShift = getMinUselessShift(KB->getKnownBits(ShiftVal), MI.getOpcode(), MatchInfo);
         return OptMaxUsefulShift && CI->uge(*OptMaxUsefulShift);
     };
     if (matchUnaryPredicate(MRI, ShiftReg, IsShiftTooBig)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -7100,7 +7100,7 @@ bool CombinerHelper::matchCommuteConstantToRHS(MachineInstr& MI) const {
     }
     // Commute as long as RHS is not a constant or G_CONSTANT_FOLD_BARRIER.
     if (MRI.getVRegDef(RHS)->getOpcode() != TargetOpcode::G_CONSTANT_FOLD_BARRIER && !getIConstantVRegVal(RHS, MRI)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -7114,7 +7114,7 @@ bool CombinerHelper::matchCommuteFPConstantToRHS(MachineInstr& MI) const {
         return false;
     }
     if (!mi_match_wrapper(RHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -7530,7 +7530,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildUMax(DstReg, True, False); };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ICmpInst::ICMP_SGT:
@@ -7539,7 +7539,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildSMax(DstReg, True, False); };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ICmpInst::ICMP_ULT:
@@ -7548,7 +7548,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildUMin(DstReg, True, False); };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ICmpInst::ICMP_SLT:
@@ -7557,7 +7557,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildSMin(DstReg, True, False); };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         default:
@@ -7586,7 +7586,7 @@ bool CombinerHelper::matchSimplifyNegMinMax(MachineInstr& MI,
             MatchInfo = [=](MachineIRBuilder& B) {
                 B.buildInstr(NewOpc, {DestReg}, {X, Sub0});
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -7598,12 +7598,12 @@ bool CombinerHelper::matchSelect(MachineInstr& MI, BuildFnTy& MatchInfo) const {
     GSelect* Select = cast<GSelect>(&MI);
 
     if (tryFoldSelectOfConstants(Select, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (tryFoldBoolSelectToLogic(Select, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7852,12 +7852,12 @@ bool CombinerHelper::matchAnd(MachineInstr& MI, BuildFnTy& MatchInfo) const {
     GAnd* And = cast<GAnd>(&MI);
 
     if (tryFoldAndOrOrICmpsUsingRanges(And, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (tryFoldLogicOfFCmps(And, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7868,12 +7868,12 @@ bool CombinerHelper::matchOr(MachineInstr& MI, BuildFnTy& MatchInfo) const {
     GOr* Or = cast<GOr>(&MI);
 
     if (tryFoldAndOrOrICmpsUsingRanges(Or, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (tryFoldLogicOfFCmps(Or, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7899,7 +7899,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildAdd(Dst, LHS, RHS);
             B.buildUndef(Carry);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7909,14 +7909,14 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             MatchInfo = [=](MachineIRBuilder& B) {
                 B.buildSAddo(Dst, Carry, RHS, LHS);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         // !IsSigned
         MatchInfo = [=](MachineIRBuilder& B) {
             B.buildUAddo(Dst, Carry, RHS, LHS);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7932,7 +7932,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildConstant(Dst, Result);
             B.buildConstant(Carry, Overflow);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7942,7 +7942,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildCopy(Dst, LHS);
             B.buildConstant(Carry, 0);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -7962,7 +7962,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                         auto ConstRHS = B.buildConstant(DstTy, NewC);
                         B.buildSAddo(Dst, Carry, AddLHS->getLHSReg(), ConstRHS);
                     };
-                    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                     return true;
                 }
                 // !IsSigned
@@ -7970,7 +7970,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     auto ConstRHS = B.buildConstant(DstTy, NewC);
                     B.buildUAddo(Dst, Carry, AddLHS->getLHSReg(), ConstRHS);
                 };
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -7994,7 +7994,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildAdd(Dst, LHS, RHS, MachineInstr::MIFlag::NoUWrap);
                     B.buildConstant(Carry, 0);
                 };
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
             case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8003,7 +8003,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildAdd(Dst, LHS, RHS);
                     B.buildConstant(Carry, 1);
                 };
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -8019,7 +8019,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildAdd(Dst, LHS, RHS, MachineInstr::MIFlag::NoSWrap);
             B.buildConstant(Carry, 0);
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
@@ -8034,7 +8034,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                 B.buildAdd(Dst, LHS, RHS, MachineInstr::MIFlag::NoSWrap);
                 B.buildConstant(Carry, 0);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8043,7 +8043,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                 B.buildAdd(Dst, LHS, RHS);
                 B.buildConstant(Carry, 1);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -8062,7 +8062,7 @@ bool CombinerHelper::matchFPowIExpansion(MachineInstr& MI,
     int64_t Exponent) const {
     bool OptForSize = MI.getMF()->getFunction().hasOptSize();
     if (getTargetLowering().isBeneficialToExpandPowI(Exponent, OptForSize)) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -8135,7 +8135,7 @@ bool CombinerHelper::matchFoldAPlusC1MinusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C1 - C2);
         B.buildAdd(Dst, Add->getLHSReg(), Const);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8159,7 +8159,7 @@ bool CombinerHelper::matchFoldC2MinusAPlusC1(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C2 - C1);
         B.buildSub(Dst, Const, Add->getLHSReg());
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8183,7 +8183,7 @@ bool CombinerHelper::matchFoldAMinusC1MinusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C1 + C2);
         B.buildSub(Dst, Sub2->getLHSReg(), Const);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8207,7 +8207,7 @@ bool CombinerHelper::matchFoldC1Minus2MinusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C1 - C2);
         B.buildSub(Dst, Const, Sub2->getRHSReg());
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8231,7 +8231,7 @@ bool CombinerHelper::matchFoldAMinusC1PlusC2(const MachineInstr& MI,
         auto Const = B.buildConstant(DstTy, C2 - C1);
         B.buildAdd(Dst, Sub->getLHSReg(), Const);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8317,7 +8317,7 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
                 B.buildBuildVector(Unmerge->getOperand(I).getReg(), Ops);
             };
         };
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     };
 
@@ -8350,7 +8350,7 @@ bool CombinerHelper::matchShuffleUndefRHS(MachineInstr& MI, BuildFnTy& MatchInfo
         B.buildShuffleVector(MI.getOperand(0), MI.getOperand(1), MI.getOperand(2),
             std::move(NewMask));
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8424,7 +8424,7 @@ bool CombinerHelper::matchShuffleDisjointMask(MachineInstr& MI,
         auto Undef = B.buildUndef(Src1Ty);
         B.buildShuffleVector(Shuffle.getReg(0), NewSrc1, Undef, NewMask);
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -8459,7 +8459,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                     B.buildSub(Dst, LHS, RHS, MachineInstr::MIFlag::NoSWrap);
                     B.buildConstant(Carry, 0);
                 };
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
             case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8470,7 +8470,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                                                /*isVector=*/CarryTy.isVector(),
                                                /*isFP=*/false));
                 };
-                outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+                outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
                 return true;
             }
         }
@@ -8486,7 +8486,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                 B.buildSub(Dst, LHS, RHS, MachineInstr::MIFlag::NoUWrap);
                 B.buildConstant(Carry, 0);
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8497,7 +8497,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                                            /*isVector=*/CarryTy.isVector(),
                                            /*isFP=*/false));
             };
-            outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }

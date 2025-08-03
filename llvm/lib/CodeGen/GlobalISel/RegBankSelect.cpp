@@ -739,8 +739,8 @@ bool RegBankSelect::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  current_stage = CurrentBackendStage::REGBANKSELECT;
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  nico::current_stage = nico::CurrentBackendStage::REGBANKSELECT;
+  outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
   LLVM_DEBUG(dbgs() << "Assign register banks for: " << MF.getName() << '\n');
   const Function &F = MF.getFunction();

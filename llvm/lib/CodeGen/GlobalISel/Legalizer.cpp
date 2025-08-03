@@ -319,8 +319,8 @@ bool Legalizer::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
     
-  current_stage = CurrentBackendStage::LEGALIZER;
-  outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  nico::current_stage = nico::CurrentBackendStage::LEGALIZER;
+  outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
   LLVM_DEBUG(dbgs() << "Legalize Machine IR for: " << MF.getName() << '\n');
   init(MF);

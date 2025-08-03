@@ -289,8 +289,8 @@ bool Combiner::combineMachineInstrs() {
   if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel))
     return false;
     
-  outs() << "\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
-  nico::total_data.back().logs.push_back("\t\t" + getFunctionName(__PRETTY_FUNCTION__));
+  outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  nico::total_data.back().logs.push_back("\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
   // We can't call this in the constructor because the derived class is
   // uninitialized at that time.
   if (!HasSetupMF) {
@@ -346,8 +346,8 @@ bool Combiner::combineMachineInstrs() {
       // llvm::outs() << "Combiner.cpp - \nTry combining " << CurrInst;
 
       nico::total_data.push_back(nico::GlobalISelDataInstruction());
-      nico::total_data.back().stage = to_string(current_stage);
-      nico::total_data.back().logs.push_back(getFunctionName(__PRETTY_FUNCTION__) + " - " + MI2String(CurrInst));
+      nico::total_data.back().stage = nico::to_string(current_stage);
+      nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__) + " - " + MI2String(CurrInst));
 
       bool AppliedCombine = tryCombineAll(CurrInst);
       // WLObserver->reportFullyCreatedInstrs();

@@ -101,7 +101,7 @@ bool matchExtractVecEltPairwiseAdd(
         std::get<0>(MatchInfo) = TargetOpcode::G_FADD;
         std::get<1>(MatchInfo) = DstTy;
         std::get<2>(MatchInfo) = Other->getOperand(0).getReg();
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -245,7 +245,7 @@ bool matchAArch64MulConstCombine(
         }
         B.buildCopy(DstReg, Res.getReg(0));
     };
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -265,7 +265,7 @@ bool matchFoldMergeToZext(MachineInstr& MI, MachineRegisterInfo& MRI) {
         return false;
     }
     if (mi_match(Merge.getSourceReg(1), MRI, m_SpecificICst(0))) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -295,7 +295,7 @@ bool matchMutateAnyExtToZExt(MachineInstr& MI, MachineRegisterInfo& MRI) {
     Register Dst = MI.getOperand(0).getReg();
     Register Src = MI.getOperand(1).getReg();
     if (MRI.getType(Dst).isScalar() && mi_match(Src, MRI, m_any_of(m_GICmp(m_Pred(), m_Reg(), m_Reg()), m_GFCmp(m_Pred(), m_Reg(), m_Reg())))) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -330,7 +330,7 @@ bool matchSplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI) {
     auto MaybeCst = isConstantOrConstantSplatVector(
         *MRI.getVRegDef(Store.getValueReg()), MRI);
     if (MaybeCst && MaybeCst->isZero()) {
-        outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -381,7 +381,7 @@ bool matchOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Registe
     }
 
     MatchInfo = {AO1, AO2, BVO1};
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -427,7 +427,7 @@ bool matchCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, Register& S
 
     SrcReg = LShrMI->getOperand(1).getReg();
 
-    outs() << "\t\t\t\t\t" << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -547,7 +547,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
 
-    outs() << getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     
     current_stage = CurrentBackendStage::POSTLEGALIZERCOMBINER;
 
