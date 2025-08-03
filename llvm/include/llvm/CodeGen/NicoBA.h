@@ -124,7 +124,7 @@ inline std::string getUnixTimestampStringChrono() {
 
     long long timestamp = microsecondsSinceEpoch.count();
 
-    return std::to_string(timestamp);
+    return std::to_string(++timestamp);
 }
 
 
