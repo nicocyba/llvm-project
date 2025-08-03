@@ -1979,7 +1979,7 @@ llvm::log_backend_event(
 OS << "std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;\n";
 OS << "for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); }\n";
 
-nico::reset_observerdata(std::to_string(__FILE__), std::to_string(__FUNCTION__), temp_before, temp_after);
+nico::reset_observerdata(__FILE__, __FUNCTION__, temp_before, temp_after);
 )";
 
     OS << formatv(content.c_str(), RuleID, RuleDef.getName());
