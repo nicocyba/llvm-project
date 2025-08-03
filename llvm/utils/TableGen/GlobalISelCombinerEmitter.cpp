@@ -1904,7 +1904,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     std::string content0 = R"(
 outs() << formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
 nico::reset_observerdata();
-nico::total_data.back().logs.push_back(formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}"));
+nico::total_data.back().logs.push_back(formatv("\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\\n", static_cast<unsigned>({0}), StringRef("{1}")));
 )";
 OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
     

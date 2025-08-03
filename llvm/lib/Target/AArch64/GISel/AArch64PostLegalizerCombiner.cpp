@@ -101,7 +101,7 @@ bool matchExtractVecEltPairwiseAdd(
         std::get<0>(MatchInfo) = TargetOpcode::G_FADD;
         std::get<1>(MatchInfo) = DstTy;
         std::get<2>(MatchInfo) = Other->getOperand(0).getReg();
-        outs() << "\t\t\t\t\t" << nico::nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
