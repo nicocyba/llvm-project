@@ -1926,6 +1926,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
             OS << "}()) {\n"
                << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
                << "  nico::total_data.back().logs[idxdata] += \" --> Match failed\";\n"
+               << "  nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t\" + codestring);\n"
                << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
                << "  return false;\n}\n";
             CodeStrNico += M->getRawCode().str() + " | ";
