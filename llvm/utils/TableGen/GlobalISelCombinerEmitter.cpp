@@ -1903,7 +1903,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     OS << "outs() << formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     OS << "nico::reset_observerdata();\n";
-    OS << "nico::total_data.back().logs.push_back(\"\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
+    OS << "nico::total_data.back().logs.push_back(formatv(\"\\t\\t\\t\\t\\tC++ Match/Apply for rule #{{0}: {{1}\n\", static_cast<unsigned>({0}), StringRef(\"{1}\"));\n";
     for (auto& MD : MatchDatas) {
         OS << MD.Type << " " << MD.getVarName() << ";\n";
     }
@@ -1942,7 +1942,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     // NICO
     std::string content = R"(
 // Nico
-//outs() << formatv("\t\t\t\t\t\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
+//outs() << formatv("\\t\\t\\t\\t\\tCombiner Rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 /*
 std::string obs_created;
 for (const auto &C : nico::CreatedInstrsNico)
