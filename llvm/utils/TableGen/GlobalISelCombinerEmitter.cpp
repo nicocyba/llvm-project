@@ -1950,15 +1950,6 @@ nico::total_data.back().logs[idxdata] += " --> status: true ({2}) ";
                 return out;
             };
             OS << formatv(contentmatch.c_str(), RuleDef.getName(), RuleID, escapeString(codestring));
-            // OS << "}()) {\n"
-            //    << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
-            //    << "  nico::total_data.back().logs[idxdata] += \" --> Match failed\";\n"
-            //    << "  nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t" + codestring + "\");\n"
-            //    << "  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, \"" << RuleDef.getName() << "\", " << RuleID << ");\n"
-            //    << "  return false;\n}\n"
-            //    << "nico::total_data.back().logs[idxdata] += \" --> Match success\";\n"
-            //    << "nico::total_data.back().logs.push_back(\"\\t\\t\\t\\t\\t" + codestring + "\");\n";
-            // CodeStrNico += M->getRawCode().str() + " | ";
         }
     }
 
