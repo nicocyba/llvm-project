@@ -1986,10 +1986,8 @@ OS << content1;
     // NICO
     std::string content = R"(
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;
-for (const auto& C : State.MIs) { 
-    temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); 
-}
-
+for (const auto& C : State.MIs) temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));
+;
 nico::reset_observerdata_success(__FILE__, __FUNCTION__, temp_before, temp_after, "{0}", {1});
 )";
 
