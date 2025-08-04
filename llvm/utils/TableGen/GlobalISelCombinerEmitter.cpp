@@ -1933,7 +1933,23 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
 nico::total_data.back().logs[idxdata] += " --> Match success";
 nico::total_data.back().logs.push_back("\t\t\t\t\t{2}");
 )";
-            OS << formatv(contentmatch.c_str(), RuleDef.getName(), RuleID, codestring);
+            // Escape the codestring before inserting into formatv
+            auto escapeString = [](const std::string& input) -> std::string {
+                std::string out;
+                out.reserve(input.size());
+                for (char c : input) {
+                    switch (c) {
+                        case '\\': out += "\\\\"; break;
+                        case '\"': out += "\\\""; break;
+                        case '\n': out += "\\n"; break;
+                        case '\r': out += "\\r"; break;
+                        case '\t': out += "\\t"; break;
+                        default: out += c; break;
+                    }
+                }
+                return out;
+            };
+            OS << formatv(contentmatch.c_str(), RuleDef.getName(), RuleID, escapeString(codestring));
             // OS << "}()) {\n"
             //    << "  outs() << \"\\t\\t\\t\\t\\t\\t-> Match failed\\n\";\n"
             //    << "  nico::total_data.back().logs[idxdata] += \" --> Match failed\";\n"
