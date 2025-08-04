@@ -885,17 +885,14 @@ auto escapeString = [](const std::string& input) -> std::string {
 
 
 // markers
-#define NICO_MARKER_MATCH_BEGIN do { \
+#define NICO_MARKER_MATCH_BEGIN \
     unsigned idxdata = nico::total_data.back().logs.size(); \
-    nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__)); \
-} while(0)
+    nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
 
-#define NICO_MARKER_MATCH_TRUE do { \
-    nico::total_data.back().logs[idxdata] += " --> true (" + std::to_string(__LINE__) + ")"; \
-} while(0)
+#define NICO_MARKER_MATCH_TRUE \
+    nico::total_data.back().logs[idxdata] += " --> true (" + std::to_string(__LINE__) + ")";
 
-#define NICO_MARKER_MATCH_FALSE do { \
-    nico::total_data.back().logs[idxdata] += " --> false (" + std::to_string(__LINE__) + ")"; \
-} while(0)
+#define NICO_MARKER_MATCH_FALSE \
+    nico::total_data.back().logs[idxdata] += " --> false (" + std::to_string(__LINE__) + ")";
 
 } // end namespace nico
