@@ -318,9 +318,11 @@ bool matchMutateAnyExtToZExt(MachineInstr& MI, MachineRegisterInfo& MRI) {
     Register Dst = MI.getOperand(0).getReg();
     Register Src = MI.getOperand(1).getReg();
     if (MRI.getType(Dst).isScalar() && mi_match(Src, MRI, m_any_of(m_GICmp(m_Pred(), m_Reg(), m_Reg()), m_GFCmp(m_Pred(), m_Reg(), m_Reg())))) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
@@ -335,26 +337,33 @@ void applyMutateAnyExtToZExt(MachineInstr& MI, MachineRegisterInfo& MRI, Machine
 bool matchSplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI) {
     GStore& Store = cast<GStore>(MI);
     if (!Store.isSimple()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     LLT ValTy = MRI.getType(Store.getValueReg());
     if (ValTy.isScalableVector()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     if (!ValTy.isVector() || ValTy.getSizeInBits() != 128) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     if (Store.getMemSizeInBits() != ValTy.getSizeInBits()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false; // Don't split truncating stores.
     }
     if (!MRI.hasOneNonDBGUse(Store.getValueReg())) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     auto MaybeCst = isConstantOrConstantSplatVector(*MRI.getVRegDef(Store.getValueReg()), MRI);
     if (MaybeCst && MaybeCst->isZero()) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
@@ -377,17 +386,20 @@ void applySplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI, MachineI
 bool matchOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Register, Register, Register>& MatchInfo) {
     const LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
     if (!DstTy.isVector()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     Register AO1, AO2, BVO1, BVO2;
     if (!mi_match(MI, MRI, m_GOr(m_GAnd(m_Reg(AO1), m_Reg(BVO1)), m_GAnd(m_Reg(AO2), m_Reg(BVO2))))) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     auto* BV1 = getOpcodeDef<GBuildVector>(BVO1, MRI);
     auto* BV2 = getOpcodeDef<GBuildVector>(BVO2, MRI);
     if (!BV1 || !BV2) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -395,12 +407,14 @@ bool matchOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Registe
         auto ValAndVReg1 = getIConstantVRegValWithLookThrough(BV1->getSourceReg(I), MRI);
         auto ValAndVReg2 = getIConstantVRegValWithLookThrough(BV2->getSourceReg(I), MRI);
         if (!ValAndVReg1 || !ValAndVReg2 || ValAndVReg1->Value != ~ValAndVReg2->Value) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
     }
 
     MatchInfo = {AO1, AO2, BVO1};
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
@@ -415,15 +429,18 @@ bool matchCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, Register& S
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
 
     if (DstTy != LLT::fixed_vector(2, 64) && DstTy != LLT::fixed_vector(2, 32) && DstTy != LLT::fixed_vector(4, 32) && DstTy != LLT::fixed_vector(4, 16) && DstTy != LLT::fixed_vector(8, 16)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     auto AndMI = getDefIgnoringCopies(MI.getOperand(1).getReg(), MRI);
     if (AndMI->getOpcode() != TargetOpcode::G_AND) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     auto LShrMI = getDefIgnoringCopies(AndMI->getOperand(1).getReg(), MRI);
     if (LShrMI->getOpcode() != TargetOpcode::G_LSHR) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -432,16 +449,19 @@ bool matchCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, Register& S
     auto V2 = isConstantOrConstantSplatVector(*MRI.getVRegDef(AndMI->getOperand(2).getReg()), MRI);
     auto V3 = isConstantOrConstantSplatVector(*MRI.getVRegDef(LShrMI->getOperand(2).getReg()), MRI);
     if (!V1.has_value() || !V2.has_value() || !V3.has_value()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     unsigned HalfSize = DstTy.getScalarSizeInBits() / 2;
     if (!V1.value().isMask(HalfSize) || V2.value() != (1ULL | 1ULL << HalfSize) || V3 != (HalfSize - 1)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     SrcReg = LShrMI->getOperand(1).getReg();
 
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    //outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
