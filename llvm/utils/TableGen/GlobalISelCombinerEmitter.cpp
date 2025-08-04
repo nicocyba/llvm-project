@@ -1926,12 +1926,12 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
 }()) {
   outs() << "\t\t\t\t\t\t-> Match failed\n";
   nico::total_data.back().logs[idxdata] += " --> status: false ({2}) ";
-//   nico::total_data.back().logs.push_back("\t\t\t\t\t\t{2}");
+
   nico::reset_observerdata_failed(__FILE__, __FUNCTION__, "{0}", {1});
   return false;
 }
+
 nico::total_data.back().logs[idxdata] += " --> status: true ({2}) ";
-// nico::total_data.back().logs.push_back("\t\t\t\t\t{2}");
 )";
             // Escape the codestring before inserting into formatv
             auto escapeString = [](const std::string& input) -> std::string {
@@ -1963,8 +1963,6 @@ nico::total_data.back().logs[idxdata] += " --> status: true ({2}) ";
     }
 
     std::string content1 = R"(
-// outs() << "\t\t\t\t\t\t-> Match success\n";
-// nico::total_data.back().logs[idxdata] += " --> Match success";
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_before;
 for (const auto& C : State.MIs) { 
     temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 
@@ -1988,7 +1986,9 @@ OS << content1;
     // NICO
     std::string content = R"(
 std::vector<std::tuple<std::string, unsigned, unsigned>> temp_after;
-for (const auto& C : State.MIs) { temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); }
+for (const auto& C : State.MIs) { 
+    temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1)); 
+}
 
 nico::reset_observerdata_success(__FILE__, __FUNCTION__, temp_before, temp_after, "{0}", {1});
 )";

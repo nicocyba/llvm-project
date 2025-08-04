@@ -25,8 +25,8 @@
 
 using namespace llvm;
 
-bool CombinerHelper::matchSextOfTrunc(const MachineOperand& MO,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchSextOfTrunc(const MachineOperand& MO, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     GSext* Sext = cast<GSext>(getDefIgnoringCopies(MO.getReg(), MRI));
     GTrunc* Trunc = cast<GTrunc>(getDefIgnoringCopies(Sext->getSrcReg(), MRI));
 
@@ -38,26 +38,27 @@ bool CombinerHelper::matchSextOfTrunc(const MachineOperand& MO,
 
     if (DstTy == SrcTy) {
         MatchInfo = [=](MachineIRBuilder& B) { B.buildCopy(Dst, Src); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
     if (DstTy.getScalarSizeInBits() < SrcTy.getScalarSizeInBits() && isLegalOrBeforeLegalizer({TargetOpcode::G_TRUNC, {DstTy, SrcTy}})) {
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildTrunc(Dst, Src, MachineInstr::MIFlag::NoSWrap);
-        };
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildTrunc(Dst, Src, MachineInstr::MIFlag::NoSWrap); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
     if (DstTy.getScalarSizeInBits() > SrcTy.getScalarSizeInBits() && isLegalOrBeforeLegalizer({TargetOpcode::G_SEXT, {DstTy, SrcTy}})) {
         MatchInfo = [=](MachineIRBuilder& B) { B.buildSExt(Dst, Src); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
-
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
-bool CombinerHelper::matchZextOfTrunc(const MachineOperand& MO,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchZextOfTrunc(const MachineOperand& MO, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     GZext* Zext = cast<GZext>(getDefIgnoringCopies(MO.getReg(), MRI));
     GTrunc* Trunc = cast<GTrunc>(getDefIgnoringCopies(Zext->getSrcReg(), MRI));
 
@@ -69,28 +70,27 @@ bool CombinerHelper::matchZextOfTrunc(const MachineOperand& MO,
 
     if (DstTy == SrcTy) {
         MatchInfo = [=](MachineIRBuilder& B) { B.buildCopy(Dst, Src); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
     if (DstTy.getScalarSizeInBits() < SrcTy.getScalarSizeInBits() && isLegalOrBeforeLegalizer({TargetOpcode::G_TRUNC, {DstTy, SrcTy}})) {
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildTrunc(Dst, Src, MachineInstr::MIFlag::NoUWrap);
-        };
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildTrunc(Dst, Src, MachineInstr::MIFlag::NoUWrap); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
     if (DstTy.getScalarSizeInBits() > SrcTy.getScalarSizeInBits() && isLegalOrBeforeLegalizer({TargetOpcode::G_ZEXT, {DstTy, SrcTy}})) {
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildZExt(Dst, Src, MachineInstr::MIFlag::NonNeg);
-        };
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildZExt(Dst, Src, MachineInstr::MIFlag::NonNeg); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
-
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
-bool CombinerHelper::matchNonNegZext(const MachineOperand& MO,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchNonNegZext(const MachineOperand& MO, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     GZext* Zext = cast<GZext>(MRI.getVRegDef(MO.getReg()));
 
     Register Dst = Zext->getReg(0);
@@ -103,19 +103,20 @@ bool CombinerHelper::matchNonNegZext(const MachineOperand& MO,
     // Convert zext nneg to sext if sext is the preferred form for the target.
     if (isLegalOrBeforeLegalizer({TargetOpcode::G_SEXT, {DstTy, SrcTy}}) && TLI.isSExtCheaperThanZExt(getMVTForLLT(SrcTy), getMVTForLLT(DstTy))) {
         MatchInfo = [=](MachineIRBuilder& B) { B.buildSExt(Dst, Src); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
-
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
-bool CombinerHelper::matchTruncateOfExt(const MachineInstr& Root,
-    const MachineInstr& ExtMI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchTruncateOfExt(const MachineInstr& Root, const MachineInstr& ExtMI, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     const GTrunc* Trunc = cast<GTrunc>(&Root);
     const GExtOp* Ext = cast<GExtOp>(&ExtMI);
 
     if (!MRI.hasOneNonDBGUse(Ext->getReg(0))) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -127,7 +128,7 @@ bool CombinerHelper::matchTruncateOfExt(const MachineInstr& Root,
     if (SrcTy == DstTy) {
         // The source and the destination are equally sized. We need to copy.
         MatchInfo = [=](MachineIRBuilder& B) { B.buildCopy(Dst, Src); };
-
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
@@ -135,13 +136,12 @@ bool CombinerHelper::matchTruncateOfExt(const MachineInstr& Root,
         // If the source is smaller than the destination, we need to extend.
 
         if (!isLegalOrBeforeLegalizer({Ext->getOpcode(), {DstTy, SrcTy}})) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
 
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildInstr(Ext->getOpcode(), {Dst}, {Src});
-        };
-
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(Ext->getOpcode(), {Dst}, {Src}); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
@@ -149,39 +149,54 @@ bool CombinerHelper::matchTruncateOfExt(const MachineInstr& Root,
         // If the source is larger than the destination, then we need to truncate.
 
         if (!isLegalOrBeforeLegalizer({TargetOpcode::G_TRUNC, {DstTy, SrcTy}})) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
 
         MatchInfo = [=](MachineIRBuilder& B) { B.buildTrunc(Dst, Src); };
-
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
-
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
 bool CombinerHelper::isCastFree(unsigned Opcode, LLT ToTy, LLT FromTy) const {
+    NICO_MARKER_LOGGING_START;
     const TargetLowering& TLI = getTargetLowering();
     LLVMContext& Ctx = getContext();
 
     switch (Opcode) {
         case TargetOpcode::G_ANYEXT:
         case TargetOpcode::G_ZEXT:
-            return TLI.isZExtFree(FromTy, ToTy, Ctx);
+            bool status = TLI.isZExtFree(FromTy, ToTy, Ctx);
+            if (status) {
+                NICO_MARKER_LOGGING_APPEND_TRUE;
+            } else {
+                NICO_MARKER_LOGGING_APPEND_FALSE;
+            }
+            return status;
         case TargetOpcode::G_TRUNC:
-            return TLI.isTruncateFree(FromTy, ToTy, Ctx);
+            bool status = TLI.isTruncateFree(FromTy, ToTy, Ctx);
+            if (status) {
+                NICO_MARKER_LOGGING_APPEND_TRUE;
+            } else {
+                NICO_MARKER_LOGGING_APPEND_FALSE;
+            }
+            return status;
         default:
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
     }
 }
 
-bool CombinerHelper::matchCastOfSelect(const MachineInstr& CastMI,
-    const MachineInstr& SelectMI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchCastOfSelect(const MachineInstr& CastMI, const MachineInstr& SelectMI, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     const GExtOrTruncOp* Cast = cast<GExtOrTruncOp>(&CastMI);
     const GSelect* Select = cast<GSelect>(&SelectMI);
 
     if (!MRI.hasOneNonDBGUse(Select->getReg(0))) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -194,10 +209,12 @@ bool CombinerHelper::matchCastOfSelect(const MachineInstr& CastMI,
     Register Cond = Select->getCondReg();
 
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SELECT, {DstTy, CondTy}})) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     if (!isCastFree(Cast->getOpcode(), DstTy, SrcTy)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -206,11 +223,12 @@ bool CombinerHelper::matchCastOfSelect(const MachineInstr& CastMI,
         auto False = B.buildInstr(Cast->getOpcode(), {DstTy}, {FalseReg});
         B.buildSelect(Dst, Cond, True, False);
     };
-
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
 bool CombinerHelper::matchExtOfExt(const MachineInstr& FirstMI, const MachineInstr& SecondMI, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     const GExtOp* First = cast<GExtOp>(&FirstMI);
     const GExtOp* Second = cast<GExtOp>(&SecondMI);
 
@@ -220,6 +238,7 @@ bool CombinerHelper::matchExtOfExt(const MachineInstr& FirstMI, const MachineIns
     LLT SrcTy = MRI.getType(Src);
 
     if (!MRI.hasOneNonDBGUse(Second->getReg(0))) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -231,12 +250,12 @@ bool CombinerHelper::matchExtOfExt(const MachineInstr& FirstMI, const MachineIns
                 Flag = MachineInstr::MIFlag::NonNeg;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildZExt(Dst, Src, Flag); };
+            NICO_MARKER_LOGGING_APPEND_TRUE;
             return true;
         }
         // not zext -> no flags
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildInstr(Second->getOpcode(), {Dst}, {Src});
-        };
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(Second->getOpcode(), {Dst}, {Src}); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
@@ -249,9 +268,11 @@ bool CombinerHelper::matchExtOfExt(const MachineInstr& FirstMI, const MachineIns
                 Flag = MachineInstr::MIFlag::NonNeg;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildZExt(Dst, Src, Flag); };
+            NICO_MARKER_LOGGING_APPEND_TRUE;
             return true;
         }
         MatchInfo = [=](MachineIRBuilder& B) { B.buildSExt(Dst, Src); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
 
@@ -264,22 +285,24 @@ bool CombinerHelper::matchExtOfExt(const MachineInstr& FirstMI, const MachineIns
                 Flag = MachineInstr::MIFlag::NonNeg;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildZExt(Dst, Src, Flag); };
+            NICO_MARKER_LOGGING_APPEND_TRUE;
             return true;
         }
         MatchInfo = [=](MachineIRBuilder& B) { B.buildSExt(Dst, Src); };
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
-
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
-bool CombinerHelper::matchCastOfBuildVector(const MachineInstr& CastMI,
-    const MachineInstr& BVMI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchCastOfBuildVector(const MachineInstr& CastMI, const MachineInstr& BVMI, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     const GExtOrTruncOp* Cast = cast<GExtOrTruncOp>(&CastMI);
     const GBuildVector* BV = cast<GBuildVector>(&BVMI);
 
     if (!MRI.hasOneNonDBGUse(BV->getReg(0))) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -293,9 +316,9 @@ bool CombinerHelper::matchCastOfBuildVector(const MachineInstr& CastMI,
 
     // Check legality of new build vector, the scalar casts, and profitability of
     // the many casts.
-    if (!isLegalOrBeforeLegalizer(
-            {TargetOpcode::G_BUILD_VECTOR, {DstTy, ElemTy}})
-        || !isLegalOrBeforeLegalizer({Cast->getOpcode(), {ElemTy, InputElemTy}}) || !isCastFree(Cast->getOpcode(), ElemTy, InputElemTy)) {
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_BUILD_VECTOR, {DstTy, ElemTy}}) || !isLegalOrBeforeLegalizer({Cast->getOpcode(), {ElemTy, InputElemTy}})
+        || !isCastFree(Cast->getOpcode(), ElemTy, InputElemTy)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -309,17 +332,17 @@ bool CombinerHelper::matchCastOfBuildVector(const MachineInstr& CastMI,
 
         B.buildBuildVector(Dst, Casts);
     };
-
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
-bool CombinerHelper::matchNarrowBinop(const MachineInstr& TruncMI,
-    const MachineInstr& BinopMI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchNarrowBinop(const MachineInstr& TruncMI, const MachineInstr& BinopMI, BuildFnTy& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     const GTrunc* Trunc = cast<GTrunc>(&TruncMI);
     const GBinOp* BinOp = cast<GBinOp>(&BinopMI);
 
     if (!MRI.hasOneNonDBGUse(BinOp->getReg(0))) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -328,6 +351,7 @@ bool CombinerHelper::matchNarrowBinop(const MachineInstr& TruncMI,
 
     // Is narrow binop legal?
     if (!isLegalOrBeforeLegalizer({BinOp->getOpcode(), {DstTy}})) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -336,12 +360,12 @@ bool CombinerHelper::matchNarrowBinop(const MachineInstr& TruncMI,
         auto RHS = B.buildTrunc(DstTy, BinOp->getRHSReg());
         B.buildInstr(BinOp->getOpcode(), {Dst}, {LHS, RHS});
     };
-
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
-bool CombinerHelper::matchCastOfInteger(const MachineInstr& CastMI,
-    APInt& MatchInfo) const {
+bool CombinerHelper::matchCastOfInteger(const MachineInstr& CastMI, APInt& MatchInfo) const {
+    NICO_MARKER_LOGGING_START;
     const GExtOrTruncOp* Cast = cast<GExtOrTruncOp>(&CastMI);
 
     APInt Input = getIConstantFromReg(Cast->getSrcReg(), MRI);
@@ -349,15 +373,18 @@ bool CombinerHelper::matchCastOfInteger(const MachineInstr& CastMI,
     LLT DstTy = MRI.getType(Cast->getReg(0));
 
     if (!isConstantLegalOrBeforeLegalizer(DstTy)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     switch (Cast->getOpcode()) {
         case TargetOpcode::G_TRUNC: {
             MatchInfo = Input.trunc(DstTy.getScalarSizeInBits());
+            NICO_MARKER_LOGGING_APPEND_TRUE;
             return true;
         }
         default:
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
     }
 }
