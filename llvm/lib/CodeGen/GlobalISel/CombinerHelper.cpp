@@ -48,34 +48,23 @@ using namespace MIPatternMatch;
 
 // Option to allow testing of the combiner while no targets know about indexed
 // addressing.
-static cl::opt<bool>
-    ForceLegalIndexing("force-legal-indexing", cl::Hidden, cl::init(false), cl::desc("Force all indexed operations to be "
-                                                                                     "legal for the GlobalISel combiner"));
+static cl::opt<bool> ForceLegalIndexing("force-legal-indexing",
+    cl::Hidden,
+    cl::init(false),
+    cl::desc("Force all indexed operations to be "
+             "legal for the GlobalISel combiner"));
 
-CombinerHelper::CombinerHelper(GISelChangeObserver& Observer,
-    MachineIRBuilder& B,
-    bool IsPreLegalize,
-    GISelKnownBits* KB,
-    MachineDominatorTree* MDT,
-    const LegalizerInfo* LI)
-    : Builder(B), MRI(Builder.getMF().getRegInfo()), Observer(Observer), KB(KB),
-      MDT(MDT), IsPreLegalize(IsPreLegalize), LI(LI),
-      RBI(Builder.getMF().getSubtarget().getRegBankInfo()),
+CombinerHelper::CombinerHelper(GISelChangeObserver& Observer, MachineIRBuilder& B, bool IsPreLegalize, GISelKnownBits* KB, MachineDominatorTree* MDT, const LegalizerInfo* LI)
+    : Builder(B), MRI(Builder.getMF().getRegInfo()), Observer(Observer), KB(KB), MDT(MDT), IsPreLegalize(IsPreLegalize), LI(LI), RBI(Builder.getMF().getSubtarget().getRegBankInfo()),
       TRI(Builder.getMF().getSubtarget().getRegisterInfo()) {
     (void)this->KB;
 }
 
-const TargetLowering& CombinerHelper::getTargetLowering() const {
-    return *Builder.getMF().getSubtarget().getTargetLowering();
-}
+const TargetLowering& CombinerHelper::getTargetLowering() const { return *Builder.getMF().getSubtarget().getTargetLowering(); }
 
-const MachineFunction& CombinerHelper::getMachineFunction() const {
-    return Builder.getMF();
-}
+const MachineFunction& CombinerHelper::getMachineFunction() const { return Builder.getMF(); }
 
-const DataLayout& CombinerHelper::getDataLayout() const {
-    return getMachineFunction().getDataLayout();
-}
+const DataLayout& CombinerHelper::getDataLayout() const { return getMachineFunction().getDataLayout(); }
 
 LLVMContext& CombinerHelper::getContext() const { return Builder.getContext(); }
 
@@ -124,9 +113,7 @@ static unsigned bigEndianByteAt(const unsigned ByteWidth, const unsigned I) {
 /// 1            1                2
 /// 2            2                1
 /// 3            3                0
-static std::optional<bool>
-isBigEndian(const SmallDenseMap<int64_t, int64_t, 8>& MemOffset2Idx,
-    int64_t LowestIdx) {
+static std::optional<bool> isBigEndian(const SmallDenseMap<int64_t, int64_t, 8>& MemOffset2Idx, int64_t LowestIdx) {
     // Need at least two byte positions to decide on endianness.
     unsigned Width = MemOffset2Idx.size();
     if (Width < 2) {
@@ -154,16 +141,15 @@ isBigEndian(const SmallDenseMap<int64_t, int64_t, 8>& MemOffset2Idx,
 bool CombinerHelper::isPreLegalize() const { return IsPreLegalize; }
 
 bool CombinerHelper::isLegal(const LegalityQuery& Query) const {
+	NICO_MARKER_LOGGING_START;
     assert(LI && "Must have LegalizerInfo to query isLegal!");
     return LI->getAction(Query).Action == LegalizeActions::Legal;
 }
 
-bool CombinerHelper::isLegalOrBeforeLegalizer(
-    const LegalityQuery& Query) const {
-    return isPreLegalize() || isLegal(Query);
-}
+bool CombinerHelper::isLegalOrBeforeLegalizer(const LegalityQuery& Query) const { return isPreLegalize() || isLegal(Query); }
 
 bool CombinerHelper::isConstantLegalOrBeforeLegalizer(const LLT Ty) const {
+	NICO_MARKER_LOGGING_START;
     if (!Ty.isVector()) {
         return isLegalOrBeforeLegalizer({TargetOpcode::G_CONSTANT, {Ty}});
     }
@@ -187,9 +173,7 @@ void CombinerHelper::replaceRegWith(MachineRegisterInfo& MRI, Register FromReg, 
     Observer.finishedChangingAllUsesOfReg();
 }
 
-void CombinerHelper::replaceRegOpWith(MachineRegisterInfo& MRI,
-    MachineOperand& FromRegOp,
-    Register ToReg) const {
+void CombinerHelper::replaceRegOpWith(MachineRegisterInfo& MRI, MachineOperand& FromRegOp, Register ToReg) const {
     assert(FromRegOp.getParent() && "Expected an operand in an MI");
     Observer.changingInstr(*FromRegOp.getParent());
 
@@ -198,8 +182,7 @@ void CombinerHelper::replaceRegOpWith(MachineRegisterInfo& MRI,
     Observer.changedInstr(*FromRegOp.getParent());
 }
 
-void CombinerHelper::replaceOpcodeWith(MachineInstr& FromMI,
-    unsigned ToOpcode) const {
+void CombinerHelper::replaceOpcodeWith(MachineInstr& FromMI, unsigned ToOpcode) const {
     Observer.changingInstr(FromMI);
 
     FromMI.setDesc(Builder.getTII().get(ToOpcode));
@@ -207,12 +190,9 @@ void CombinerHelper::replaceOpcodeWith(MachineInstr& FromMI,
     Observer.changedInstr(FromMI);
 }
 
-const RegisterBank* CombinerHelper::getRegBank(Register Reg) const {
-    return RBI->getRegBank(Reg, MRI, *TRI);
-}
+const RegisterBank* CombinerHelper::getRegBank(Register Reg) const { return RBI->getRegBank(Reg, MRI, *TRI); }
 
-void CombinerHelper::setRegBank(Register Reg,
-    const RegisterBank* RegBank) const {
+void CombinerHelper::setRegBank(Register Reg, const RegisterBank* RegBank) const {
     if (RegBank) {
         MRI.setRegBank(Reg, *RegBank);
     }
@@ -226,8 +206,9 @@ bool CombinerHelper::tryCombineCopy(MachineInstr& MI) const {
     return false;
 }
 bool CombinerHelper::matchCombineCopy(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     if (MI.getOpcode() != TargetOpcode::COPY) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     Register DstReg = MI.getOperand(0).getReg();
@@ -235,10 +216,10 @@ bool CombinerHelper::matchCombineCopy(MachineInstr& MI) const {
 
     if (canReplaceReg(DstReg, SrcReg, MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 void CombinerHelper::applyCombineCopy(MachineInstr& MI) const {
@@ -248,14 +229,14 @@ void CombinerHelper::applyCombineCopy(MachineInstr& MI) const {
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
-    MachineInstr& MI, BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Ported from InstCombinerImpl::pushFreezeToPreventPoisonFromPropagating.
     Register DstOp = MI.getOperand(0).getReg();
     Register OrigOp = MI.getOperand(1).getReg();
 
     if (!MRI.hasOneNonDBGUse(OrigOp)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -269,20 +250,20 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
     // strict than is necessary (it would affect the whole register instead of
     // just the subreg being frozen).
     if (OrigDef->isPHI() || isa<GUnmerge>(OrigDef)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (canCreateUndefOrPoison(OrigOp, MRI,
             /*ConsiderFlagsAndMetadata=*/false)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     std::optional<MachineOperand> MaybePoisonOperand;
     for (MachineOperand& Operand : OrigDef->uses()) {
         if (!Operand.isReg()) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
@@ -295,7 +276,7 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
         } else {
             // We have more than one maybe-poison operand. Moving the freeze is
             // unsafe.
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -309,7 +290,7 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
             B.buildCopy(DstOp, OrigOp);
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -322,18 +303,16 @@ bool CombinerHelper::matchFreezeOfSingleMaybePoisonOperand(
         Observer.changedInstr(*OrigDef);
         B.setInsertPt(*OrigDef->getParent(), OrigDef->getIterator());
         auto Freeze = B.buildFreeze(MaybePoisonOperandRegTy, MaybePoisonOperandReg);
-        replaceRegOpWith(
-            MRI, *OrigDef->findRegisterUseOperand(MaybePoisonOperandReg, TRI),
-            Freeze.getReg(0));
+        replaceRegOpWith(MRI, *OrigDef->findRegisterUseOperand(MaybePoisonOperandReg, TRI), Freeze.getReg(0));
         replaceRegWith(MRI, DstOp, OrigOp);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchCombineConcatVectors(
-    MachineInstr& MI, SmallVector<Register>& Ops) const {
+bool CombinerHelper::matchCombineConcatVectors(MachineInstr& MI, SmallVector<Register>& Ops) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_CONCAT_VECTORS && "Invalid instruction");
     bool IsUndef = true;
     MachineInstr* Undef = nullptr;
@@ -346,7 +325,7 @@ bool CombinerHelper::matchCombineConcatVectors(
         MachineInstr* Def = MRI.getVRegDef(Reg);
         assert(Def && "Operand not defined");
         if (!MRI.hasOneNonDBGUse(Reg)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         switch (Def->getOpcode()) {
@@ -368,23 +347,21 @@ bool CombinerHelper::matchCombineConcatVectors(
                 assert(MRI.getType(Undef->getOperand(0).getReg()) == OpType.getScalarType() && "All undefs should have the same type");
                 // Break the undef vector in as many scalar elements as needed
                 // for the flattening.
-                for (unsigned EltIdx = 0, EltEnd = OpType.getNumElements();
-                    EltIdx != EltEnd; ++EltIdx) {
+                for (unsigned EltIdx = 0, EltEnd = OpType.getNumElements(); EltIdx != EltEnd; ++EltIdx) {
                     Ops.push_back(Undef->getOperand(0).getReg());
                 }
                 break;
             }
             default:
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
         }
     }
 
     // Check if the combine is illegal
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
-    if (!isLegalOrBeforeLegalizer(
-            {TargetOpcode::G_BUILD_VECTOR, {DstTy, MRI.getType(Ops[0])}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_BUILD_VECTOR, {DstTy, MRI.getType(Ops[0])}})) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -392,11 +369,10 @@ bool CombinerHelper::matchCombineConcatVectors(
         Ops.clear();
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
-void CombinerHelper::applyCombineConcatVectors(
-    MachineInstr& MI, SmallVector<Register>& Ops) const {
+void CombinerHelper::applyCombineConcatVectors(MachineInstr& MI, SmallVector<Register>& Ops) const {
     // We determined that the concat_vectors can be flatten.
     // Generate the flattened build_vector.
     Register DstReg = MI.getOperand(0).getReg();
@@ -418,19 +394,19 @@ void CombinerHelper::applyCombineConcatVectors(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineShuffleConcat(
-    MachineInstr& MI, SmallVector<Register>& Ops) const {
+bool CombinerHelper::matchCombineShuffleConcat(MachineInstr& MI, SmallVector<Register>& Ops) const {
+	NICO_MARKER_LOGGING_START;
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
     auto ConcatMI1 = dyn_cast<GConcatVectors>(MRI.getVRegDef(MI.getOperand(1).getReg()));
     auto ConcatMI2 = dyn_cast<GConcatVectors>(MRI.getVRegDef(MI.getOperand(2).getReg()));
     if (!ConcatMI1 || !ConcatMI2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Check that the sources of the Concat instructions have the same type
     if (MRI.getType(ConcatMI1->getSourceReg(0)) != MRI.getType(ConcatMI2->getSourceReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -443,27 +419,27 @@ bool CombinerHelper::matchCombineShuffleConcat(
         if (Mask[i] == -1) {
             for (unsigned j = 1; j < ConcatSrcNumElt; j++) {
                 if (i + j >= Mask.size()) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
                 if (Mask[i + j] != -1) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
             }
             if (!isLegalOrBeforeLegalizer({TargetOpcode::G_IMPLICIT_DEF, {ConcatSrcTy}})) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             Ops.push_back(0);
         } else if (Mask[i] % ConcatSrcNumElt == 0) {
             for (unsigned j = 1; j < ConcatSrcNumElt; j++) {
                 if (i + j >= Mask.size()) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
                 if (Mask[i + j] != Mask[i] + static_cast<int>(j)) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
             }
@@ -475,27 +451,26 @@ bool CombinerHelper::matchCombineShuffleConcat(
                 Ops.push_back(ConcatMI2->getSourceReg(Mask[i] / ConcatSrcNumElt - ConcatMI1->getNumSources()));
             }
         } else {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
 
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_CONCAT_VECTORS, {MRI.getType(MI.getOperand(0).getReg()), ConcatSrcTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (!Ops.empty()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineShuffleConcat(
-    MachineInstr& MI, SmallVector<Register>& Ops) const {
+void CombinerHelper::applyCombineShuffleConcat(MachineInstr& MI, SmallVector<Register>& Ops) const {
     LLT SrcTy;
     for (Register& Reg : Ops) {
         if (Reg != 0) {
@@ -532,8 +507,8 @@ bool CombinerHelper::tryCombineShuffleVector(MachineInstr& MI) const {
     return false;
 }
 
-bool CombinerHelper::matchCombineShuffleVector(
-    MachineInstr& MI, SmallVectorImpl<Register>& Ops) const {
+bool CombinerHelper::matchCombineShuffleVector(MachineInstr& MI, SmallVectorImpl<Register>& Ops) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR && "Invalid instruction kind");
     LLT DstType = MRI.getType(MI.getOperand(0).getReg());
     Register Src1 = MI.getOperand(1).getReg();
@@ -560,14 +535,14 @@ bool CombinerHelper::matchCombineShuffleVector(
     // TODO: If the size between the source and destination don't match
     //       we could still emit an extract vector element in that case.
     if (DstNumElts < 2 * SrcNumElts && DstNumElts != 1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Check that the shuffle mask can be broken evenly between the
     // different sources.
     if (DstNumElts % SrcNumElts != 0) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -586,7 +561,7 @@ bool CombinerHelper::matchCombineShuffleVector(
         // Ensure the indices in each SrcType sized piece are sequential and that
         // the same source is used for the whole piece.
         if ((Idx % SrcNumElts != (i % SrcNumElts)) || (ConcatSrcs[i / SrcNumElts] >= 0 && ConcatSrcs[i / SrcNumElts] != (int)(Idx / SrcNumElts))) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         // Remember which source this index came from.
@@ -611,12 +586,11 @@ bool CombinerHelper::matchCombineShuffleVector(
         }
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineShuffleVector(
-    MachineInstr& MI, const ArrayRef<Register> Ops) const {
+void CombinerHelper::applyCombineShuffleVector(MachineInstr& MI, const ArrayRef<Register> Ops) const {
     Register DstReg = MI.getOperand(0).getReg();
     Builder.setInsertPt(*MI.getParent(), MI);
     Register NewDstReg = MRI.cloneVirtualRegister(DstReg);
@@ -632,15 +606,16 @@ void CombinerHelper::applyCombineShuffleVector(
 }
 
 bool CombinerHelper::matchShuffleToExtract(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR && "Invalid instruction kind");
 
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
     if (Mask.size() == 1) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -675,11 +650,7 @@ namespace {
 
 /// Select a preference between two uses. CurrentUse is the current preference
 /// while *ForCandidate is attributes of the candidate under consideration.
-PreferredTuple ChoosePreferredUse(MachineInstr& LoadMI,
-    PreferredTuple& CurrentUse,
-    const LLT TyForCandidate,
-    unsigned OpcodeForCandidate,
-    MachineInstr* MIForCandidate) {
+PreferredTuple ChoosePreferredUse(MachineInstr& LoadMI, PreferredTuple& CurrentUse, const LLT TyForCandidate, unsigned OpcodeForCandidate, MachineInstr* MIForCandidate) {
     if (!CurrentUse.Ty.isValid()) {
         if (CurrentUse.ExtendOpcode == OpcodeForCandidate || CurrentUse.ExtendOpcode == TargetOpcode::G_ANYEXT) {
             return {TyForCandidate, OpcodeForCandidate, MIForCandidate};
@@ -782,6 +753,7 @@ static unsigned getExtLoadOpcForExtend(unsigned ExtOpc) {
 }
 
 bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple& Preferred) const {
+	NICO_MARKER_LOGGING_START;
     // We match the loads and follow the uses to the extend instead of matching
     // the extends and following the def to the load. This is because the load
     // must remain in the same position for correctness (unless we also add code
@@ -790,7 +762,7 @@ bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple
     // for performance.
     GAnyLoad* LoadMI = dyn_cast<GAnyLoad>(&MI);
     if (!LoadMI) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -798,7 +770,7 @@ bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple
 
     LLT LoadValueTy = MRI.getType(LoadReg);
     if (!LoadValueTy.isScalar()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -808,14 +780,14 @@ bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple
     // %a(s8) = extload %ptr (load 1 byte from %ptr)
     // ... which is an illegal extload instruction.
     if (LoadValueTy.getSizeInBits() < 8) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // For non power-of-2 types, they will very likely be legalized into multiple
     // loads. Don't bother trying to match them into extending loads.
     if (!llvm::has_single_bit<uint32_t>(LoadValueTy.getSizeInBits())) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -824,10 +796,7 @@ bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple
     // and emit a variant of (extend (trunc X)) for the others according to the
     // relative type sizes. At the same time, pick an extend to use based on the
     // extend involved in the chosen type.
-    unsigned PreferredOpcode = isa<GLoad>(&MI)
-        ? TargetOpcode::G_ANYEXT
-        : isa<GSExtLoad>(&MI) ? TargetOpcode::G_SEXT
-                              : TargetOpcode::G_ZEXT;
+    unsigned PreferredOpcode = isa<GLoad>(&MI) ? TargetOpcode::G_ANYEXT : isa<GSExtLoad>(&MI) ? TargetOpcode::G_SEXT : TargetOpcode::G_ZEXT;
     Preferred = {LLT(), PreferredOpcode, nullptr};
     for (auto& UseMI : MRI.use_nodbg_instructions(LoadReg)) {
         if (UseMI.getOpcode() == TargetOpcode::G_SEXT || UseMI.getOpcode() == TargetOpcode::G_ZEXT || (UseMI.getOpcode() == TargetOpcode::G_ANYEXT)) {
@@ -842,20 +811,17 @@ bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple
                 unsigned CandidateLoadOpc = getExtLoadOpcForExtend(UseMI.getOpcode());
                 LLT UseTy = MRI.getType(UseMI.getOperand(0).getReg());
                 LLT SrcTy = MRI.getType(LoadMI->getPointerReg());
-                if (LI->getAction({CandidateLoadOpc, {UseTy, SrcTy}, {MMDesc}})
-                    .Action != LegalizeActions::Legal) {
+                if (LI->getAction({CandidateLoadOpc, {UseTy, SrcTy}, {MMDesc}}).Action != LegalizeActions::Legal) {
                     continue;
                 }
             }
-            Preferred = ChoosePreferredUse(MI, Preferred,
-                MRI.getType(UseMI.getOperand(0).getReg()),
-                UseMI.getOpcode(), &UseMI);
+            Preferred = ChoosePreferredUse(MI, Preferred, MRI.getType(UseMI.getOperand(0).getReg()), UseMI.getOpcode(), &UseMI);
         }
     }
 
     // There were no extends
     if (!Preferred.MI) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // It should be impossible to chose an extend without selecting a different
@@ -864,21 +830,18 @@ bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple
 
     LLVM_DEBUG(dbgs() << "Preferred use is: " << *Preferred.MI);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineExtendingLoads(
-    MachineInstr& MI, PreferredTuple& Preferred) const {
+void CombinerHelper::applyCombineExtendingLoads(MachineInstr& MI, PreferredTuple& Preferred) const {
     // Rewrite the load to the chosen extending load.
     Register ChosenDstReg = Preferred.MI->getOperand(0).getReg();
 
     // Inserter to insert a truncate back to the original type at a given point
     // with some basic CSE to limit truncate duplication to one per BB.
     DenseMap<MachineBasicBlock*, MachineInstr*> EmittedInsns;
-    auto InsertTruncAt = [&](MachineBasicBlock* InsertIntoBB,
-                             MachineBasicBlock::iterator InsertBefore,
-                             MachineOperand& UseMO) {
+    auto InsertTruncAt = [&](MachineBasicBlock* InsertIntoBB, MachineBasicBlock::iterator InsertBefore, MachineOperand& UseMO) {
         MachineInstr* PreviouslyEmitted = EmittedInsns.lookup(InsertIntoBB);
         if (PreviouslyEmitted) {
             Observer.changingInstr(*UseMO.getParent());
@@ -952,8 +915,7 @@ void CombinerHelper::applyCombineExtendingLoads(
                     //    %4:_(s8) = G_TRUNC %2:_(s32)
                     //    %3:_(s64) = G_ZEXT %2:_(s8)
                     //    ... = ... %3(s64)
-                    InsertInsnsWithoutSideEffectsBeforeUse(Builder, MI, *UseMO,
-                        InsertTruncAt);
+                    InsertInsnsWithoutSideEffectsBeforeUse(Builder, MI, *UseMO, InsertTruncAt);
                 }
                 continue;
             }
@@ -974,8 +936,8 @@ void CombinerHelper::applyCombineExtendingLoads(
     Observer.changedInstr(MI);
 }
 
-bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_AND);
 
     // If we have the following code:
@@ -988,20 +950,20 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
 
     Register Dst = MI.getOperand(0).getReg();
     if (MRI.getType(Dst).isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     auto MaybeMask = getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(), MRI);
     if (!MaybeMask) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     APInt MaskVal = MaybeMask->Value;
 
     if (!MaskVal.isMask()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1010,7 +972,7 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
     // multiple users.
     GAnyLoad* LoadMI = dyn_cast<GAnyLoad>(MRI.getVRegDef(SrcReg));
     if (!LoadMI || !MRI.hasOneNonDBGUse(LoadMI->getDstReg())) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1024,21 +986,21 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
     // The mask may not be larger than the in-memory type, as it might cover sign
     // extended bits
     if (MaskSizeBits > LoadSizeBits.getValue()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // If the mask covers the whole destination register, there's nothing to
     // extend
     if (MaskSizeBits >= RegSize) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Most targets cannot deal with loads of size < 8 and need to re-legalize to
     // at least byte loads. Avoid creating such loads here
     if (MaskSizeBits < 8 || !isPowerOf2_32(MaskSizeBits)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1050,13 +1012,13 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
     if (LoadMI->isSimple()) {
         MemDesc.MemoryTy = LLT::scalar(MaskSizeBits);
     } else if (LoadSizeBits.getValue() > MaskSizeBits || LoadSizeBits.getValue() == RegSize) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // TODO: Could check if it's legal with the reduced or original memory size.
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_ZEXTLOAD, {RegTy, MRI.getType(PtrReg)}, {MemDesc}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1069,29 +1031,27 @@ bool CombinerHelper::matchCombineLoadWithAndMask(MachineInstr& MI,
         LoadMI->eraseFromParent();
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::isPredecessor(const MachineInstr& DefMI,
-    const MachineInstr& UseMI) const {
+bool CombinerHelper::isPredecessor(const MachineInstr& DefMI, const MachineInstr& UseMI) const {
+	NICO_MARKER_LOGGING_START;
     assert(!DefMI.isDebugInstr() && !UseMI.isDebugInstr() && "shouldn't consider debug uses");
     assert(DefMI.getParent() == UseMI.getParent());
     if (&DefMI == &UseMI) {
         return true;
     }
     const MachineBasicBlock& MBB = *DefMI.getParent();
-    auto DefOrUse = find_if(MBB, [&DefMI, &UseMI](const MachineInstr& MI) {
-        return &MI == &DefMI || &MI == &UseMI;
-    });
+    auto DefOrUse = find_if(MBB, [&DefMI, &UseMI](const MachineInstr& MI) { return &MI == &DefMI || &MI == &UseMI; });
     if (DefOrUse == MBB.end()) {
         llvm_unreachable("Block must contain both DefMI and UseMI!");
     }
     return &*DefOrUse == &DefMI;
 }
 
-bool CombinerHelper::dominates(const MachineInstr& DefMI,
-    const MachineInstr& UseMI) const {
+bool CombinerHelper::dominates(const MachineInstr& DefMI, const MachineInstr& UseMI) const {
+	NICO_MARKER_LOGGING_START;
     assert(!DefMI.isDebugInstr() && !UseMI.isDebugInstr() && "shouldn't consider debug uses");
     if (MDT) {
         return MDT->dominates(&DefMI, &UseMI);
@@ -1103,12 +1063,13 @@ bool CombinerHelper::dominates(const MachineInstr& DefMI,
 }
 
 bool CombinerHelper::matchSextTruncSextLoad(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SEXT_INREG);
     Register SrcReg = MI.getOperand(1).getReg();
     Register LoadUser = SrcReg;
 
     if (MRI.getType(SrcReg).isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1124,16 +1085,16 @@ bool CombinerHelper::matchSextTruncSextLoad(MachineInstr& MI) const {
         // If truncating more than the original extended value, abort.
         auto LoadSizeBits = LoadMI->getMemSizeInBits();
         if (TruncSrc && MRI.getType(TruncSrc).getSizeInBits() < LoadSizeBits.getValue()) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         if (LoadSizeBits == SizeInBits) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -1143,8 +1104,8 @@ void CombinerHelper::applySextTruncSextLoad(MachineInstr& MI) const {
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchSextInRegOfLoad(
-    MachineInstr& MI, std::tuple<Register, unsigned>& MatchInfo) const {
+bool CombinerHelper::matchSextInRegOfLoad(MachineInstr& MI, std::tuple<Register, unsigned>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SEXT_INREG);
 
     Register DstReg = MI.getOperand(0).getReg();
@@ -1152,14 +1113,14 @@ bool CombinerHelper::matchSextInRegOfLoad(
 
     // Only supports scalars for now.
     if (RegTy.isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     Register SrcReg = MI.getOperand(1).getReg();
     auto* LoadDef = getOpcodeDef<GLoad>(SrcReg, MRI);
     if (!LoadDef || !MRI.hasOneNonDBGUse(SrcReg)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1172,13 +1133,13 @@ bool CombinerHelper::matchSextInRegOfLoad(
 
     // Don't generate G_SEXTLOADs with a < 1 byte width.
     if (NewSizeBits < 8) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Don't bother creating a non-power-2 sextload, it will likely be broken up
     // anyway for most targets.
     if (!isPowerOf2_32(NewSizeBits)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1190,27 +1151,23 @@ bool CombinerHelper::matchSextInRegOfLoad(
     if (LoadDef->isSimple()) {
         MMDesc.MemoryTy = LLT::scalar(NewSizeBits);
     } else if (MemBits > NewSizeBits || MemBits == RegTy.getSizeInBits()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // TODO: Could check if it's legal with the reduced or original memory size.
-    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SEXTLOAD,
-            {MRI.getType(LoadDef->getDstReg()),
-                MRI.getType(LoadDef->getPointerReg())},
-            {MMDesc}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SEXTLOAD, {MRI.getType(LoadDef->getDstReg()), MRI.getType(LoadDef->getPointerReg())}, {MMDesc}})) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MatchInfo = std::make_tuple(LoadDef->getDstReg(), NewSizeBits);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applySextInRegOfLoad(
-    MachineInstr& MI, std::tuple<Register, unsigned>& MatchInfo) const {
+void CombinerHelper::applySextInRegOfLoad(MachineInstr& MI, std::tuple<Register, unsigned>& MatchInfo) const {
     assert(MI.getOpcode() == TargetOpcode::G_SEXT_INREG);
     Register LoadReg;
     unsigned ScalarSizeBits;
@@ -1228,8 +1185,7 @@ void CombinerHelper::applySextInRegOfLoad(
     auto& MF = Builder.getMF();
     auto PtrInfo = MMO.getPointerInfo();
     auto* NewMMO = MF.getMachineMemOperand(&MMO, PtrInfo, ScalarSizeBits / 8);
-    Builder.buildLoadInstr(TargetOpcode::G_SEXTLOAD, MI.getOperand(0).getReg(),
-        LoadDef->getPointerReg(), *NewMMO);
+    Builder.buildLoadInstr(TargetOpcode::G_SEXTLOAD, MI.getOperand(0).getReg(), LoadDef->getPointerReg(), *NewMMO);
     MI.eraseFromParent();
 
     // Not all loads can be deleted, so make sure the old one is removed.
@@ -1253,11 +1209,7 @@ static bool canFoldInAddressingMode(GLoadStore* MI, const TargetLowering& TLI, M
         AM.Scale = 1; // [reg +/- reg]
     }
 
-    return TLI.isLegalAddressingMode(
-        MF->getDataLayout(), AM,
-        getTypeForLLT(MI->getMMO().getMemoryType(),
-            MF->getFunction().getContext()),
-        MI->getMMO().getAddrSpace());
+    return TLI.isLegalAddressingMode(MF->getDataLayout(), AM, getTypeForLLT(MI->getMMO().getMemoryType(), MF->getFunction().getContext()), MI->getMMO().getAddrSpace());
 }
 
 static unsigned getIndexedOpc(unsigned LdStOpc) {
@@ -1276,13 +1228,12 @@ static unsigned getIndexedOpc(unsigned LdStOpc) {
 }
 
 bool CombinerHelper::isIndexedLoadStoreLegal(GLoadStore& LdSt) const {
+	NICO_MARKER_LOGGING_START;
     // Check for legality.
     LLT PtrTy = MRI.getType(LdSt.getPointerReg());
     LLT Ty = MRI.getType(LdSt.getReg(0));
     LLT MemTy = LdSt.getMMO().getMemoryType();
-    SmallVector<LegalityQuery::MemDesc, 2> MemDescrs(
-        {{MemTy, MemTy.getSizeInBits().getKnownMinValue(),
-            AtomicOrdering::NotAtomic}});
+    SmallVector<LegalityQuery::MemDesc, 2> MemDescrs({{MemTy, MemTy.getSizeInBits().getKnownMinValue(), AtomicOrdering::NotAtomic}});
     unsigned IndexedOpc = getIndexedOpc(LdSt.getOpcode());
     SmallVector<LLT> OpTys;
     if (IndexedOpc == TargetOpcode::G_INDEXED_STORE) {
@@ -1295,11 +1246,14 @@ bool CombinerHelper::isIndexedLoadStoreLegal(GLoadStore& LdSt) const {
     return isLegal(Q);
 }
 
-static cl::opt<unsigned> PostIndexUseThreshold(
-    "post-index-use-threshold", cl::Hidden, cl::init(32), cl::desc("Number of uses of a base pointer to check before it is no longer "
-                                                                   "considered for post-indexing."));
+static cl::opt<unsigned> PostIndexUseThreshold("post-index-use-threshold",
+    cl::Hidden,
+    cl::init(32),
+    cl::desc("Number of uses of a base pointer to check before it is no longer "
+             "considered for post-indexing."));
 
 bool CombinerHelper::findPostIndexCandidate(GLoadStore& LdSt, Register& Addr, Register& Base, Register& Offset, bool& RematOffset) const {
+	NICO_MARKER_LOGGING_START;
     // We're looking for the following pattern, for either load or store:
     // %baseptr:_(p0) = ...
     // G_STORE %val(s64), %baseptr(p0)
@@ -1344,7 +1298,8 @@ bool CombinerHelper::findPostIndexCandidate(GLoadStore& LdSt, Register& Addr, Re
         }
 
         Offset = PtrAdd->getOffsetReg();
-        if (!ForceLegalIndexing && !TLI.isIndexingLegal(LdSt, PtrAdd->getBaseReg(), Offset,
+        if (!ForceLegalIndexing
+            && !TLI.isIndexingLegal(LdSt, PtrAdd->getBaseReg(), Offset,
                 /*IsPre*/ false, MRI)) {
             continue;
         }
@@ -1405,6 +1360,7 @@ bool CombinerHelper::findPostIndexCandidate(GLoadStore& LdSt, Register& Addr, Re
 }
 
 bool CombinerHelper::findPreIndexCandidate(GLoadStore& LdSt, Register& Addr, Register& Base, Register& Offset) const {
+	NICO_MARKER_LOGGING_START;
     auto& MF = *LdSt.getParent()->getParent();
     const auto& TLI = *MF.getSubtarget().getTargetLowering();
 
@@ -1467,14 +1423,14 @@ bool CombinerHelper::findPreIndexCandidate(GLoadStore& LdSt, Register& Addr, Reg
     return RealUse;
 }
 
-bool CombinerHelper::matchCombineExtractedVectorLoad(
-    MachineInstr& MI, BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchCombineExtractedVectorLoad(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_EXTRACT_VECTOR_ELT);
 
     // Check if there is a load that defines the vector being extracted from.
     auto* LoadMI = getOpcodeDef<GLoad>(MI.getOperand(1).getReg(), MRI);
     if (!LoadMI) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1485,13 +1441,13 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
 
     // Checking whether we should reduce the load width.
     if (!MRI.hasOneNonDBGUse(Vector)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Check if the defining load is simple.
     if (!LoadMI->isSimple()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1499,24 +1455,24 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
     // to correctly compute an address to load only the extracted element as a
     // scalar.
     if (!VecEltTy.isByteSized()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Check for load fold barriers between the extraction and the load.
     if (MI.getParent() != LoadMI->getParent()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     const unsigned MaxIter = 20;
     unsigned Iter = 0;
     for (auto II = LoadMI->getIterator(), IE = MI.getIterator(); II != IE; ++II) {
         if (II->isLoadFoldBarrier()) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         if (Iter++ == MaxIter) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -1557,7 +1513,7 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
     LegalityQuery Q = {TargetOpcode::G_LOAD, {VecEltTy, PtrTy}, {MMDesc}};
 
     if (!isLegalOrBeforeLegalizer(Q)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1566,7 +1522,7 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
     auto& DL = MF.getDataLayout();
     unsigned Fast = 0;
     if (!getTargetLowering().allowsMemoryAccess(C, DL, VecEltTy, *NewMMO, &Fast) || !Fast) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1577,9 +1533,7 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
         GISelObserverWrapper DummyObserver;
         LegalizerHelper Helper(B.getMF(), DummyObserver, B);
         //// Get pointer to the vector element.
-        Register finalPtr = Helper.getVectorElementPointer(
-            LoadMI->getPointerReg(), MRI.getType(LoadMI->getOperand(0).getReg()),
-            Index);
+        Register finalPtr = Helper.getVectorElementPointer(LoadMI->getPointerReg(), MRI.getType(LoadMI->getOperand(0).getReg()), Index);
         // New G_LOAD instruction.
         B.buildLoad(Result, finalPtr, PtrInfo, Alignment);
         // Remove original GLOAD instruction.
@@ -1587,33 +1541,31 @@ bool CombinerHelper::matchCombineExtractedVectorLoad(
     };
 
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchCombineIndexedLoadStore(
-    MachineInstr& MI, IndexedLoadStoreMatchInfo& MatchInfo) const {
+bool CombinerHelper::matchCombineIndexedLoadStore(MachineInstr& MI, IndexedLoadStoreMatchInfo& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     auto& LdSt = cast<GLoadStore>(MI);
 
     if (LdSt.isAtomic()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
-    MatchInfo.IsPre = findPreIndexCandidate(LdSt, MatchInfo.Addr, MatchInfo.Base,
-        MatchInfo.Offset);
+    MatchInfo.IsPre = findPreIndexCandidate(LdSt, MatchInfo.Addr, MatchInfo.Base, MatchInfo.Offset);
     if (!MatchInfo.IsPre && !findPostIndexCandidate(LdSt, MatchInfo.Addr, MatchInfo.Base, MatchInfo.Offset, MatchInfo.RematOffset)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineIndexedLoadStore(
-    MachineInstr& MI, IndexedLoadStoreMatchInfo& MatchInfo) const {
+void CombinerHelper::applyCombineIndexedLoadStore(MachineInstr& MI, IndexedLoadStoreMatchInfo& MatchInfo) const {
     MachineInstr& AddrDef = *MRI.getUniqueVRegDef(MatchInfo.Addr);
     unsigned Opcode = MI.getOpcode();
     bool IsStore = Opcode == TargetOpcode::G_STORE;
@@ -1623,8 +1575,7 @@ void CombinerHelper::applyCombineIndexedLoadStore(
     // just clone it as needed.
     if (MatchInfo.RematOffset) {
         auto* OldCst = MRI.getVRegDef(MatchInfo.Offset);
-        auto NewCst = Builder.buildConstant(MRI.getType(MatchInfo.Offset),
-            *OldCst->getOperand(1).getCImm());
+        auto NewCst = Builder.buildConstant(MRI.getType(MatchInfo.Offset), *OldCst->getOperand(1).getCImm());
         MatchInfo.Offset = NewCst.getReg(0);
     }
 
@@ -1647,8 +1598,8 @@ void CombinerHelper::applyCombineIndexedLoadStore(
     LLVM_DEBUG(dbgs() << "    Combinined to indexed operation");
 }
 
-bool CombinerHelper::matchCombineDivRem(MachineInstr& MI,
-    MachineInstr*& OtherMI) const {
+bool CombinerHelper::matchCombineDivRem(MachineInstr& MI, MachineInstr*& OtherMI) const {
+	NICO_MARKER_LOGGING_START;
     unsigned Opcode = MI.getOpcode();
     bool IsDiv, IsSigned;
 
@@ -1682,7 +1633,7 @@ bool CombinerHelper::matchCombineDivRem(MachineInstr& MI,
     }
 
     if (!isLegalOrBeforeLegalizer({DivremOpcode, {MRI.getType(Src1)}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1699,19 +1650,19 @@ bool CombinerHelper::matchCombineDivRem(MachineInstr& MI,
     //  %div:_, %rem:_ = G_[SU]DIVREM %src1:_, %src2:_
 
     for (auto& UseMI : MRI.use_nodbg_instructions(Src1)) {
-        if (MI.getParent() == UseMI.getParent() && ((IsDiv && UseMI.getOpcode() == RemOpcode) || (!IsDiv && UseMI.getOpcode() == DivOpcode)) && matchEqualDefs(MI.getOperand(2), UseMI.getOperand(2)) && matchEqualDefs(MI.getOperand(1), UseMI.getOperand(1))) {
+        if (MI.getParent() == UseMI.getParent() && ((IsDiv && UseMI.getOpcode() == RemOpcode) || (!IsDiv && UseMI.getOpcode() == DivOpcode)) && matchEqualDefs(MI.getOperand(2), UseMI.getOperand(2))
+            && matchEqualDefs(MI.getOperand(1), UseMI.getOperand(1))) {
             OtherMI = &UseMI;
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineDivRem(MachineInstr& MI,
-    MachineInstr*& OtherMI) const {
+void CombinerHelper::applyCombineDivRem(MachineInstr& MI, MachineInstr*& OtherMI) const {
     unsigned Opcode = MI.getOpcode();
     assert(OtherMI && "OtherMI shouldn't be empty.");
 
@@ -1733,16 +1684,13 @@ void CombinerHelper::applyCombineDivRem(MachineInstr& MI,
     MachineInstr* FirstInst = dominates(MI, *OtherMI) ? &MI : OtherMI;
     Builder.setInstrAndDebugLoc(*FirstInst);
 
-    Builder.buildInstr(IsSigned ? TargetOpcode::G_SDIVREM
-                                : TargetOpcode::G_UDIVREM,
-        {DestDivReg, DestRemReg},
-        {FirstInst->getOperand(1), FirstInst->getOperand(2)});
+    Builder.buildInstr(IsSigned ? TargetOpcode::G_SDIVREM : TargetOpcode::G_UDIVREM, {DestDivReg, DestRemReg}, {FirstInst->getOperand(1), FirstInst->getOperand(2)});
     MI.eraseFromParent();
     OtherMI->eraseFromParent();
 }
 
-bool CombinerHelper::matchOptBrCondByInvertingCond(
-    MachineInstr& MI, MachineInstr*& BrCond) const {
+bool CombinerHelper::matchOptBrCondByInvertingCond(MachineInstr& MI, MachineInstr*& BrCond) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_BR);
 
     // Try to match the following:
@@ -1761,14 +1709,14 @@ bool CombinerHelper::matchOptBrCondByInvertingCond(
     MachineBasicBlock* MBB = MI.getParent();
     MachineBasicBlock::iterator BrIt(MI);
     if (BrIt == MBB->begin()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     assert(std::next(BrIt) == MBB->end() && "expected G_BR to be a terminator");
 
     BrCond = &*std::prev(BrIt);
     if (BrCond->getOpcode() != TargetOpcode::G_BRCOND) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1777,10 +1725,10 @@ bool CombinerHelper::matchOptBrCondByInvertingCond(
     MachineBasicBlock* BrCondTarget = BrCond->getOperand(1).getMBB();
     if (BrCondTarget != MI.getOperand(0).getMBB() && MBB->isLayoutSuccessor(BrCondTarget)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -1791,9 +1739,7 @@ void CombinerHelper::applyOptBrCondByInvertingCond(MachineInstr& MI, MachineInst
     // FIXME: Does int/fp matter for this? If so, we might need to restrict
     // this to i1 only since we might not know for sure what kind of
     // compare generated the condition value.
-    auto True = Builder.buildConstant(
-        Ty, getICmpTrueVal(getTargetLowering(), false, false)
-    ).getReg(0);
+    auto True = Builder.buildConstant(Ty, getICmpTrueVal(getTargetLowering(), false, false)).getReg(0);
     auto Xor = Builder.buildXor(Ty, BrCond->getOperand(0), True);
 
     auto* FallthroughBB = BrCond->getOperand(1).getMBB();
@@ -1816,17 +1762,14 @@ bool CombinerHelper::tryEmitMemcpyInline(MachineInstr& MI) const {
     return Helper.lowerMemcpyInline(MI) == LegalizerHelper::LegalizeResult::Legalized;
 }
 
-bool CombinerHelper::tryCombineMemCpyFamily(MachineInstr& MI,
-    unsigned MaxLen) const {
+bool CombinerHelper::tryCombineMemCpyFamily(MachineInstr& MI, unsigned MaxLen) const {
     MachineIRBuilder HelperBuilder(MI);
     GISelObserverWrapper DummyObserver;
     LegalizerHelper Helper(HelperBuilder.getMF(), DummyObserver, HelperBuilder);
     return Helper.lowerMemCpyFamily(MI, MaxLen) == LegalizerHelper::LegalizeResult::Legalized;
 }
 
-static APFloat constantFoldFpUnary(const MachineInstr& MI,
-    const MachineRegisterInfo& MRI,
-    const APFloat& Val) {
+static APFloat constantFoldFpUnary(const MachineInstr& MI, const MachineRegisterInfo& MRI, const APFloat& Val) {
     APFloat Result(Val);
     switch (MI.getOpcode()) {
         default:
@@ -1842,21 +1785,18 @@ static APFloat constantFoldFpUnary(const MachineInstr& MI,
         case TargetOpcode::G_FPTRUNC: {
             bool Unused;
             LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
-            Result.convert(getFltSemanticForLLT(DstTy), APFloat::rmNearestTiesToEven,
-                &Unused);
+            Result.convert(getFltSemanticForLLT(DstTy), APFloat::rmNearestTiesToEven, &Unused);
             return Result;
         }
         case TargetOpcode::G_FSQRT: {
             bool Unused;
-            Result.convert(APFloat::IEEEdouble(), APFloat::rmNearestTiesToEven,
-                &Unused);
+            Result.convert(APFloat::IEEEdouble(), APFloat::rmNearestTiesToEven, &Unused);
             Result = APFloat(sqrt(Result.convertToDouble()));
             break;
         }
         case TargetOpcode::G_FLOG2: {
             bool Unused;
-            Result.convert(APFloat::IEEEdouble(), APFloat::rmNearestTiesToEven,
-                &Unused);
+            Result.convert(APFloat::IEEEdouble(), APFloat::rmNearestTiesToEven, &Unused);
             Result = APFloat(log2(Result.convertToDouble()));
             break;
         }
@@ -1869,8 +1809,7 @@ static APFloat constantFoldFpUnary(const MachineInstr& MI,
     return Result;
 }
 
-void CombinerHelper::applyCombineConstantFoldFpUnary(
-    MachineInstr& MI, const ConstantFP* Cst) const {
+void CombinerHelper::applyCombineConstantFoldFpUnary(MachineInstr& MI, const ConstantFP* Cst) const {
     APFloat Folded = constantFoldFpUnary(MI, MRI, Cst->getValue());
     const ConstantFP* NewCst = ConstantFP::get(Builder.getContext(), Folded);
     Builder.buildFConstant(MI.getOperand(0), *NewCst);
@@ -1878,6 +1817,7 @@ void CombinerHelper::applyCombineConstantFoldFpUnary(
 }
 
 bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // We're trying to match the following pattern:
     //   %t1 = G_PTR_ADD %base, G_CONSTANT imm1
     //   %root = G_PTR_ADD %t1, G_CONSTANT imm2
@@ -1885,7 +1825,7 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
     //   %root = G_PTR_ADD %base, G_CONSTANT (imm1 + imm2)
 
     if (MI.getOpcode() != TargetOpcode::G_PTR_ADD) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1893,13 +1833,13 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
     Register Imm1 = MI.getOperand(2).getReg();
     auto MaybeImmVal = getIConstantVRegValWithLookThrough(Imm1, MRI);
     if (!MaybeImmVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MachineInstr* Add2Def = MRI.getVRegDef(Add2);
     if (!Add2Def || Add2Def->getOpcode() != TargetOpcode::G_PTR_ADD) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1907,7 +1847,7 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
     Register Imm2 = Add2Def->getOperand(2).getReg();
     auto MaybeImm2Val = getIConstantVRegValWithLookThrough(Imm2, MRI);
     if (!MaybeImm2Val) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1919,8 +1859,7 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
     auto& MF = *MI.getMF();
     for (auto& UseMI : MRI.use_nodbg_instructions(MI.getOperand(0).getReg())) {
         if (auto* LdSt = dyn_cast<GLoadStore>(&UseMI)) {
-            AccessTy = getTypeForLLT(MRI.getType(LdSt->getReg(0)),
-                MF.getFunction().getContext());
+            AccessTy = getTypeForLLT(MRI.getType(LdSt->getReg(0)), MF.getFunction().getContext());
             break;
         }
     }
@@ -1935,7 +1874,7 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
         unsigned AS = MRI.getType(Add2).getAddressSpace();
         const auto& TLI = *MF.getSubtarget().getTargetLowering();
         if (TLI.isLegalAddressingMode(MF.getDataLayout(), AMOld, AccessTy, AS) && !TLI.isLegalAddressingMode(MF.getDataLayout(), AMNew, AccessTy, AS)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -1945,12 +1884,11 @@ bool CombinerHelper::matchPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchI
     MatchInfo.Base = Base;
     MatchInfo.Bank = getRegBank(Imm2);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyPtrAddImmedChain(MachineInstr& MI,
-    PtrAddChain& MatchInfo) const {
+void CombinerHelper::applyPtrAddImmedChain(MachineInstr& MI, PtrAddChain& MatchInfo) const {
     assert(MI.getOpcode() == TargetOpcode::G_PTR_ADD && "Expected G_PTR_ADD");
     MachineIRBuilder MIB(MI);
     LLT OffsetTy = MRI.getType(MI.getOperand(2).getReg());
@@ -1962,8 +1900,8 @@ void CombinerHelper::applyPtrAddImmedChain(MachineInstr& MI,
     Observer.changedInstr(MI);
 }
 
-bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI,
-    RegisterImmPair& MatchInfo) const {
+bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI, RegisterImmPair& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // We're trying to match the following pattern with any of
     // G_SHL/G_ASHR/G_LSHR/G_SSHLSAT/G_USHLSAT shift instructions:
     //   %t1 = SHIFT %base, G_CONSTANT imm1
@@ -1972,19 +1910,20 @@ bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI,
     //   %root = SHIFT %base, G_CONSTANT (imm1 + imm2)
 
     unsigned Opcode = MI.getOpcode();
-    assert((Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_SSHLSAT || Opcode == TargetOpcode::G_USHLSAT) && "Expected G_SHL, G_ASHR, G_LSHR, G_SSHLSAT or G_USHLSAT");
+    assert((Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_SSHLSAT || Opcode == TargetOpcode::G_USHLSAT)
+        && "Expected G_SHL, G_ASHR, G_LSHR, G_SSHLSAT or G_USHLSAT");
 
     Register Shl2 = MI.getOperand(1).getReg();
     Register Imm1 = MI.getOperand(2).getReg();
     auto MaybeImmVal = getIConstantVRegValWithLookThrough(Imm1, MRI);
     if (!MaybeImmVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MachineInstr* Shl2Def = MRI.getUniqueVRegDef(Shl2);
     if (Shl2Def->getOpcode() != Opcode) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -1992,7 +1931,7 @@ bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI,
     Register Imm2 = Shl2Def->getOperand(2).getReg();
     auto MaybeImm2Val = getIConstantVRegValWithLookThrough(Imm2, MRI);
     if (!MaybeImm2Val) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2003,19 +1942,19 @@ bool CombinerHelper::matchShiftImmedChain(MachineInstr& MI,
     // There is no simple replacement for a saturating unsigned left shift that
     // exceeds the scalar size.
     if (Opcode == TargetOpcode::G_USHLSAT && MatchInfo.Imm >= MRI.getType(Shl2).getScalarSizeInBits()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyShiftImmedChain(MachineInstr& MI,
-    RegisterImmPair& MatchInfo) const {
+void CombinerHelper::applyShiftImmedChain(MachineInstr& MI, RegisterImmPair& MatchInfo) const {
     unsigned Opcode = MI.getOpcode();
-    assert((Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_SSHLSAT || Opcode == TargetOpcode::G_USHLSAT) && "Expected G_SHL, G_ASHR, G_LSHR, G_SSHLSAT or G_USHLSAT");
+    assert((Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_SSHLSAT || Opcode == TargetOpcode::G_USHLSAT)
+        && "Expected G_SHL, G_ASHR, G_LSHR, G_SSHLSAT or G_USHLSAT");
 
     LLT Ty = MRI.getType(MI.getOperand(1).getReg());
     unsigned const ScalarSizeInBits = Ty.getScalarSizeInBits();
@@ -2041,8 +1980,8 @@ void CombinerHelper::applyShiftImmedChain(MachineInstr& MI,
     Observer.changedInstr(MI);
 }
 
-bool CombinerHelper::matchShiftOfShiftedLogic(
-    MachineInstr& MI, ShiftOfShiftedLogic& MatchInfo) const {
+bool CombinerHelper::matchShiftOfShiftedLogic(MachineInstr& MI, ShiftOfShiftedLogic& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // We're trying to match the following pattern with any of
     // G_SHL/G_ASHR/G_LSHR/G_USHLSAT/G_SSHLSAT shift instructions in combination
     // with any of G_AND/G_OR/G_XOR logic instructions.
@@ -2054,19 +1993,21 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
     //   %t4 = SHIFT %Y, G_CONSTANT C1
     //   %root = LOGIC %t3, %t4
     unsigned ShiftOpcode = MI.getOpcode();
-    assert((ShiftOpcode == TargetOpcode::G_SHL || ShiftOpcode == TargetOpcode::G_ASHR || ShiftOpcode == TargetOpcode::G_LSHR || ShiftOpcode == TargetOpcode::G_USHLSAT || ShiftOpcode == TargetOpcode::G_SSHLSAT) && "Expected G_SHL, G_ASHR, G_LSHR, G_USHLSAT and G_SSHLSAT");
+    assert((ShiftOpcode == TargetOpcode::G_SHL || ShiftOpcode == TargetOpcode::G_ASHR || ShiftOpcode == TargetOpcode::G_LSHR || ShiftOpcode == TargetOpcode::G_USHLSAT
+               || ShiftOpcode == TargetOpcode::G_SSHLSAT)
+        && "Expected G_SHL, G_ASHR, G_LSHR, G_USHLSAT and G_SSHLSAT");
 
     // Match a one-use bitwise logic op.
     Register LogicDest = MI.getOperand(1).getReg();
     if (!MRI.hasOneNonDBGUse(LogicDest)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MachineInstr* LogicMI = MRI.getUniqueVRegDef(LogicDest);
     unsigned LogicOpcode = LogicMI->getOpcode();
     if (LogicOpcode != TargetOpcode::G_AND && LogicOpcode != TargetOpcode::G_OR && LogicOpcode != TargetOpcode::G_XOR) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2074,7 +2015,7 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
     const Register C1 = MI.getOperand(2).getReg();
     auto MaybeImmVal = getIConstantVRegValWithLookThrough(C1, MRI);
     if (!MaybeImmVal || MaybeImmVal->Value == 0) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2083,19 +2024,19 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
     auto matchFirstShift = [&](const MachineInstr* MI, uint64_t& ShiftVal) {
         // Shift should match previous one and should be a one-use.
         if (MI->getOpcode() != ShiftOpcode || !MRI.hasOneNonDBGUse(MI->getOperand(0).getReg())) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
         // Must be a constant.
         auto MaybeImmVal = getIConstantVRegValWithLookThrough(MI->getOperand(2).getReg(), MRI);
         if (!MaybeImmVal) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
         ShiftVal = MaybeImmVal->Value.getSExtValue();
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     };
 
@@ -2113,7 +2054,7 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
         MatchInfo.LogicNonShiftReg = LogicMIReg1;
         MatchInfo.Shift2 = LogicMIOp2;
     } else {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2121,20 +2062,20 @@ bool CombinerHelper::matchShiftOfShiftedLogic(
 
     // The fold is not valid if the sum of the shift values exceeds bitwidth.
     if (MatchInfo.ValSum >= MRI.getType(LogicDest).getScalarSizeInBits()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MatchInfo.Logic = LogicMI;
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyShiftOfShiftedLogic(
-    MachineInstr& MI, ShiftOfShiftedLogic& MatchInfo) const {
+void CombinerHelper::applyShiftOfShiftedLogic(MachineInstr& MI, ShiftOfShiftedLogic& MatchInfo) const {
     unsigned Opcode = MI.getOpcode();
-    assert((Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_USHLSAT || Opcode == TargetOpcode::G_SSHLSAT) && "Expected G_SHL, G_ASHR, G_LSHR, G_USHLSAT and G_SSHLSAT");
+    assert((Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_USHLSAT || Opcode == TargetOpcode::G_SSHLSAT)
+        && "Expected G_SHL, G_ASHR, G_LSHR, G_USHLSAT and G_SSHLSAT");
 
     LLT ShlType = MRI.getType(MI.getOperand(2).getReg());
     LLT DestType = MRI.getType(MI.getOperand(0).getReg());
@@ -2152,10 +2093,7 @@ void CombinerHelper::applyShiftOfShiftedLogic(
     MatchInfo.Shift2->eraseFromParent();
 
     Register Shift2Const = MI.getOperand(2).getReg();
-    Register Shift2 = Builder
-                          .buildInstr(Opcode, {DestType},
-                              {MatchInfo.LogicNonShiftReg, Shift2Const})
-                          .getReg(0);
+    Register Shift2 = Builder.buildInstr(Opcode, {DestType}, {MatchInfo.LogicNonShiftReg, Shift2Const}).getReg(0);
 
     Register Dest = MI.getOperand(0).getReg();
     Builder.buildInstr(MatchInfo.Logic->getOpcode(), {Dest}, {Shift1, Shift2});
@@ -2166,8 +2104,8 @@ void CombinerHelper::applyShiftOfShiftedLogic(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchCommuteShift(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SHL && "Expected G_SHL");
     // Combine (shl (add x, c1), c2) -> (add (shl x, c2), c1 << c2)
     // Combine (shl (or x, c1), c2) -> (or (shl x, c2), c1 << c2)
@@ -2178,20 +2116,18 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
     Register X, C1;
 
     if (!getTargetLowering().isDesirableToCommuteWithShift(MI, !isPreLegalize())) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
-    if (!nico::mi_match_wrapper(SrcReg, MRI,
-            m_OneNonDBGUse(m_any_of(m_GAdd(m_Reg(X), m_Reg(C1)),
-                m_GOr(m_Reg(X), m_Reg(C1)))))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(SrcReg, MRI, m_OneNonDBGUse(m_any_of(m_GAdd(m_Reg(X), m_Reg(C1)), m_GOr(m_Reg(X), m_Reg(C1)))))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     APInt C1Val, C2Val;
     if (!nico::mi_match_wrapper(C1, MRI, m_ICstOrSplat(C1Val)) || !nico::mi_match_wrapper(ShiftReg, MRI, m_ICstOrSplat(C2Val))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2204,25 +2140,26 @@ bool CombinerHelper::matchCommuteShift(MachineInstr& MI,
         B.buildInstr(SrcDef->getOpcode(), {DstReg}, {S1, S2});
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 bool CombinerHelper::matchCombineMulToShl(MachineInstr& MI, unsigned& ShiftVal) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_MUL && "Expected a G_MUL");
     auto MaybeImmVal = getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(), MRI);
     if (!MaybeImmVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     ShiftVal = MaybeImmVal->Value.exactLogBase2();
     if (static_cast<int32_t>(ShiftVal) != -1) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -2240,19 +2177,19 @@ void CombinerHelper::applyCombineMulToShl(MachineInstr& MI, unsigned& ShiftVal) 
     Observer.changedInstr(MI);
 }
 
-bool CombinerHelper::matchCombineSubToAdd(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchCombineSubToAdd(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GSub& Sub = cast<GSub>(MI);
 
     LLT Ty = MRI.getType(Sub.getReg(0));
 
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_ADD, {Ty}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (!isConstantLegalOrBeforeLegalizer(Ty)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2267,16 +2204,16 @@ bool CombinerHelper::matchCombineSubToAdd(MachineInstr& MI,
         Observer.changedInstr(MI);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 // shl ([sza]ext x), y => zext (shl x, y), if shift does not overflow source
-bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
-    RegisterImmPair& MatchData) const {
+bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI, RegisterImmPair& MatchData) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SHL && KB);
     if (!getTargetLowering().isDesirableToPullExtFromShl(MI)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2284,7 +2221,7 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
 
     Register ExtSrc;
     if (!nico::mi_match_wrapper(LHS, MRI, m_GAnyExt(m_Reg(ExtSrc))) && !nico::mi_match_wrapper(LHS, MRI, m_GZExt(m_Reg(ExtSrc))) && !nico::mi_match_wrapper(LHS, MRI, m_GSExt(m_Reg(ExtSrc)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2292,7 +2229,7 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
     MachineInstr* MIShiftAmt = MRI.getVRegDef(RHS);
     auto MaybeShiftAmtVal = isConstantOrConstantSplatVector(*MIShiftAmt, MRI);
     if (!MaybeShiftAmtVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2304,7 +2241,7 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
         // use. Otherwise we would have to guess and hope it is reported as legal.
         LLT ShiftAmtTy = getTargetLowering().getPreferredShiftAmountTy(SrcTy);
         if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SHL, {SrcTy, ShiftAmtTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -2318,15 +2255,14 @@ bool CombinerHelper::matchCombineShlOfExtend(MachineInstr& MI,
 
     if (MinLeadingZeros >= ShiftAmt && ShiftAmt < SrcTySize) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineShlOfExtend(
-    MachineInstr& MI, const RegisterImmPair& MatchData) const {
+void CombinerHelper::applyCombineShlOfExtend(MachineInstr& MI, const RegisterImmPair& MatchData) const {
     Register ExtSrcReg = MatchData.Reg;
     int64_t ShiftAmtVal = MatchData.Imm;
 
@@ -2337,8 +2273,8 @@ void CombinerHelper::applyCombineShlOfExtend(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineMergeUnmerge(MachineInstr& MI,
-    Register& MatchInfo) const {
+bool CombinerHelper::matchCombineMergeUnmerge(MachineInstr& MI, Register& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GMerge& Merge = cast<GMerge>(MI);
     SmallVector<Register, 16> MergedValues;
     for (unsigned I = 0; I < Merge.getNumSources(); ++I) {
@@ -2347,40 +2283,39 @@ bool CombinerHelper::matchCombineMergeUnmerge(MachineInstr& MI,
 
     auto* Unmerge = getOpcodeDef<GUnmerge>(MergedValues[0], MRI);
     if (!Unmerge || Unmerge->getNumDefs() != Merge.getNumSources()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     for (unsigned I = 0; I < MergedValues.size(); ++I) {
         if (MergedValues[I] != Unmerge->getReg(I)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
 
     MatchInfo = Unmerge->getSourceReg();
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-static Register peekThroughBitcast(Register Reg,
-    const MachineRegisterInfo& MRI) {
+static Register peekThroughBitcast(Register Reg, const MachineRegisterInfo& MRI) {
     while (nico::mi_match_wrapper(Reg, MRI, m_GBitcast(m_Reg(Reg))))
         ;
 
     return Reg;
 }
 
-bool CombinerHelper::matchCombineUnmergeMergeToPlainValues(
-    MachineInstr& MI, SmallVectorImpl<Register>& Operands) const {
+bool CombinerHelper::matchCombineUnmergeMergeToPlainValues(MachineInstr& MI, SmallVectorImpl<Register>& Operands) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_UNMERGE_VALUES && "Expected an unmerge");
     auto& Unmerge = cast<GUnmerge>(MI);
     Register SrcReg = peekThroughBitcast(Unmerge.getSourceReg(), MRI);
 
     auto* SrcInstr = getOpcodeDef<GMergeLikeInstr>(SrcReg, MRI);
     if (!SrcInstr) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2389,7 +2324,7 @@ bool CombinerHelper::matchCombineUnmergeMergeToPlainValues(
     LLT Dst0Ty = MRI.getType(Unmerge.getReg(0));
     bool SameSize = Dst0Ty.getSizeInBits() == SrcMergeTy.getSizeInBits();
     if (SrcMergeTy != Dst0Ty && !SameSize) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // They are the same now (modulo a bitcast).
@@ -2398,12 +2333,11 @@ bool CombinerHelper::matchCombineUnmergeMergeToPlainValues(
         Operands.push_back(SrcInstr->getSourceReg(Idx));
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineUnmergeMergeToPlainValues(
-    MachineInstr& MI, SmallVectorImpl<Register>& Operands) const {
+void CombinerHelper::applyCombineUnmergeMergeToPlainValues(MachineInstr& MI, SmallVectorImpl<Register>& Operands) const {
     assert(MI.getOpcode() == TargetOpcode::G_UNMERGE_VALUES && "Expected an unmerge");
     assert((MI.getNumOperands() - 1 == Operands.size()) && "Not enough operands to replace all defs");
     unsigned NumElems = MI.getNumOperands() - 1;
@@ -2432,20 +2366,18 @@ void CombinerHelper::applyCombineUnmergeMergeToPlainValues(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineUnmergeConstant(
-    MachineInstr& MI, SmallVectorImpl<APInt>& Csts) const {
+bool CombinerHelper::matchCombineUnmergeConstant(MachineInstr& MI, SmallVectorImpl<APInt>& Csts) const {
+	NICO_MARKER_LOGGING_START;
     unsigned SrcIdx = MI.getNumOperands() - 1;
     Register SrcReg = MI.getOperand(SrcIdx).getReg();
     MachineInstr* SrcInstr = MRI.getVRegDef(SrcReg);
     if (SrcInstr->getOpcode() != TargetOpcode::G_CONSTANT && SrcInstr->getOpcode() != TargetOpcode::G_FCONSTANT) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Break down the big constant in smaller ones.
     const MachineOperand& CstVal = SrcInstr->getOperand(1);
-    APInt Val = SrcInstr->getOpcode() == TargetOpcode::G_CONSTANT
-        ? CstVal.getCImm()->getValue()
-        : CstVal.getFPImm()->getValueAPF().bitcastToAPInt();
+    APInt Val = SrcInstr->getOpcode() == TargetOpcode::G_CONSTANT ? CstVal.getCImm()->getValue() : CstVal.getFPImm()->getValueAPF().bitcastToAPInt();
 
     LLT Dst0Ty = MRI.getType(MI.getOperand(0).getReg());
     unsigned ShiftAmt = Dst0Ty.getSizeInBits();
@@ -2455,12 +2387,11 @@ bool CombinerHelper::matchCombineUnmergeConstant(
         Val = Val.lshr(ShiftAmt);
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineUnmergeConstant(
-    MachineInstr& MI, SmallVectorImpl<APInt>& Csts) const {
+void CombinerHelper::applyCombineUnmergeConstant(MachineInstr& MI, SmallVectorImpl<APInt>& Csts) const {
     assert(MI.getOpcode() == TargetOpcode::G_UNMERGE_VALUES && "Expected an unmerge");
     assert((MI.getNumOperands() - 1 == Csts.size()) && "Not enough operands to replace all defs");
     unsigned NumElems = MI.getNumOperands() - 1;
@@ -2472,9 +2403,8 @@ void CombinerHelper::applyCombineUnmergeConstant(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineUnmergeUndef(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineUnmergeUndef(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     unsigned SrcIdx = MI.getNumOperands() - 1;
     Register SrcReg = MI.getOperand(SrcIdx).getReg();
     MatchInfo = [&MI](MachineIRBuilder& B) {
@@ -2486,34 +2416,33 @@ bool CombinerHelper::matchCombineUnmergeUndef(
     };
     if (isa<GImplicitDef>(MRI.getVRegDef(SrcReg))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineUnmergeWithDeadLanesToTrunc(
-    MachineInstr& MI) const {
+bool CombinerHelper::matchCombineUnmergeWithDeadLanesToTrunc(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_UNMERGE_VALUES && "Expected an unmerge");
     if (MRI.getType(MI.getOperand(0).getReg()).isVector() || MRI.getType(MI.getOperand(MI.getNumDefs()).getReg()).isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Check that all the lanes are dead except the first one.
     for (unsigned Idx = 1, EndIdx = MI.getNumDefs(); Idx != EndIdx; ++Idx) {
         if (!MRI.use_nodbg_empty(MI.getOperand(Idx).getReg())) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineUnmergeWithDeadLanesToTrunc(
-    MachineInstr& MI) const {
+void CombinerHelper::applyCombineUnmergeWithDeadLanesToTrunc(MachineInstr& MI) const {
     Register SrcReg = MI.getOperand(MI.getNumDefs()).getReg();
     Register Dst0Reg = MI.getOperand(0).getReg();
     Builder.buildTrunc(Dst0Reg, SrcReg);
@@ -2521,6 +2450,7 @@ void CombinerHelper::applyCombineUnmergeWithDeadLanesToTrunc(
 }
 
 bool CombinerHelper::matchCombineUnmergeZExtToZExt(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_UNMERGE_VALUES && "Expected an unmerge");
     Register Dst0Reg = MI.getOperand(0).getReg();
     LLT Dst0Ty = MRI.getType(Dst0Reg);
@@ -2528,19 +2458,19 @@ bool CombinerHelper::matchCombineUnmergeZExtToZExt(MachineInstr& MI) const {
     // affect all destinations. Therefore we won't be able
     // to simplify the unmerge to just the first definition.
     if (Dst0Ty.isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     Register SrcReg = MI.getOperand(MI.getNumDefs()).getReg();
     LLT SrcTy = MRI.getType(SrcReg);
     if (SrcTy.isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     Register ZExtSrcReg;
     if (!nico::mi_match_wrapper(SrcReg, MRI, m_GZExt(m_Reg(ZExtSrcReg)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2550,10 +2480,10 @@ bool CombinerHelper::matchCombineUnmergeZExtToZExt(MachineInstr& MI) const {
     LLT ZExtSrcTy = MRI.getType(ZExtSrcReg);
     if (ZExtSrcTy.getSizeInBits() <= Dst0Ty.getSizeInBits()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -2586,42 +2516,40 @@ void CombinerHelper::applyCombineUnmergeZExtToZExt(MachineInstr& MI) const {
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineShiftToUnmerge(MachineInstr& MI,
-    unsigned TargetShiftSize,
-    unsigned& ShiftVal) const {
+bool CombinerHelper::matchCombineShiftToUnmerge(MachineInstr& MI, unsigned TargetShiftSize, unsigned& ShiftVal) const {
+	NICO_MARKER_LOGGING_START;
     assert((MI.getOpcode() == TargetOpcode::G_SHL || MI.getOpcode() == TargetOpcode::G_LSHR || MI.getOpcode() == TargetOpcode::G_ASHR) && "Expected a shift");
 
     LLT Ty = MRI.getType(MI.getOperand(0).getReg());
     if (Ty.isVector()) { // TODO:
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Don't narrow further than the requested size.
     unsigned Size = Ty.getSizeInBits();
     if (Size <= TargetShiftSize) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     auto MaybeImmVal = getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(), MRI);
     if (!MaybeImmVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     ShiftVal = MaybeImmVal->Value.getSExtValue();
     if (ShiftVal >= Size / 2 && ShiftVal < Size) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineShiftToUnmerge(
-    MachineInstr& MI, const unsigned& ShiftVal) const {
+void CombinerHelper::applyCombineShiftToUnmerge(MachineInstr& MI, const unsigned& ShiftVal) const {
     Register DstReg = MI.getOperand(0).getReg();
     Register SrcReg = MI.getOperand(1).getReg();
     LLT Ty = MRI.getType(SrcReg);
@@ -2643,9 +2571,7 @@ void CombinerHelper::applyCombineShiftToUnmerge(
         //   dst = G_MERGE_VALUES (G_LSHR hi, C - 32), 0
 
         if (NarrowShiftAmt != 0) {
-            Narrowed = Builder.buildLShr(HalfTy, Narrowed,
-                                  Builder.buildConstant(HalfTy, NarrowShiftAmt))
-                           .getReg(0);
+            Narrowed = Builder.buildLShr(HalfTy, Narrowed, Builder.buildConstant(HalfTy, NarrowShiftAmt)).getReg(0);
         }
 
         auto Zero = Builder.buildConstant(HalfTy, 0);
@@ -2657,18 +2583,14 @@ void CombinerHelper::applyCombineShiftToUnmerge(
         //   lo, hi = G_UNMERGE_VALUES x
         //   dst = G_MERGE_VALUES 0, (G_SHL hi, C - 32)
         if (NarrowShiftAmt != 0) {
-            Narrowed = Builder.buildShl(HalfTy, Narrowed,
-                                  Builder.buildConstant(HalfTy, NarrowShiftAmt))
-                           .getReg(0);
+            Narrowed = Builder.buildShl(HalfTy, Narrowed, Builder.buildConstant(HalfTy, NarrowShiftAmt)).getReg(0);
         }
 
         auto Zero = Builder.buildConstant(HalfTy, 0);
         Builder.buildMergeLikeInstr(DstReg, {Zero, Narrowed});
     } else {
         assert(MI.getOpcode() == TargetOpcode::G_ASHR);
-        auto Hi = Builder.buildAShr(
-            HalfTy, Unmerge.getReg(1),
-            Builder.buildConstant(HalfTy, HalfSize - 1));
+        auto Hi = Builder.buildAShr(HalfTy, Unmerge.getReg(1), Builder.buildConstant(HalfTy, HalfSize - 1));
 
         if (ShiftVal == HalfSize) {
             // (G_ASHR i64:x, 32) ->
@@ -2681,9 +2603,7 @@ void CombinerHelper::applyCombineShiftToUnmerge(
             //   G_MERGE_VALUES %narrowed, %narrowed
             Builder.buildMergeLikeInstr(DstReg, {Hi, Hi});
         } else {
-            auto Lo = Builder.buildAShr(
-                HalfTy, Unmerge.getReg(1),
-                Builder.buildConstant(HalfTy, ShiftVal - HalfSize));
+            auto Lo = Builder.buildAShr(HalfTy, Unmerge.getReg(1), Builder.buildConstant(HalfTy, ShiftVal - HalfSize));
 
             // (G_ASHR i64:x, C) ->, for C >= 32
             //   G_MERGE_VALUES (G_ASHR hi_32(x), C - 32), (G_ASHR hi_32(x), 31)
@@ -2694,8 +2614,7 @@ void CombinerHelper::applyCombineShiftToUnmerge(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::tryCombineShiftToUnmerge(
-    MachineInstr& MI, unsigned TargetShiftAmount) const {
+bool CombinerHelper::tryCombineShiftToUnmerge(MachineInstr& MI, unsigned TargetShiftAmount) const {
     unsigned ShiftAmt;
     if (matchCombineShiftToUnmerge(MI, TargetShiftAmount, ShiftAmt)) {
         applyCombineShiftToUnmerge(MI, ShiftAmt);
@@ -2705,39 +2624,37 @@ bool CombinerHelper::tryCombineShiftToUnmerge(
     return false;
 }
 
-bool CombinerHelper::matchCombineI2PToP2I(MachineInstr& MI,
-    Register& Reg) const {
+bool CombinerHelper::matchCombineI2PToP2I(MachineInstr& MI, Register& Reg) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_INTTOPTR && "Expected a G_INTTOPTR");
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
     Register SrcReg = MI.getOperand(1).getReg();
     if (nico::mi_match_wrapper(SrcReg, MRI, m_GPtrToInt(m_all_of(m_SpecificType(DstTy), m_Reg(Reg))))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineI2PToP2I(MachineInstr& MI,
-    Register& Reg) const {
+void CombinerHelper::applyCombineI2PToP2I(MachineInstr& MI, Register& Reg) const {
     assert(MI.getOpcode() == TargetOpcode::G_INTTOPTR && "Expected a G_INTTOPTR");
     Register DstReg = MI.getOperand(0).getReg();
     Builder.buildCopy(DstReg, Reg);
     MI.eraseFromParent();
 }
 
-void CombinerHelper::applyCombineP2IToI2P(MachineInstr& MI,
-    Register& Reg) const {
+void CombinerHelper::applyCombineP2IToI2P(MachineInstr& MI, Register& Reg) const {
     assert(MI.getOpcode() == TargetOpcode::G_PTRTOINT && "Expected a G_PTRTOINT");
     Register DstReg = MI.getOperand(0).getReg();
     Builder.buildZExtOrTrunc(DstReg, Reg);
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineAddP2IToPtrAdd(
-    MachineInstr& MI, std::pair<Register, bool>& PtrReg) const {
+bool CombinerHelper::matchCombineAddP2IToPtrAdd(MachineInstr& MI, std::pair<Register, bool>& PtrReg) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ADD);
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -2753,19 +2670,18 @@ bool CombinerHelper::matchCombineAddP2IToPtrAdd(
             LLT PtrTy = MRI.getType(PtrReg.first);
             if (PtrTy.getScalarSizeInBits() == IntTy.getScalarSizeInBits()) {
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
         }
 
         PtrReg.second = true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineAddP2IToPtrAdd(
-    MachineInstr& MI, std::pair<Register, bool>& PtrReg) const {
+void CombinerHelper::applyCombineAddP2IToPtrAdd(MachineInstr& MI, std::pair<Register, bool>& PtrReg) const {
     Register Dst = MI.getOperand(0).getReg();
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -2783,8 +2699,8 @@ void CombinerHelper::applyCombineAddP2IToPtrAdd(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineConstPtrAddToI2P(MachineInstr& MI,
-    APInt& NewCst) const {
+bool CombinerHelper::matchCombineConstPtrAddToI2P(MachineInstr& MI, APInt& NewCst) const {
+	NICO_MARKER_LOGGING_START;
     auto& PtrAdd = cast<GPtrAdd>(MI);
     Register LHS = PtrAdd.getBaseReg();
     Register RHS = PtrAdd.getOffsetReg();
@@ -2798,16 +2714,15 @@ bool CombinerHelper::matchCombineConstPtrAddToI2P(MachineInstr& MI,
             NewCst = Cst.zextOrTrunc(DstTy.getSizeInBits());
             NewCst += RHSCst->sextOrTrunc(DstTy.getSizeInBits());
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineConstPtrAddToI2P(MachineInstr& MI,
-    APInt& NewCst) const {
+void CombinerHelper::applyCombineConstPtrAddToI2P(MachineInstr& MI, APInt& NewCst) const {
     auto& PtrAdd = cast<GPtrAdd>(MI);
     Register Dst = PtrAdd.getReg(0);
 
@@ -2815,8 +2730,8 @@ void CombinerHelper::applyCombineConstPtrAddToI2P(MachineInstr& MI,
     PtrAdd.eraseFromParent();
 }
 
-bool CombinerHelper::matchCombineAnyExtTrunc(MachineInstr& MI,
-    Register& Reg) const {
+bool CombinerHelper::matchCombineAnyExtTrunc(MachineInstr& MI, Register& Reg) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ANYEXT && "Expected a G_ANYEXT");
     Register DstReg = MI.getOperand(0).getReg();
     Register SrcReg = MI.getOperand(1).getReg();
@@ -2827,30 +2742,29 @@ bool CombinerHelper::matchCombineAnyExtTrunc(MachineInstr& MI,
     LLT DstTy = MRI.getType(DstReg);
     if (nico::mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineZextTrunc(MachineInstr& MI,
-    Register& Reg) const {
+bool CombinerHelper::matchCombineZextTrunc(MachineInstr& MI, Register& Reg) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ZEXT && "Expected a G_ZEXT");
     Register DstReg = MI.getOperand(0).getReg();
     Register SrcReg = MI.getOperand(1).getReg();
     LLT DstTy = MRI.getType(DstReg);
-    if (nico::mi_match_wrapper(SrcReg, MRI,
-            m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
+    if (nico::mi_match_wrapper(SrcReg, MRI, m_GTrunc(m_all_of(m_Reg(Reg), m_SpecificType(DstTy))))) {
         unsigned DstSize = DstTy.getScalarSizeInBits();
         unsigned SrcSize = MRI.getType(SrcReg).getScalarSizeInBits();
         if (KB->getKnownBits(Reg).countMinLeadingZeros() >= DstSize - SrcSize) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -2872,14 +2786,14 @@ static LLT getMidVTForTruncRightShiftCombine(LLT ShiftTy, LLT TruncTy) {
     return ShiftTy;
 }
 
-bool CombinerHelper::matchCombineTruncOfShift(
-    MachineInstr& MI, std::pair<MachineInstr*, LLT>& MatchInfo) const {
+bool CombinerHelper::matchCombineTruncOfShift(MachineInstr& MI, std::pair<MachineInstr*, LLT>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_TRUNC && "Expected a G_TRUNC");
     Register DstReg = MI.getOperand(0).getReg();
     Register SrcReg = MI.getOperand(1).getReg();
 
     if (!MRI.hasOneNonDBGUse(SrcReg)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -2892,7 +2806,7 @@ bool CombinerHelper::matchCombineTruncOfShift(
     LLT NewShiftTy;
     switch (SrcMI->getOpcode()) {
         default:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         case TargetOpcode::G_SHL: {
             NewShiftTy = DstTy;
@@ -2900,7 +2814,7 @@ bool CombinerHelper::matchCombineTruncOfShift(
             // Make sure new shift amount is legal.
             KnownBits Known = KB->getKnownBits(SrcMI->getOperand(2).getReg());
             if (Known.getMaxValue().uge(NewShiftTy.getScalarSizeInBits())) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             break;
@@ -2914,21 +2828,21 @@ bool CombinerHelper::matchCombineTruncOfShift(
             // TODO: Fix truncstore combine to handle (trunc(lshr (trunc x), k)).
             for (auto& User : MRI.use_instructions(DstReg)) {
                 if (User.getOpcode() == TargetOpcode::G_STORE) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
             }
 
             NewShiftTy = getMidVTForTruncRightShiftCombine(SrcTy, DstTy);
             if (NewShiftTy == SrcTy) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
 
             // Make sure we won't lose information by truncating the high bits.
             KnownBits Known = KB->getKnownBits(SrcMI->getOperand(2).getReg());
             if (Known.getMaxValue().ugt(NewShiftTy.getScalarSizeInBits() - DstTy.getScalarSizeInBits())) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             break;
@@ -2936,18 +2850,17 @@ bool CombinerHelper::matchCombineTruncOfShift(
     }
 
     if (!isLegalOrBeforeLegalizer({SrcMI->getOpcode(), {NewShiftTy, TL.getPreferredShiftAmountTy(NewShiftTy)}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MatchInfo = std::make_pair(SrcMI, NewShiftTy);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyCombineTruncOfShift(
-    MachineInstr& MI, std::pair<MachineInstr*, LLT>& MatchInfo) const {
+void CombinerHelper::applyCombineTruncOfShift(MachineInstr& MI, std::pair<MachineInstr*, LLT>& MatchInfo) const {
     MachineInstr* ShiftMI = MatchInfo.first;
     LLT NewShiftTy = MatchInfo.second;
 
@@ -2958,9 +2871,7 @@ void CombinerHelper::applyCombineTruncOfShift(
     Register ShiftSrc = ShiftMI->getOperand(1).getReg();
     ShiftSrc = Builder.buildTrunc(NewShiftTy, ShiftSrc).getReg(0);
 
-    Register NewShift = Builder
-                            .buildInstr(ShiftMI->getOpcode(), {NewShiftTy}, {ShiftSrc, ShiftAmt})
-                            .getReg(0);
+    Register NewShift = Builder.buildInstr(ShiftMI->getOpcode(), {NewShiftTy}, {ShiftSrc, ShiftAmt}).getReg(0);
 
     if (NewShiftTy == DstTy) {
         replaceRegWith(MRI, Dst, NewShift);
@@ -2972,119 +2883,118 @@ void CombinerHelper::applyCombineTruncOfShift(
 }
 
 bool CombinerHelper::matchAnyExplicitUseIsUndef(MachineInstr& MI) const {
-    if (any_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
-            return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
-        })) {
+	NICO_MARKER_LOGGING_START;
+    if (any_of(MI.explicit_uses(), [this](const MachineOperand& MO) { return MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI); })) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchAllExplicitUsesAreUndef(MachineInstr& MI) const {
-    if (all_of(MI.explicit_uses(), [this](const MachineOperand& MO) {
-            return !MO.isReg() || getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI);
-        })) {
+	NICO_MARKER_LOGGING_START;
+    if (all_of(MI.explicit_uses(), [this](const MachineOperand& MO) { return !MO.isReg() || getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI); })) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchUndefShuffleVectorMask(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR);
     ArrayRef<int> Mask = MI.getOperand(3).getShuffleMask();
     if (all_of(Mask, [](int Elt) { return Elt < 0; })) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchUndefStore(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_STORE);
-    if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(0).getReg(),
-            MRI)) {
+    if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(0).getReg(), MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchUndefSelectCmp(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
-    if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(1).getReg(),
-            MRI)) {
+    if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MI.getOperand(1).getReg(), MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchInsertExtractVecEltOutOfBounds(
-    MachineInstr& MI) const {
+bool CombinerHelper::matchInsertExtractVecEltOutOfBounds(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert((MI.getOpcode() == TargetOpcode::G_INSERT_VECTOR_ELT || MI.getOpcode() == TargetOpcode::G_EXTRACT_VECTOR_ELT) && "Expected an insert/extract element op");
     LLT VecTy = MRI.getType(MI.getOperand(1).getReg());
     if (VecTy.isScalableVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     unsigned IdxIdx = MI.getOpcode() == TargetOpcode::G_EXTRACT_VECTOR_ELT ? 2 : 3;
     auto Idx = getIConstantVRegVal(MI.getOperand(IdxIdx).getReg(), MRI);
     if (!Idx) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (Idx->getZExtValue() >= VecTy.getNumElements()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchConstantSelectCmp(MachineInstr& MI,
-    unsigned& OpIdx) const {
+bool CombinerHelper::matchConstantSelectCmp(MachineInstr& MI, unsigned& OpIdx) const {
+	NICO_MARKER_LOGGING_START;
     GSelect& SelMI = cast<GSelect>(MI);
     auto Cst = isConstantOrConstantSplatVector(*MRI.getVRegDef(SelMI.getCondReg()), MRI);
     if (!Cst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     OpIdx = Cst->isZero() ? 3 : 2;
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 void CombinerHelper::eraseInst(MachineInstr& MI) const { MI.eraseFromParent(); }
 
-bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
-    const MachineOperand& MOP2) const {
+bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1, const MachineOperand& MOP2) const {
+	NICO_MARKER_LOGGING_START;
     if (!MOP1.isReg() || !MOP2.isReg()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto InstAndDef1 = getDefSrcRegIgnoringCopies(MOP1.getReg(), MRI);
     if (!InstAndDef1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto InstAndDef2 = getDefSrcRegIgnoringCopies(MOP2.getReg(), MRI);
     if (!InstAndDef2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MachineInstr* I1 = InstAndDef1->MI;
@@ -3099,10 +3009,10 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
     if (I1 == I2) {
         if (MOP1.getReg() == MOP2.getReg()) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3124,7 +3034,7 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
     // are different (unless we have something which is guaranteed to not
     // change.)
     if (I1->mayLoadOrStore() && !I1->isDereferenceableInvariantLoad()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3134,12 +3044,12 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         GLoadStore* LS1 = dyn_cast<GLoadStore>(I1);
         GLoadStore* LS2 = dyn_cast<GLoadStore>(I2);
         if (!LS1 || !LS2) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
         if (!I2->isDereferenceableInvariantLoad() || (LS1->getMemSizeInBits() != LS2->getMemSizeInBits())) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -3154,9 +3064,7 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
     // %b = COPY $physreg
     //
     // These copies are not equivalent.
-    if (any_of(I1->uses(), [](const MachineOperand& MO) {
-            return MO.isReg() && MO.getReg().isPhysical();
-        })) {
+    if (any_of(I1->uses(), [](const MachineOperand& MO) { return MO.isReg() && MO.getReg().isPhysical(); })) {
         // Check if we have a case like this:
         //
         // %a = COPY $physreg
@@ -3167,10 +3075,10 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         // have come from the same COPY.
         if (I1->isIdenticalTo(*I2)) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3188,56 +3096,55 @@ bool CombinerHelper::matchEqualDefs(const MachineOperand& MOP1,
         // %1 and %6 are same, %1 and %7 are not the same value.
         if (I1->findRegisterDefOperandIdx(InstAndDef1->Reg, /*TRI=*/nullptr) == I2->findRegisterDefOperandIdx(InstAndDef2->Reg, /*TRI=*/nullptr)) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchConstantOp(const MachineOperand& MOP,
-    int64_t C) const {
+bool CombinerHelper::matchConstantOp(const MachineOperand& MOP, int64_t C) const {
+	NICO_MARKER_LOGGING_START;
     if (!MOP.isReg()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto* MI = MRI.getVRegDef(MOP.getReg());
     auto MaybeCst = isConstantOrConstantSplatVector(*MI, MRI);
     if (MaybeCst && MaybeCst->getBitWidth() <= 64 && MaybeCst->getSExtValue() == C) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchConstantFPOp(const MachineOperand& MOP,
-    double C) const {
+bool CombinerHelper::matchConstantFPOp(const MachineOperand& MOP, double C) const {
+	NICO_MARKER_LOGGING_START;
     if (!MOP.isReg()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     std::optional<FPValueAndVReg> MaybeCst;
     if (!nico::mi_match_wrapper(MOP.getReg(), MRI, m_GFCstOrSplat(MaybeCst))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (MaybeCst->Value.isExactlyValue(C)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::replaceSingleDefInstWithOperand(MachineInstr& MI,
-    unsigned OpIdx) const {
+void CombinerHelper::replaceSingleDefInstWithOperand(MachineInstr& MI, unsigned OpIdx) const {
     assert(MI.getNumExplicitDefs() == 1 && "Expected one explicit def?");
     Register OldReg = MI.getOperand(0).getReg();
     Register Replacement = MI.getOperand(OpIdx).getReg();
@@ -3246,8 +3153,7 @@ void CombinerHelper::replaceSingleDefInstWithOperand(MachineInstr& MI,
     MI.eraseFromParent();
 }
 
-void CombinerHelper::replaceSingleDefInstWithReg(MachineInstr& MI,
-    Register Replacement) const {
+void CombinerHelper::replaceSingleDefInstWithReg(MachineInstr& MI, Register Replacement) const {
     assert(MI.getNumExplicitDefs() == 1 && "Expected one explicit def?");
     Register OldReg = MI.getOperand(0).getReg();
     assert(canReplaceReg(OldReg, Replacement, MRI) && "Cannot replace register?");
@@ -3255,25 +3161,25 @@ void CombinerHelper::replaceSingleDefInstWithReg(MachineInstr& MI,
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchConstantLargerBitWidth(MachineInstr& MI,
-    unsigned ConstIdx) const {
+bool CombinerHelper::matchConstantLargerBitWidth(MachineInstr& MI, unsigned ConstIdx) const {
+	NICO_MARKER_LOGGING_START;
     Register ConstReg = MI.getOperand(ConstIdx).getReg();
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
 
     // Get the shift amount
     auto VRegAndVal = getIConstantVRegValWithLookThrough(ConstReg, MRI);
     if (!VRegAndVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Return true of shift amount >= Bitwidth
     if (VRegAndVal->Value.uge(DstTy.getSizeInBits())) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -3288,83 +3194,80 @@ void CombinerHelper::applyFunnelShiftConstantModulo(MachineInstr& MI) const {
     assert((VRegAndVal) && "Value is not a constant");
 
     // Calculate the new Shift Amount = Old Shift Amount % BitWidth
-    APInt NewConst = VRegAndVal->Value.urem(
-        APInt(ConstTy.getSizeInBits(), DstTy.getScalarSizeInBits()));
+    APInt NewConst = VRegAndVal->Value.urem(APInt(ConstTy.getSizeInBits(), DstTy.getScalarSizeInBits()));
 
     auto NewConstInstr = Builder.buildConstant(ConstTy, NewConst.getZExtValue());
-    Builder.buildInstr(
-        MI.getOpcode(), {MI.getOperand(0)},
-        {MI.getOperand(1), MI.getOperand(2), NewConstInstr.getReg(0)});
+    Builder.buildInstr(MI.getOpcode(), {MI.getOperand(0)}, {MI.getOperand(1), MI.getOperand(2), NewConstInstr.getReg(0)});
 
     MI.eraseFromParent();
 }
 
 bool CombinerHelper::matchSelectSameVal(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
     // Match (cond ? x : x)
     if (matchEqualDefs(MI.getOperand(2), MI.getOperand(3)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(2).getReg(), MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchBinOpSameVal(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     if (matchEqualDefs(MI.getOperand(1), MI.getOperand(2)) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(1).getReg(), MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchOperandIsZero(MachineInstr& MI,
-    unsigned OpIdx) const {
+bool CombinerHelper::matchOperandIsZero(MachineInstr& MI, unsigned OpIdx) const {
+	NICO_MARKER_LOGGING_START;
     if (matchConstantOp(MI.getOperand(OpIdx), 0) && canReplaceReg(MI.getOperand(0).getReg(), MI.getOperand(OpIdx).getReg(), MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchOperandIsUndef(MachineInstr& MI,
-    unsigned OpIdx) const {
+bool CombinerHelper::matchOperandIsUndef(MachineInstr& MI, unsigned OpIdx) const {
+	NICO_MARKER_LOGGING_START;
     MachineOperand& MO = MI.getOperand(OpIdx);
     if (MO.isReg() && getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, MO.getReg(), MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchOperandIsKnownToBeAPowerOfTwo(MachineInstr& MI,
-    unsigned OpIdx) const {
+bool CombinerHelper::matchOperandIsKnownToBeAPowerOfTwo(MachineInstr& MI, unsigned OpIdx) const {
+	NICO_MARKER_LOGGING_START;
     MachineOperand& MO = MI.getOperand(OpIdx);
     if (isKnownToBeAPowerOfTwo(MO.getReg(), MRI, KB)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::replaceInstWithFConstant(MachineInstr& MI,
-    double C) const {
+void CombinerHelper::replaceInstWithFConstant(MachineInstr& MI, double C) const {
     assert(MI.getNumDefs() == 1 && "Expected only one def?");
     Builder.buildFConstant(MI.getOperand(0), C);
     MI.eraseFromParent();
 }
 
-void CombinerHelper::replaceInstWithConstant(MachineInstr& MI,
-    int64_t C) const {
+void CombinerHelper::replaceInstWithConstant(MachineInstr& MI, int64_t C) const {
     assert(MI.getNumDefs() == 1 && "Expected only one def?");
     Builder.buildConstant(MI.getOperand(0), C);
     MI.eraseFromParent();
@@ -3376,8 +3279,7 @@ void CombinerHelper::replaceInstWithConstant(MachineInstr& MI, APInt C) const {
     MI.eraseFromParent();
 }
 
-void CombinerHelper::replaceInstWithFConstant(MachineInstr& MI,
-    ConstantFP* CFP) const {
+void CombinerHelper::replaceInstWithFConstant(MachineInstr& MI, ConstantFP* CFP) const {
     assert(MI.getNumDefs() == 1 && "Expected only one def?");
     Builder.buildFConstant(MI.getOperand(0), CFP->getValueAPF());
     MI.eraseFromParent();
@@ -3389,8 +3291,8 @@ void CombinerHelper::replaceInstWithUndef(MachineInstr& MI) const {
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchSimplifyAddToSub(
-    MachineInstr& MI, std::tuple<Register, Register>& MatchInfo) const {
+bool CombinerHelper::matchSimplifyAddToSub(MachineInstr& MI, std::tuple<Register, Register>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
     Register& NewLHS = std::get<0>(MatchInfo);
@@ -3409,22 +3311,22 @@ bool CombinerHelper::matchSimplifyAddToSub(
 
     if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineInsertVecElts(
-    MachineInstr& MI, SmallVectorImpl<Register>& MatchInfo) const {
+bool CombinerHelper::matchCombineInsertVecElts(MachineInstr& MI, SmallVectorImpl<Register>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_INSERT_VECTOR_ELT && "Invalid opcode");
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
     assert(DstTy.isVector() && "Invalid G_INSERT_VECTOR_ELT?");
 
     if (DstTy.isScalableVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3432,7 +3334,7 @@ bool CombinerHelper::matchCombineInsertVecElts(
     // If this MI is part of a sequence of insert_vec_elts, then
     // don't do the combine in the middle of the sequence.
     if (MRI.hasOneUse(DstReg) && MRI.use_instr_begin(DstReg)->getOpcode() == TargetOpcode::G_INSERT_VECTOR_ELT) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MachineInstr* CurrInst = &MI;
@@ -3440,11 +3342,9 @@ bool CombinerHelper::matchCombineInsertVecElts(
     int64_t IntImm;
     Register TmpReg;
     MatchInfo.resize(NumElts);
-    while (nico::mi_match_wrapper(
-        CurrInst->getOperand(0).getReg(), MRI,
-        m_GInsertVecElt(m_MInstr(TmpInst), m_Reg(TmpReg), m_ICst(IntImm)))) {
+    while (nico::mi_match_wrapper(CurrInst->getOperand(0).getReg(), MRI, m_GInsertVecElt(m_MInstr(TmpInst), m_Reg(TmpReg), m_ICst(IntImm)))) {
         if (IntImm >= NumElts || IntImm < 0) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         if (!MatchInfo[IntImm]) {
@@ -3454,7 +3354,7 @@ bool CombinerHelper::matchCombineInsertVecElts(
     }
     // Variable index.
     if (CurrInst->getOpcode() == TargetOpcode::G_INSERT_VECTOR_ELT) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (TmpInst->getOpcode() == TargetOpcode::G_BUILD_VECTOR) {
@@ -3464,22 +3364,21 @@ bool CombinerHelper::matchCombineInsertVecElts(
             }
         }
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
     // If we didn't end in a G_IMPLICIT_DEF and the source is not fully
     // overwritten, bail out.
     if (TmpInst->getOpcode() == TargetOpcode::G_IMPLICIT_DEF || all_of(MatchInfo, [](Register Reg) { return !!Reg; })) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyCombineInsertVecElts(
-    MachineInstr& MI, SmallVectorImpl<Register>& MatchInfo) const {
+void CombinerHelper::applyCombineInsertVecElts(MachineInstr& MI, SmallVectorImpl<Register>& MatchInfo) const {
     Register UndefReg;
     auto GetUndef = [&]() {
         if (UndefReg) {
@@ -3498,16 +3397,15 @@ void CombinerHelper::applyCombineInsertVecElts(
     MI.eraseFromParent();
 }
 
-void CombinerHelper::applySimplifyAddToSub(
-    MachineInstr& MI, std::tuple<Register, Register>& MatchInfo) const {
+void CombinerHelper::applySimplifyAddToSub(MachineInstr& MI, std::tuple<Register, Register>& MatchInfo) const {
     Register SubLHS, SubRHS;
     std::tie(SubLHS, SubRHS) = MatchInfo;
     Builder.buildSub(MI.getOperand(0).getReg(), SubLHS, SubRHS);
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
-    MachineInstr& MI, InstructionStepsMatchInfo& MatchInfo) const {
+bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(MachineInstr& MI, InstructionStepsMatchInfo& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Matches: logic (hand x, ...), (hand y, ...) -> hand (logic x, y), ...
     //
     // Creates the new hand + logic instruction (but does not insert them.)
@@ -3523,7 +3421,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
 
     // Don't recompute anything.
     if (!MRI.hasOneNonDBGUse(LHSReg) || !MRI.hasOneNonDBGUse(RHSReg)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3531,16 +3429,16 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     MachineInstr* LeftHandInst = getDefIgnoringCopies(LHSReg, MRI);
     MachineInstr* RightHandInst = getDefIgnoringCopies(RHSReg, MRI);
     if (!LeftHandInst || !RightHandInst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     unsigned HandOpcode = LeftHandInst->getOpcode();
     if (HandOpcode != RightHandInst->getOpcode()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (LeftHandInst->getNumOperands() < 2 || !LeftHandInst->getOperand(1).isReg() || RightHandInst->getNumOperands() < 2 || !RightHandInst->getOperand(1).isReg()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3551,7 +3449,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     LLT XTy = MRI.getType(X);
     LLT YTy = MRI.getType(Y);
     if (!XTy.isValid() || XTy != YTy) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3559,7 +3457,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     Register ExtraHandOpSrcReg;
     switch (HandOpcode) {
         default:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         case TargetOpcode::G_ANYEXT:
         case TargetOpcode::G_SEXT:
@@ -3578,7 +3476,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
             // Be extra careful sinking truncate. If it's free, there's no benefit in
             // widening a binop.
             if (TLI.isZExtFree(DstTy, XTy, Ctx) && TLI.isTruncateFree(XTy, DstTy, Ctx)) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             break;
@@ -3590,7 +3488,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
             // Match: logic (binop x, z), (binop y, z) -> binop (logic x, y), z
             MachineOperand& ZOp = LeftHandInst->getOperand(2);
             if (!matchEqualDefs(ZOp, RightHandInst->getOperand(2))) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             ExtraHandOpSrcReg = ZOp.getReg();
@@ -3599,7 +3497,7 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     }
 
     if (!isLegalOrBeforeLegalizer({LogicOpcode, {XTy, YTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3607,30 +3505,24 @@ bool CombinerHelper::matchHoistLogicOpWithSameOpcodeHands(
     //
     // Steps to build (logic x, y)
     auto NewLogicDst = MRI.createGenericVirtualRegister(XTy);
-    OperandBuildSteps LogicBuildSteps = {
-        [=](MachineInstrBuilder& MIB) { MIB.addDef(NewLogicDst); },
-        [=](MachineInstrBuilder& MIB) { MIB.addReg(X); },
-        [=](MachineInstrBuilder& MIB) { MIB.addReg(Y); }};
+    OperandBuildSteps LogicBuildSteps
+        = {[=](MachineInstrBuilder& MIB) { MIB.addDef(NewLogicDst); }, [=](MachineInstrBuilder& MIB) { MIB.addReg(X); }, [=](MachineInstrBuilder& MIB) { MIB.addReg(Y); }};
     InstructionBuildSteps LogicSteps(LogicOpcode, LogicBuildSteps);
 
     // Steps to build hand (logic x, y), ...z
-    OperandBuildSteps HandBuildSteps = {
-        [=](MachineInstrBuilder& MIB) { MIB.addDef(Dst); },
-        [=](MachineInstrBuilder& MIB) { MIB.addReg(NewLogicDst); }};
+    OperandBuildSteps HandBuildSteps = {[=](MachineInstrBuilder& MIB) { MIB.addDef(Dst); }, [=](MachineInstrBuilder& MIB) { MIB.addReg(NewLogicDst); }};
     if (ExtraHandOpSrcReg.isValid()) {
-        HandBuildSteps.push_back(
-            [=](MachineInstrBuilder& MIB) { MIB.addReg(ExtraHandOpSrcReg); });
+        HandBuildSteps.push_back([=](MachineInstrBuilder& MIB) { MIB.addReg(ExtraHandOpSrcReg); });
     }
     InstructionBuildSteps HandSteps(HandOpcode, HandBuildSteps);
 
     MatchInfo = InstructionStepsMatchInfo({LogicSteps, HandSteps});
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyBuildInstructionSteps(
-    MachineInstr& MI, InstructionStepsMatchInfo& MatchInfo) const {
+void CombinerHelper::applyBuildInstructionSteps(MachineInstr& MI, InstructionStepsMatchInfo& MatchInfo) const {
     assert(MatchInfo.InstrsToBuild.size() && "Expected at least one instr to build?");
     for (auto& InstrToBuild : MatchInfo.InstrsToBuild) {
         assert(InstrToBuild.Opcode && "Expected a valid opcode?");
@@ -3643,34 +3535,30 @@ void CombinerHelper::applyBuildInstructionSteps(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchAshrShlToSextInreg(
-    MachineInstr& MI, std::tuple<Register, int64_t>& MatchInfo) const {
+bool CombinerHelper::matchAshrShlToSextInreg(MachineInstr& MI, std::tuple<Register, int64_t>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ASHR);
     int64_t ShlCst, AshrCst;
     Register Src;
-    if (!nico::mi_match_wrapper(MI.getOperand(0).getReg(), MRI,
-            m_GAShr(m_GShl(m_Reg(Src), m_ICstOrSplat(ShlCst)),
-                m_ICstOrSplat(AshrCst)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(MI.getOperand(0).getReg(), MRI, m_GAShr(m_GShl(m_Reg(Src), m_ICstOrSplat(ShlCst)), m_ICstOrSplat(AshrCst)))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (ShlCst != AshrCst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
-    if (!isLegalOrBeforeLegalizer(
-            {TargetOpcode::G_SEXT_INREG, {MRI.getType(Src)}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SEXT_INREG, {MRI.getType(Src)}})) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MatchInfo = std::make_tuple(Src, ShlCst);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyAshShlToSextInreg(
-    MachineInstr& MI, std::tuple<Register, int64_t>& MatchInfo) const {
+void CombinerHelper::applyAshShlToSextInreg(MachineInstr& MI, std::tuple<Register, int64_t>& MatchInfo) const {
     assert(MI.getOpcode() == TargetOpcode::G_ASHR);
     Register Src;
     int64_t ShiftAmt;
@@ -3681,9 +3569,8 @@ void CombinerHelper::applyAshShlToSextInreg(
 }
 
 /// and(and(x, C1), C2) -> C1&C2 ? and(x, C1&C2) : 0
-bool CombinerHelper::matchOverlappingAnd(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchOverlappingAnd(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_AND);
 
     Register Dst = MI.getOperand(0).getReg();
@@ -3692,10 +3579,8 @@ bool CombinerHelper::matchOverlappingAnd(
     Register R;
     int64_t C1;
     int64_t C2;
-    if (!nico::mi_match_wrapper(
-            Dst, MRI,
-            m_GAnd(m_GAnd(m_Reg(R), m_ICst(C1)), m_ICst(C2)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(Dst, MRI, m_GAnd(m_GAnd(m_Reg(R), m_ICst(C1)), m_ICst(C2)))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3708,12 +3593,12 @@ bool CombinerHelper::matchOverlappingAnd(
         replaceRegWith(MRI, Dst, Zero->getOperand(0).getReg());
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
-    Register& Replacement) const {
+bool CombinerHelper::matchRedundantAnd(MachineInstr& MI, Register& Replacement) const {
+	NICO_MARKER_LOGGING_START;
     // Given
     //
     // %y:_(sN) = G_SOMETHING
@@ -3731,7 +3616,7 @@ bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
     // In this case, G_ICMP only produces a single bit, so x & 1 == x.
     assert(MI.getOpcode() == TargetOpcode::G_AND);
     if (!KB) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3744,7 +3629,7 @@ bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
     // KnownBits on the LHS.
     KnownBits RHSBits = KB->getKnownBits(RHS);
     if (RHSBits.isUnknown()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3759,7 +3644,7 @@ bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
     if (canReplaceReg(AndDst, LHS, MRI) && (LHSBits.Zero | RHSBits.One).isAllOnes()) {
         Replacement = LHS;
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -3767,15 +3652,15 @@ bool CombinerHelper::matchRedundantAnd(MachineInstr& MI,
     if (canReplaceReg(AndDst, RHS, MRI) && (LHSBits.One | RHSBits.Zero).isAllOnes()) {
         Replacement = RHS;
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchRedundantOr(MachineInstr& MI,
-    Register& Replacement) const {
+bool CombinerHelper::matchRedundantOr(MachineInstr& MI, Register& Replacement) const {
+	NICO_MARKER_LOGGING_START;
     // Given
     //
     // %y:_(sN) = G_SOMETHING
@@ -3785,8 +3670,8 @@ bool CombinerHelper::matchRedundantOr(MachineInstr& MI,
     // Eliminate the G_OR when it is known that x | y == x or x | y == y.
     assert(MI.getOpcode() == TargetOpcode::G_OR);
     if (!KB) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
-		return false;
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
+        return false;
     }
 
     Register OrDst = MI.getOperand(0).getReg();
@@ -3805,7 +3690,7 @@ bool CombinerHelper::matchRedundantOr(MachineInstr& MI,
     if (canReplaceReg(OrDst, LHS, MRI) && (LHSBits.One | RHSBits.Zero).isAllOnes()) {
         Replacement = LHS;
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -3813,25 +3698,26 @@ bool CombinerHelper::matchRedundantOr(MachineInstr& MI,
     if (canReplaceReg(OrDst, RHS, MRI) && (LHSBits.Zero | RHSBits.One).isAllOnes()) {
         Replacement = RHS;
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchRedundantSExtInReg(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     // If the input is already sign extended, just drop the extension.
     Register Src = MI.getOperand(1).getReg();
     unsigned ExtBits = MI.getOperand(2).getImm();
     unsigned TypeSize = MRI.getType(Src).getScalarSizeInBits();
     if (KB->computeNumSignBits(Src) >= (TypeSize - ExtBits + 1)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -3856,8 +3742,8 @@ static bool isConstValidTrue(const TargetLowering& TLI, unsigned ScalarSizeBits,
 // %dst(<4 x s16>) = G_TRUNC %Mid(<4 x s32>)
 //
 // Only matches sources made up of G_TRUNCs followed by G_IMPLICIT_DEFs
-bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
-    Register& MatchInfo) const {
+bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI, Register& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     auto BuildMI = cast<GBuildVector>(&MI);
     unsigned NumOperands = BuildMI->getNumSources();
     LLT DstTy = MRI.getType(BuildMI->getReg(0));
@@ -3876,13 +3762,13 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
             if (!UnmergeMI) {
                 UnmergeMI = MRI.getVRegDef(SrcMI->getOperand(1).getReg());
                 if (UnmergeMI->getOpcode() != TargetOpcode::G_UNMERGE_VALUES) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
             } else {
                 auto UnmergeSrcMI = MRI.getVRegDef(SrcMI->getOperand(1).getReg());
                 if (UnmergeMI != UnmergeSrcMI) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
             }
@@ -3891,7 +3777,7 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
         }
     }
     if (I < 2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3901,7 +3787,7 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
         auto SrcMIOpc = SrcMI->getOpcode();
 
         if (SrcMIOpc != TargetOpcode::G_IMPLICIT_DEF) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -3910,7 +3796,7 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
     MatchInfo = cast<GUnmerge>(UnmergeMI)->getSourceReg();
     LLT UnmergeSrcTy = MRI.getType(MatchInfo);
     if (!DstTy.getElementCount().isKnownMultipleOf(UnmergeSrcTy.getNumElements())) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3919,22 +3805,21 @@ bool CombinerHelper::matchUseVectorTruncate(MachineInstr& MI,
         LLT MidTy = DstTy.changeElementType(UnmergeSrcTy.getScalarType());
 
         if (DstTy.getElementCount() != UnmergeSrcTy.getElementCount() && !isLegal({TargetOpcode::G_CONCAT_VECTORS, {MidTy, UnmergeSrcTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
         if (!isLegal({TargetOpcode::G_TRUNC, {DstTy, MidTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyUseVectorTruncate(MachineInstr& MI,
-    Register& MatchInfo) const {
+void CombinerHelper::applyUseVectorTruncate(MachineInstr& MI, Register& MatchInfo) const {
     Register MidReg;
     auto BuildMI = cast<GBuildVector>(&MI);
     Register DstReg = BuildMI->getReg(0);
@@ -3961,22 +3846,21 @@ void CombinerHelper::applyUseVectorTruncate(MachineInstr& MI,
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchNotCmp(
-    MachineInstr& MI, SmallVectorImpl<Register>& RegsToNegate) const {
+bool CombinerHelper::matchNotCmp(MachineInstr& MI, SmallVectorImpl<Register>& RegsToNegate) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_XOR);
     LLT Ty = MRI.getType(MI.getOperand(0).getReg());
     const auto& TLI = *Builder.getMF().getSubtarget().getTargetLowering();
     Register XorSrc;
     Register CstReg;
     // We match xor(src, true) here.
-    if (!nico::mi_match_wrapper(MI.getOperand(0).getReg(), MRI,
-            m_GXor(m_Reg(XorSrc), m_Reg(CstReg)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(MI.getOperand(0).getReg(), MRI, m_GXor(m_Reg(XorSrc), m_Reg(CstReg)))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (!MRI.hasOneNonDBGUse(XorSrc)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -3990,7 +3874,7 @@ bool CombinerHelper::matchNotCmp(
     for (unsigned I = 0; I < RegsToNegate.size(); ++I) {
         Register Reg = RegsToNegate[I];
         if (!MRI.hasOneNonDBGUse(Reg)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         MachineInstr* Def = MRI.getVRegDef(Reg);
@@ -3998,11 +3882,11 @@ bool CombinerHelper::matchNotCmp(
             default:
                 // Don't match if the tree contains anything other than ANDs, ORs and
                 // comparisons.
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             case TargetOpcode::G_ICMP:
                 if (IsFP) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
                 IsInt = true;
@@ -4010,7 +3894,7 @@ bool CombinerHelper::matchNotCmp(
                 break;
             case TargetOpcode::G_FCMP:
                 if (IsInt) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
                 IsFP = true;
@@ -4036,30 +3920,29 @@ bool CombinerHelper::matchNotCmp(
         MachineInstr* CstDef = MRI.getVRegDef(CstReg);
         auto MaybeCst = getIConstantSplatSExtVal(*CstDef, MRI);
         if (!MaybeCst) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         if (!isConstValidTrue(TLI, Ty.getScalarSizeInBits(), *MaybeCst, true, IsFP)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     } else {
         if (!nico::mi_match_wrapper(CstReg, MRI, m_ICst(Cst))) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         if (!isConstValidTrue(TLI, Ty.getSizeInBits(), Cst, false, IsFP)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyNotCmp(
-    MachineInstr& MI, SmallVectorImpl<Register>& RegsToNegate) const {
+void CombinerHelper::applyNotCmp(MachineInstr& MI, SmallVectorImpl<Register>& RegsToNegate) const {
     for (Register Reg : RegsToNegate) {
         MachineInstr* Def = MRI.getVRegDef(Reg);
         Observer.changingInstr(*Def);
@@ -4071,8 +3954,7 @@ void CombinerHelper::applyNotCmp(
             case TargetOpcode::G_ICMP:
             case TargetOpcode::G_FCMP: {
                 MachineOperand& PredOp = Def->getOperand(1);
-                CmpInst::Predicate NewP = CmpInst::getInversePredicate(
-                    (CmpInst::Predicate)PredOp.getPredicate());
+                CmpInst::Predicate NewP = CmpInst::getInversePredicate((CmpInst::Predicate)PredOp.getPredicate());
                 PredOp.setPredicate(NewP);
                 break;
             }
@@ -4090,8 +3972,8 @@ void CombinerHelper::applyNotCmp(
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchXorOfAndWithSameReg(
-    MachineInstr& MI, std::pair<Register, Register>& MatchInfo) const {
+bool CombinerHelper::matchXorOfAndWithSameReg(MachineInstr& MI, std::pair<Register, Register>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Match (xor (and x, y), y) (or any of its commuted cases)
     assert(MI.getOpcode() == TargetOpcode::G_XOR);
     Register& X = MatchInfo.first;
@@ -4107,14 +3989,14 @@ bool CombinerHelper::matchXorOfAndWithSameReg(
     if (!nico::mi_match_wrapper(AndReg, MRI, m_GAnd(m_Reg(X), m_Reg(Y)))) {
         std::swap(AndReg, SharedReg);
         if (!nico::mi_match_wrapper(AndReg, MRI, m_GAnd(m_Reg(X), m_Reg(Y)))) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
 
     // Only do this if we'll eliminate the G_AND.
     if (!MRI.hasOneNonDBGUse(AndReg)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4125,15 +4007,14 @@ bool CombinerHelper::matchXorOfAndWithSameReg(
     }
     if (Y == SharedReg) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyXorOfAndWithSameReg(
-    MachineInstr& MI, std::pair<Register, Register>& MatchInfo) const {
+void CombinerHelper::applyXorOfAndWithSameReg(MachineInstr& MI, std::pair<Register, Register>& MatchInfo) const {
     // Fold (xor (and x, y), y) -> (and (not x), y)
     Register X, Y;
     std::tie(X, Y) = MatchInfo;
@@ -4146,13 +4027,14 @@ void CombinerHelper::applyXorOfAndWithSameReg(
 }
 
 bool CombinerHelper::matchPtrAddZero(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     auto& PtrAdd = cast<GPtrAdd>(MI);
     Register DstReg = PtrAdd.getReg(0);
     LLT Ty = MRI.getType(DstReg);
     const DataLayout& DL = Builder.getMF().getDataLayout();
 
     if (DL.isNonIntegralAddressSpace(Ty.getScalarType().getAddressSpace())) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4160,10 +4042,10 @@ bool CombinerHelper::matchPtrAddZero(MachineInstr& MI) const {
         auto ConstVal = getIConstantVRegVal(PtrAdd.getBaseReg(), MRI);
         if (ConstVal && *ConstVal == 0) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4171,10 +4053,10 @@ bool CombinerHelper::matchPtrAddZero(MachineInstr& MI) const {
     const MachineInstr* VecMI = MRI.getVRegDef(PtrAdd.getBaseReg());
     if (isBuildVectorAllZeros(*VecMI, MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");                          
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -4198,8 +4080,8 @@ void CombinerHelper::applySimplifyURemByPow2(MachineInstr& MI) const {
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
-    unsigned& SelectOpNo) const {
+bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI, unsigned& SelectOpNo) const {
+	NICO_MARKER_LOGGING_START;
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
 
@@ -4214,7 +4096,7 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
         SelectOpNo = 2;
         Select = MRI.getVRegDef(RHS);
         if (Select->getOpcode() != TargetOpcode::G_SELECT || !MRI.hasOneNonDBGUse(RHS)) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
@@ -4225,13 +4107,13 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
     if (!isConstantOrConstantVector(*SelectLHS, MRI,
             /*AllowFP*/ true,
             /*AllowOpaqueConstants*/ false)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (!isConstantOrConstantVector(*SelectRHS, MRI,
             /*AllowFP*/ true,
             /*AllowOpaqueConstants*/ false)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4240,10 +4122,11 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
     // We know that one of the operands is a select of constants. Now verify that
     // the other binary operator operand is either a constant, or we can handle a
     // variable.
-    bool CanFoldNonConst = (BinOpcode == TargetOpcode::G_AND || BinOpcode == TargetOpcode::G_OR) && (isNullOrNullSplat(*SelectLHS, MRI) || isAllOnesOrAllOnesSplat(*SelectLHS, MRI)) && (isNullOrNullSplat(*SelectRHS, MRI) || isAllOnesOrAllOnesSplat(*SelectRHS, MRI));
+    bool CanFoldNonConst = (BinOpcode == TargetOpcode::G_AND || BinOpcode == TargetOpcode::G_OR) && (isNullOrNullSplat(*SelectLHS, MRI) || isAllOnesOrAllOnesSplat(*SelectLHS, MRI))
+        && (isNullOrNullSplat(*SelectRHS, MRI) || isAllOnesOrAllOnesSplat(*SelectRHS, MRI));
     if (CanFoldNonConst) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -4251,17 +4134,16 @@ bool CombinerHelper::matchFoldBinOpIntoSelect(MachineInstr& MI,
             /*AllowFP*/ true,
             /*AllowOpaqueConstants*/ false)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 /// \p SelectOperand is the operand in binary operator \p MI that is the select
 /// to fold.
-void CombinerHelper::applyFoldBinOpIntoSelect(
-    MachineInstr& MI, const unsigned& SelectOperand) const {
+void CombinerHelper::applyFoldBinOpIntoSelect(MachineInstr& MI, const unsigned& SelectOperand) const {
     Register Dst = MI.getOperand(0).getReg();
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -4294,8 +4176,7 @@ void CombinerHelper::applyFoldBinOpIntoSelect(
     MI.eraseFromParent();
 }
 
-std::optional<SmallVector<Register, 8>>
-CombinerHelper::findCandidatesForLoadOrCombine(const MachineInstr* Root) const {
+std::optional<SmallVector<Register, 8>> CombinerHelper::findCandidatesForLoadOrCombine(const MachineInstr* Root) const {
     assert(Root->getOpcode() == TargetOpcode::G_OR && "Expected G_OR only!");
     // We want to detect if Root is part of a tree which represents a bunch
     // of loads being merged into a larger load. We'll try to recognize patterns
@@ -4369,13 +4250,11 @@ CombinerHelper::findCandidatesForLoadOrCombine(const MachineInstr* Root) const {
 /// e.g. x[i] << 24
 ///
 /// \returns The load instruction and the byte offset it is moved into.
-static std::optional<std::pair<GZExtLoad*, int64_t>>
-matchLoadAndBytePosition(Register Reg, unsigned MemSizeInBits, const MachineRegisterInfo& MRI) {
+static std::optional<std::pair<GZExtLoad*, int64_t>> matchLoadAndBytePosition(Register Reg, unsigned MemSizeInBits, const MachineRegisterInfo& MRI) {
     assert(MRI.hasOneNonDBGUse(Reg) && "Expected Reg to only have one non-debug use?");
     Register MaybeLoad;
     int64_t Shift;
-    if (!nico::mi_match_wrapper(Reg, MRI,
-            m_OneNonDBGUse(m_GShl(m_Reg(MaybeLoad), m_ICst(Shift))))) {
+    if (!nico::mi_match_wrapper(Reg, MRI, m_OneNonDBGUse(m_GShl(m_Reg(MaybeLoad), m_ICst(Shift))))) {
         Shift = 0;
         MaybeLoad = Reg;
     }
@@ -4397,11 +4276,8 @@ matchLoadAndBytePosition(Register Reg, unsigned MemSizeInBits, const MachineRegi
     return std::make_pair(Load, Shift / MemSizeInBits);
 }
 
-std::optional<std::tuple<GZExtLoad*, int64_t, GZExtLoad*>>
-CombinerHelper::findLoadOffsetsForLoadOrCombine(
-    SmallDenseMap<int64_t, int64_t, 8>& MemOffset2Idx,
-    const SmallVector<Register, 8>& RegsToVisit,
-    const unsigned MemSizeInBits) const {
+std::optional<std::tuple<GZExtLoad*, int64_t, GZExtLoad*>> CombinerHelper::findLoadOffsetsForLoadOrCombine(
+    SmallDenseMap<int64_t, int64_t, 8>& MemOffset2Idx, const SmallVector<Register, 8>& RegsToVisit, const unsigned MemSizeInBits) const {
 
     // Each load found for the pattern. There should be one for each RegsToVisit.
     SmallSetVector<const MachineInstr*, 8> Loads;
@@ -4466,8 +4342,7 @@ CombinerHelper::findLoadOffsetsForLoadOrCombine(
         // Find out what the base pointer and index for the load is.
         Register LoadPtr;
         int64_t Idx;
-        if (!nico::mi_match_wrapper(Load->getOperand(1).getReg(), MRI,
-                m_GPtrAdd(m_Reg(LoadPtr), m_ICst(Idx)))) {
+        if (!nico::mi_match_wrapper(Load->getOperand(1).getReg(), MRI, m_GPtrAdd(m_Reg(LoadPtr), m_ICst(Idx)))) {
             LoadPtr = Load->getOperand(1).getReg();
             Idx = 0;
         }
@@ -4528,8 +4403,7 @@ CombinerHelper::findLoadOffsetsForLoadOrCombine(
     // FIXME: Is there a better way to check for load fold barriers?
     const unsigned MaxIter = 20;
     unsigned Iter = 0;
-    for (const auto& MI : instructionsWithoutDebug(EarliestLoad->getIterator(),
-             LatestLoad->getIterator())) {
+    for (const auto& MI : instructionsWithoutDebug(EarliestLoad->getIterator(), LatestLoad->getIterator())) {
         if (Loads.count(&MI)) {
             continue;
         }
@@ -4544,9 +4418,8 @@ CombinerHelper::findLoadOffsetsForLoadOrCombine(
     return std::make_tuple(LowestIdxLoad, LowestIdx, LatestLoad);
 }
 
-bool CombinerHelper::matchLoadOrCombine(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchLoadOrCombine(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_OR);
     MachineFunction& MF = *MI.getMF();
     // Assuming a little-endian target, transform:
@@ -4562,7 +4435,7 @@ bool CombinerHelper::matchLoadOrCombine(
     Register Dst = MI.getOperand(0).getReg();
     LLT Ty = MRI.getType(Dst);
     if (Ty.isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4570,14 +4443,14 @@ bool CombinerHelper::matchLoadOrCombine(
     // possible load is into a byte, we need at least a 16-bit wide type.
     const unsigned WideMemSizeInBits = Ty.getSizeInBits();
     if (WideMemSizeInBits < 16 || WideMemSizeInBits % 8 != 0) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Match a collection of non-OR instructions in the pattern.
     auto RegsToVisit = findCandidatesForLoadOrCombine(&MI);
     if (!RegsToVisit) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4586,7 +4459,7 @@ bool CombinerHelper::matchLoadOrCombine(
     // found.
     const unsigned NarrowMemSizeInBits = WideMemSizeInBits / RegsToVisit->size();
     if (NarrowMemSizeInBits % 8 != 0) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4600,10 +4473,9 @@ bool CombinerHelper::matchLoadOrCombine(
     SmallDenseMap<int64_t, int64_t, 8> MemOffset2Idx;
     GZExtLoad *LowestIdxLoad, *LatestLoad;
     int64_t LowestIdx;
-    auto MaybeLoadInfo = findLoadOffsetsForLoadOrCombine(
-        MemOffset2Idx, *RegsToVisit, NarrowMemSizeInBits);
+    auto MaybeLoadInfo = findLoadOffsetsForLoadOrCombine(MemOffset2Idx, *RegsToVisit, NarrowMemSizeInBits);
     if (!MaybeLoadInfo) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     std::tie(LowestIdxLoad, LowestIdx, LatestLoad) = *MaybeLoadInfo;
@@ -4615,12 +4487,12 @@ bool CombinerHelper::matchLoadOrCombine(
     bool IsBigEndianTarget = MF.getDataLayout().isBigEndian();
     std::optional<bool> IsBigEndian = isBigEndian(MemOffset2Idx, LowestIdx);
     if (!IsBigEndian) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     bool NeedsBSwap = IsBigEndianTarget != *IsBigEndian;
     if (NeedsBSwap && !isLegalOrBeforeLegalizer({TargetOpcode::G_BSWAP, {Ty}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4633,12 +4505,10 @@ bool CombinerHelper::matchLoadOrCombine(
     // load x[i+1] -> byte 0 ---> wide_load x[i]
     // load x[i+2] -> byte 1
     const unsigned NumLoadsInTy = WideMemSizeInBits / NarrowMemSizeInBits;
-    const unsigned ZeroByteOffset = *IsBigEndian
-        ? bigEndianByteAt(NumLoadsInTy, 0)
-        : littleEndianByteAt(NumLoadsInTy, 0);
+    const unsigned ZeroByteOffset = *IsBigEndian ? bigEndianByteAt(NumLoadsInTy, 0) : littleEndianByteAt(NumLoadsInTy, 0);
     auto ZeroOffsetIdx = MemOffset2Idx.find(ZeroByteOffset);
     if (ZeroOffsetIdx == MemOffset2Idx.end() || ZeroOffsetIdx->second != LowestIdx) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4648,9 +4518,8 @@ bool CombinerHelper::matchLoadOrCombine(
     const MachineMemOperand& MMO = LowestIdxLoad->getMMO();
     LegalityQuery::MemDesc MMDesc(MMO);
     MMDesc.MemoryTy = Ty;
-    if (!isLegalOrBeforeLegalizer(
-            {TargetOpcode::G_LOAD, {Ty, MRI.getType(Ptr)}, {MMDesc}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_LOAD, {Ty, MRI.getType(Ptr)}, {MMDesc}})) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto PtrInfo = MMO.getPointerInfo();
@@ -4661,7 +4530,7 @@ bool CombinerHelper::matchLoadOrCombine(
     auto& DL = MF.getDataLayout();
     unsigned Fast = 0;
     if (!getTargetLowering().allowsMemoryAccess(C, DL, Ty, *NewMMO, &Fast) || !Fast) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4674,44 +4543,44 @@ bool CombinerHelper::matchLoadOrCombine(
         }
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI,
-    MachineInstr*& ExtMI) const {
+bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI, MachineInstr*& ExtMI) const {
+	NICO_MARKER_LOGGING_START;
     auto& PHI = cast<GPhi>(MI);
     Register DstReg = PHI.getReg(0);
 
     // TODO: Extending a vector may be expensive, don't do this until heuristics
     // are better.
     if (MRI.getType(DstReg).isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Try to match a phi, whose only use is an extend.
     if (!MRI.hasOneNonDBGUse(DstReg)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     ExtMI = &*MRI.use_instr_nodbg_begin(DstReg);
     switch (ExtMI->getOpcode()) {
         case TargetOpcode::G_ANYEXT:
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true; // G_ANYEXT is usually free.
         case TargetOpcode::G_ZEXT:
         case TargetOpcode::G_SEXT:
             break;
         default:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
     }
 
     // If the target is likely to fold this extend away, don't propagate.
     if (Builder.getTII().isExtendLikelyToBeFolded(*ExtMI, MRI)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4732,22 +4601,21 @@ bool CombinerHelper::matchExtendThroughPhis(MachineInstr& MI,
                 // Don't try to propagate if there are too many places to create new
                 // extends, chances are it'll increase code size.
                 if (InSrcs.size() > 2) {
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                     return false;
                 }
                 break;
             default:
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
         }
     }
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyExtendThroughPhis(MachineInstr& MI,
-    MachineInstr*& ExtMI) const {
+void CombinerHelper::applyExtendThroughPhis(MachineInstr& MI, MachineInstr*& ExtMI) const {
     auto& PHI = cast<GPhi>(MI);
     Register DstReg = ExtMI->getOperand(0).getReg();
     LLT ExtTy = MRI.getType(DstReg);
@@ -4793,21 +4661,21 @@ void CombinerHelper::applyExtendThroughPhis(MachineInstr& MI,
     ExtMI->eraseFromParent();
 }
 
-bool CombinerHelper::matchExtractVecEltBuildVec(MachineInstr& MI,
-    Register& Reg) const {
+bool CombinerHelper::matchExtractVecEltBuildVec(MachineInstr& MI, Register& Reg) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_EXTRACT_VECTOR_ELT);
     // If we have a constant index, look for a G_BUILD_VECTOR source
     // and find the source register that the index maps to.
     Register SrcVec = MI.getOperand(1).getReg();
     LLT SrcTy = MRI.getType(SrcVec);
     if (SrcTy.isScalableVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     auto Cst = getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(), MRI);
     if (!Cst || Cst->Value.getZExtValue() >= SrcTy.getNumElements()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4821,24 +4689,23 @@ bool CombinerHelper::matchExtractVecEltBuildVec(MachineInstr& MI,
     }
 
     if (SrcVecMI->getOpcode() != TargetOpcode::G_BUILD_VECTOR && SrcVecMI->getOpcode() != TargetOpcode::G_BUILD_VECTOR_TRUNC) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     EVT Ty(getMVTForLLT(SrcTy));
     if (!MRI.hasOneNonDBGUse(SrcVec) && !getTargetLowering().aggressivelyPreferBuildVectorSources(Ty)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     Reg = SrcVecMI->getOperand(VecIdx + 1).getReg();
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-void CombinerHelper::applyExtractVecEltBuildVec(MachineInstr& MI,
-    Register& Reg) const {
+void CombinerHelper::applyExtractVecEltBuildVec(MachineInstr& MI, Register& Reg) const {
     // Check the type of the register, since it may have come from a
     // G_BUILD_VECTOR_TRUNC.
     LLT ScalarTy = MRI.getType(Reg);
@@ -4854,9 +4721,8 @@ void CombinerHelper::applyExtractVecEltBuildVec(MachineInstr& MI,
     replaceSingleDefInstWithReg(MI, Reg);
 }
 
-bool CombinerHelper::matchExtractAllEltsFromBuildVector(
-    MachineInstr& MI,
-    SmallVectorImpl<std::pair<Register, MachineInstr*>>& SrcDstPairs) const {
+bool CombinerHelper::matchExtractAllEltsFromBuildVector(MachineInstr& MI, SmallVectorImpl<std::pair<Register, MachineInstr*>>& SrcDstPairs) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_BUILD_VECTOR);
     // This combine tries to find build_vector's which have every source element
     // extracted using G_EXTRACT_VECTOR_ELT. This can happen when transforms like
@@ -4881,36 +4747,33 @@ bool CombinerHelper::matchExtractAllEltsFromBuildVector(
     SmallBitVector ExtractedElts(NumElts);
     for (MachineInstr& II : MRI.use_nodbg_instructions(DstReg)) {
         if (II.getOpcode() != TargetOpcode::G_EXTRACT_VECTOR_ELT) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         auto Cst = getIConstantVRegVal(II.getOperand(2).getReg(), MRI);
         if (!Cst) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         unsigned Idx = Cst->getZExtValue();
         if (Idx >= NumElts) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false; // Out of range.
         }
         ExtractedElts.set(Idx);
-        SrcDstPairs.emplace_back(
-            std::make_pair(MI.getOperand(Idx + 1).getReg(), &II));
+        SrcDstPairs.emplace_back(std::make_pair(MI.getOperand(Idx + 1).getReg(), &II));
     }
     // Match if every element was extracted.
     if (ExtractedElts.all()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyExtractAllEltsFromBuildVector(
-    MachineInstr& MI,
-    SmallVectorImpl<std::pair<Register, MachineInstr*>>& SrcDstPairs) const {
+void CombinerHelper::applyExtractAllEltsFromBuildVector(MachineInstr& MI, SmallVectorImpl<std::pair<Register, MachineInstr*>>& SrcDstPairs) const {
     assert(MI.getOpcode() == TargetOpcode::G_BUILD_VECTOR);
     for (auto& Pair : SrcDstPairs) {
         auto* ExtMI = Pair.second;
@@ -4920,21 +4783,15 @@ void CombinerHelper::applyExtractAllEltsFromBuildVector(
     MI.eraseFromParent();
 }
 
-void CombinerHelper::applyBuildFn(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+void CombinerHelper::applyBuildFn(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
     applyBuildFnNoErase(MI, MatchInfo);
     MI.eraseFromParent();
 }
 
-void CombinerHelper::applyBuildFnNoErase(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
-    MatchInfo(Builder);
-}
+void CombinerHelper::applyBuildFnNoErase(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const { MatchInfo(Builder); }
 
-bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_OR);
 
     Register Dst = MI.getOperand(0).getReg();
@@ -4947,9 +4804,8 @@ bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
     // Match (or (shl ...), (lshr ...)).
     if (!nico::mi_match_wrapper(Dst, MRI,
             // m_GOr() handles the commuted version as well.
-            m_GOr(m_GShl(m_Reg(ShlSrc), m_Reg(ShlAmt)),
-                m_GLShr(m_Reg(LShrSrc), m_Reg(LShrAmt))))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            m_GOr(m_GShl(m_Reg(ShlSrc), m_Reg(ShlAmt)), m_GLShr(m_Reg(LShrSrc), m_Reg(LShrAmt))))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -4960,54 +4816,49 @@ bool CombinerHelper::matchOrShiftToFunnelShift(MachineInstr& MI,
         FshOpc = TargetOpcode::G_FSHR;
         Amt = LShrAmt;
 
-    } else if (nico::mi_match_wrapper(LShrAmt, MRI,
-                   m_GSub(m_SpecificICstOrSplat(BitWidth), m_Reg(Amt)))
-        && ShlAmt == Amt) {
+    } else if (nico::mi_match_wrapper(LShrAmt, MRI, m_GSub(m_SpecificICstOrSplat(BitWidth), m_Reg(Amt))) && ShlAmt == Amt) {
         // (or (shl x, amt), (lshr y, (sub bw, amt))) -> (fshl x, y, amt)
         FshOpc = TargetOpcode::G_FSHL;
 
-    } else if (nico::mi_match_wrapper(ShlAmt, MRI,
-                   m_GSub(m_SpecificICstOrSplat(BitWidth), m_Reg(Amt)))
-        && LShrAmt == Amt) {
+    } else if (nico::mi_match_wrapper(ShlAmt, MRI, m_GSub(m_SpecificICstOrSplat(BitWidth), m_Reg(Amt))) && LShrAmt == Amt) {
         // (or (shl x, (sub bw, amt)), (lshr y, amt)) -> (fshr x, y, amt)
         FshOpc = TargetOpcode::G_FSHR;
 
     } else {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     LLT AmtTy = MRI.getType(Amt);
     if (!isLegalOrBeforeLegalizer({FshOpc, {Ty, AmtTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
-    MatchInfo = [=](MachineIRBuilder& B) {
-        B.buildInstr(FshOpc, {Dst}, {ShlSrc, LShrSrc, Amt});
-    };
+    MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(FshOpc, {Dst}, {ShlSrc, LShrSrc, Amt}); };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 /// Match an FSHL or FSHR that can be combined to a ROTR or ROTL rotate.
 bool CombinerHelper::matchFunnelShiftToRotate(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     unsigned Opc = MI.getOpcode();
     assert(Opc == TargetOpcode::G_FSHL || Opc == TargetOpcode::G_FSHR);
     Register X = MI.getOperand(1).getReg();
     Register Y = MI.getOperand(2).getReg();
     if (X != Y) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     unsigned RotateOpc = Opc == TargetOpcode::G_FSHL ? TargetOpcode::G_ROTL : TargetOpcode::G_ROTR;
     if (isLegalOrBeforeLegalizer({RotateOpc, {MRI.getType(X), MRI.getType(Y)}})) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -5016,14 +4867,14 @@ void CombinerHelper::applyFunnelShiftToRotate(MachineInstr& MI) const {
     assert(Opc == TargetOpcode::G_FSHL || Opc == TargetOpcode::G_FSHR);
     bool IsFSHL = Opc == TargetOpcode::G_FSHL;
     Observer.changingInstr(MI);
-    MI.setDesc(Builder.getTII().get(IsFSHL ? TargetOpcode::G_ROTL
-                                           : TargetOpcode::G_ROTR));
+    MI.setDesc(Builder.getTII().get(IsFSHL ? TargetOpcode::G_ROTL : TargetOpcode::G_ROTR));
     MI.removeOperand(2);
     Observer.changedInstr(MI);
 }
 
 // Fold (rot x, c) -> (rot x, c % BitSize)
 bool CombinerHelper::matchRotateOutOfRange(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ROTL || MI.getOpcode() == TargetOpcode::G_ROTR);
     unsigned Bitsize = MRI.getType(MI.getOperand(0).getReg()).getScalarSizeInBits();
     Register AmtReg = MI.getOperand(2).getReg();
@@ -5032,15 +4883,15 @@ bool CombinerHelper::matchRotateOutOfRange(MachineInstr& MI) const {
         if (auto* CI = dyn_cast<ConstantInt>(C)) {
             OutOfRange |= CI->getValue().uge(Bitsize);
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     };
     if (matchUnaryPredicate(MRI, AmtReg, MatchOutOfRange) && OutOfRange) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -5056,8 +4907,8 @@ void CombinerHelper::applyRotateOutOfRange(MachineInstr& MI) const {
     Observer.changedInstr(MI);
 }
 
-bool CombinerHelper::matchICmpToTrueFalseKnownBits(MachineInstr& MI,
-    int64_t& MatchInfo) const {
+bool CombinerHelper::matchICmpToTrueFalseKnownBits(MachineInstr& MI, int64_t& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ICMP);
     auto Pred = static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate());
 
@@ -5071,7 +4922,7 @@ bool CombinerHelper::matchICmpToTrueFalseKnownBits(MachineInstr& MI,
     //  >=0.
     auto KnownRHS = KB->getKnownBits(MI.getOperand(3).getReg());
     if (KnownRHS.isUnknown()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5092,23 +4943,21 @@ bool CombinerHelper::matchICmpToTrueFalseKnownBits(MachineInstr& MI,
     }
 
     if (!KnownVal) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
-    MatchInfo = *KnownVal
-        ? getICmpTrueVal(getTargetLowering(),
-              /*IsVector = */
-              MRI.getType(MI.getOperand(0).getReg()).isVector(),
-              /* IsFP = */ false)
-        : 0;
+    MatchInfo = *KnownVal ? getICmpTrueVal(getTargetLowering(),
+                                /*IsVector = */
+                                MRI.getType(MI.getOperand(0).getReg()).isVector(),
+                                /* IsFP = */ false)
+                          : 0;
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchICmpToLHSKnownBits(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchICmpToLHSKnownBits(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ICMP);
     // Given:
     //
@@ -5123,7 +4972,7 @@ bool CombinerHelper::matchICmpToLHSKnownBits(
     // We can replace %cmp with %x assuming true is 1 on the target.
     auto Pred = static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate());
     if (!CmpInst::isEquality(Pred)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     Register Dst = MI.getOperand(0).getReg();
@@ -5131,18 +4980,18 @@ bool CombinerHelper::matchICmpToLHSKnownBits(
     if (getICmpTrueVal(getTargetLowering(), DstTy.isVector(),
             /* IsFP = */ false)
         != 1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     int64_t OneOrZero = Pred == CmpInst::ICMP_EQ;
     if (!nico::mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICst(OneOrZero))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     Register LHS = MI.getOperand(2).getReg();
     auto KnownLHS = KB->getKnownBits(LHS);
     if (KnownLHS.getMinValue() != 0 || KnownLHS.getMaxValue() != 1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Make sure replacing Dst with the LHS is a legal operation.
@@ -5154,26 +5003,25 @@ bool CombinerHelper::matchICmpToLHSKnownBits(
         Op = DstSize < LHSSize ? TargetOpcode::G_TRUNC : TargetOpcode::G_ZEXT;
     }
     if (!isLegalOrBeforeLegalizer({Op, {DstTy, LHSTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(Op, {Dst}, {LHS}); };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 // Replace (and (or x, c1), c2) with (and x, c2) iff c1 & c2 == 0
-bool CombinerHelper::matchAndOrDisjointMask(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchAndOrDisjointMask(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_AND);
 
     // Ignore vector types to simplify matching the two constants.
     // TODO: do this for vectors and scalars via a demanded bits analysis.
     LLT Ty = MRI.getType(MI.getOperand(0).getReg());
     if (Ty.isVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5182,13 +5030,13 @@ bool CombinerHelper::matchAndOrDisjointMask(
     int64_t AndMaskBits;
     int64_t OrMaskBits;
     if (!nico::mi_match_wrapper(MI, MRI, m_GAnd(m_GOr(m_Reg(Src), m_ICst(OrMaskBits)), m_all_of(m_ICst(AndMaskBits), m_Reg(AndMaskReg))))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Check if OrMask could turn on any bits in Src.
     if (AndMaskBits & OrMaskBits) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5202,35 +5050,31 @@ bool CombinerHelper::matchAndOrDisjointMask(
         Observer.changedInstr(MI);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 /// Form a G_SBFX from a G_SEXT_INREG fed by a right shift.
-bool CombinerHelper::matchBitfieldExtractFromSExtInReg(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchBitfieldExtractFromSExtInReg(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SEXT_INREG);
     Register Dst = MI.getOperand(0).getReg();
     Register Src = MI.getOperand(1).getReg();
     LLT Ty = MRI.getType(Src);
     LLT ExtractTy = getTargetLowering().getPreferredShiftAmountTy(Ty);
     if (!LI || !LI->isLegalOrCustom({TargetOpcode::G_SBFX, {Ty, ExtractTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     int64_t Width = MI.getOperand(2).getImm();
     Register ShiftSrc;
     int64_t ShiftImm;
-    if (!nico::mi_match_wrapper(
-            Src, MRI,
-            m_OneNonDBGUse(m_any_of(m_GAShr(m_Reg(ShiftSrc), m_ICst(ShiftImm)),
-                m_GLShr(m_Reg(ShiftSrc), m_ICst(ShiftImm)))))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(Src, MRI, m_OneNonDBGUse(m_any_of(m_GAShr(m_Reg(ShiftSrc), m_ICst(ShiftImm)), m_GLShr(m_Reg(ShiftSrc), m_ICst(ShiftImm)))))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (ShiftImm < 0 || ShiftImm + Width > Ty.getScalarSizeInBits()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5240,13 +5084,13 @@ bool CombinerHelper::matchBitfieldExtractFromSExtInReg(
         B.buildSbfx(Dst, ShiftSrc, Cst1, Cst2);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
 /// Form a G_UBFX from "(a srl b) & mask", where b and mask are constants.
-bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GAnd* And = cast<GAnd>(&MI);
     Register Dst = And->getReg(0);
     LLT Ty = MRI.getType(Dst);
@@ -5254,7 +5098,7 @@ bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
     // Note that isLegalOrBeforeLegalizer is stricter and does not take custom
     // into account.
     if (LI && !LI->isLegalOrCustom({TargetOpcode::G_UBFX, {Ty, ExtractTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5262,20 +5106,20 @@ bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
     Register ShiftSrc;
     const unsigned Size = Ty.getScalarSizeInBits();
     if (!nico::mi_match_wrapper(And->getReg(0), MRI, m_GAnd(m_OneNonDBGUse(m_GLShr(m_Reg(ShiftSrc), m_ICst(LSBImm))), m_ICst(AndImm)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // The mask is a mask of the low bits iff imm & (imm+1) == 0.
     auto MaybeMask = static_cast<uint64_t>(AndImm);
     if (MaybeMask & (MaybeMask + 1)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // LSB must fit within the register.
     if (static_cast<uint64_t>(LSBImm) >= Size) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5286,27 +5130,24 @@ bool CombinerHelper::matchBitfieldExtractFromAnd(MachineInstr& MI,
         B.buildInstr(TargetOpcode::G_UBFX, {Dst}, {ShiftSrc, LSBCst, WidthCst});
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchBitfieldExtractFromShr(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchBitfieldExtractFromShr(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     const unsigned Opcode = MI.getOpcode();
     assert(Opcode == TargetOpcode::G_ASHR || Opcode == TargetOpcode::G_LSHR);
 
     const Register Dst = MI.getOperand(0).getReg();
 
-    const unsigned ExtrOpcode = Opcode == TargetOpcode::G_ASHR
-        ? TargetOpcode::G_SBFX
-        : TargetOpcode::G_UBFX;
+    const unsigned ExtrOpcode = Opcode == TargetOpcode::G_ASHR ? TargetOpcode::G_SBFX : TargetOpcode::G_UBFX;
 
     // Check if the type we would use for the extract is legal
     LLT Ty = MRI.getType(Dst);
     LLT ExtractTy = getTargetLowering().getPreferredShiftAmountTy(Ty);
     if (!LI || !LI->isLegalOrCustom({ExtrOpcode, {Ty, ExtractTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5317,19 +5158,19 @@ bool CombinerHelper::matchBitfieldExtractFromShr(
 
     // Try to match shr (shl x, c1), c2
     if (!nico::mi_match_wrapper(Dst, MRI, m_BinOp(Opcode, m_OneNonDBGUse(m_GShl(m_Reg(ShlSrc), m_ICst(ShlAmt))), m_ICst(ShrAmt)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Make sure that the shift sizes can fit a bitfield extract
     if (ShlAmt < 0 || ShlAmt > ShrAmt || ShrAmt >= Size) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Skip this combine if the G_SEXT_INREG combine could handle it
     if (Opcode == TargetOpcode::G_ASHR && ShlAmt == ShrAmt) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5343,13 +5184,12 @@ bool CombinerHelper::matchBitfieldExtractFromShr(
         B.buildInstr(ExtrOpcode, {Dst}, {ShlSrc, PosCst, WidthCst});
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchBitfieldExtractFromShrAnd(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchBitfieldExtractFromShrAnd(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     const unsigned Opcode = MI.getOpcode();
     assert(Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_ASHR);
 
@@ -5357,7 +5197,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
     LLT Ty = MRI.getType(Dst);
     LLT ExtractTy = getTargetLowering().getPreferredShiftAmountTy(Ty);
     if (LI && !LI->isLegalOrCustom({TargetOpcode::G_UBFX, {Ty, ExtractTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5365,24 +5205,22 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
     Register AndSrc;
     int64_t ShrAmt;
     int64_t SMask;
-    if (!nico::mi_match_wrapper(Dst, MRI,m_BinOp(Opcode,m_OneNonDBGUse(m_GAnd(m_Reg(AndSrc), m_ICst(SMask))),m_ICst(ShrAmt)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(Dst, MRI, m_BinOp(Opcode, m_OneNonDBGUse(m_GAnd(m_Reg(AndSrc), m_ICst(SMask))), m_ICst(ShrAmt)))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     const unsigned Size = Ty.getScalarSizeInBits();
     if (ShrAmt < 0 || ShrAmt >= Size) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // If the shift subsumes the mask, emit the 0 directly.
     if (0 == (SMask >> ShrAmt)) {
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildConstant(Dst, 0);
-        };
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildConstant(Dst, 0); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -5391,7 +5229,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
     UMask |= maskTrailingOnes<uint64_t>(ShrAmt);
     UMask &= maskTrailingOnes<uint64_t>(Size);
     if (!isMask_64(UMask)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5402,7 +5240,7 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
     // It's preferable to keep the shift, rather than form G_SBFX.
     // TODO: remove the G_AND via demanded bits analysis.
     if (Opcode == TargetOpcode::G_ASHR && Width + ShrAmt == Size) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5412,12 +5250,12 @@ bool CombinerHelper::matchBitfieldExtractFromShrAnd(
         B.buildInstr(TargetOpcode::G_UBFX, {Dst}, {AndSrc, PosCst, WidthCst});
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::reassociationCanBreakAddressingModePattern(
-    MachineInstr& MI) const {
+bool CombinerHelper::reassociationCanBreakAddressingModePattern(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     auto& PtrAdd = cast<GPtrAdd>(MI);
 
     Register Src1Reg = PtrAdd.getBaseReg();
@@ -5469,18 +5307,15 @@ bool CombinerHelper::reassociationCanBreakAddressingModePattern(
         AM.HasBaseReg = true;
         AM.BaseOffs = C2APIntVal.getSExtValue();
         unsigned AS = MRI.getType(LdStMI->getPointerReg()).getAddressSpace();
-        Type* AccessTy = getTypeForLLT(LdStMI->getMMO().getMemoryType(),
-            PtrAdd.getMF()->getFunction().getContext());
+        Type* AccessTy = getTypeForLLT(LdStMI->getMMO().getMemoryType(), PtrAdd.getMF()->getFunction().getContext());
         const auto& TLI = *PtrAdd.getMF()->getSubtarget().getTargetLowering();
-        if (!TLI.isLegalAddressingMode(PtrAdd.getMF()->getDataLayout(), AM,
-                AccessTy, AS)) {
+        if (!TLI.isLegalAddressingMode(PtrAdd.getMF()->getDataLayout(), AM, AccessTy, AS)) {
             continue;
         }
 
         // Would x[offset1+offset2] still be a legal addressing mode?
         AM.BaseOffs = CombinedValue;
-        if (!TLI.isLegalAddressingMode(PtrAdd.getMF()->getDataLayout(), AM,
-                AccessTy, AS)) {
+        if (!TLI.isLegalAddressingMode(PtrAdd.getMF()->getDataLayout(), AM, AccessTy, AS)) {
             return true;
         }
     }
@@ -5488,18 +5323,17 @@ bool CombinerHelper::reassociationCanBreakAddressingModePattern(
     return false;
 }
 
-bool CombinerHelper::matchReassocConstantInnerRHS(GPtrAdd& MI,
-    MachineInstr* RHS,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchReassocConstantInnerRHS(GPtrAdd& MI, MachineInstr* RHS, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // G_PTR_ADD(BASE, G_ADD(X, C)) -> G_PTR_ADD(G_PTR_ADD(BASE, X), C)
     Register Src1Reg = MI.getOperand(1).getReg();
     if (RHS->getOpcode() != TargetOpcode::G_ADD) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto C2 = getIConstantVRegVal(RHS->getOperand(2).getReg(), MRI);
     if (!C2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5514,23 +5348,21 @@ bool CombinerHelper::matchReassocConstantInnerRHS(GPtrAdd& MI,
     };
     if (!reassociationCanBreakAddressingModePattern(MI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI,
-    MachineInstr* LHS,
-    MachineInstr* RHS,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI, MachineInstr* LHS, MachineInstr* RHS, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // G_PTR_ADD (G_PTR_ADD X, C), Y) -> (G_PTR_ADD (G_PTR_ADD(X, Y), C)
     // if and only if (G_PTR_ADD X, C) has one use.
     Register LHSBase;
     std::optional<ValueAndVReg> LHSCstOff;
-    if (!nico::mi_match_wrapper(MI.getBaseReg(), MRI,m_OneNonDBGUse(m_GPtrAdd(m_Reg(LHSBase), m_GCst(LHSCstOff))))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(MI.getBaseReg(), MRI, m_OneNonDBGUse(m_GPtrAdd(m_Reg(LHSBase), m_GCst(LHSCstOff))))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5552,19 +5384,19 @@ bool CombinerHelper::matchReassocConstantInnerLHS(GPtrAdd& MI,
     };
     if (!reassociationCanBreakAddressingModePattern(MI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchReassocFoldConstantsInSubTree(
-    GPtrAdd& MI, MachineInstr* LHS, MachineInstr* RHS, BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchReassocFoldConstantsInSubTree(GPtrAdd& MI, MachineInstr* LHS, MachineInstr* RHS, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // G_PTR_ADD(G_PTR_ADD(BASE, C1), C2) -> G_PTR_ADD(BASE, C1+C2)
     auto* LHSPtrAdd = dyn_cast<GPtrAdd>(LHS);
     if (!LHSPtrAdd) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5573,12 +5405,12 @@ bool CombinerHelper::matchReassocFoldConstantsInSubTree(
     Register LHSSrc2 = LHSPtrAdd->getOffsetReg();
     auto C1 = getIConstantVRegVal(LHSSrc2, MRI);
     if (!C1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto C2 = getIConstantVRegVal(Src2Reg, MRI);
     if (!C2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5591,15 +5423,15 @@ bool CombinerHelper::matchReassocFoldConstantsInSubTree(
     };
     if (!reassociationCanBreakAddressingModePattern(MI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchReassocPtrAdd(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchReassocPtrAdd(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     auto& PtrAdd = cast<GPtrAdd>(MI);
     // We're trying to match a few pointer computation patterns here for
     // re-association opportunities.
@@ -5619,24 +5451,24 @@ bool CombinerHelper::matchReassocPtrAdd(MachineInstr& MI,
     // Try to match example 2.
     if (matchReassocFoldConstantsInSubTree(PtrAdd, LHS, RHS, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // Try to match example 3.
     if (matchReassocConstantInnerLHS(PtrAdd, LHS, RHS, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // Try to match example 1.
     if (matchReassocConstantInnerRHS(PtrAdd, RHS, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 bool CombinerHelper::tryReassocBinOp(unsigned Opc, Register DstReg, Register OpLHS, Register OpRHS, BuildFnTy& MatchInfo) const {
@@ -5678,8 +5510,8 @@ bool CombinerHelper::tryReassocBinOp(unsigned Opc, Register DstReg, Register OpL
     return false;
 }
 
-bool CombinerHelper::matchReassocCommBinOp(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchReassocCommBinOp(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // We don't check if the reassociation will break a legal addressing mode
     // here since pointer arithmetic is handled by G_PTR_ADD.
     unsigned Opc = MI.getOpcode();
@@ -5689,98 +5521,96 @@ bool CombinerHelper::matchReassocCommBinOp(MachineInstr& MI,
 
     if (tryReassocBinOp(Opc, DstReg, LHSReg, RHSReg, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
     if (tryReassocBinOp(Opc, DstReg, RHSReg, LHSReg, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchConstantFoldCastOp(MachineInstr& MI,
-    APInt& MatchInfo) const {
+bool CombinerHelper::matchConstantFoldCastOp(MachineInstr& MI, APInt& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
     Register SrcOp = MI.getOperand(1).getReg();
 
     if (auto MaybeCst = ConstantFoldCastOp(MI.getOpcode(), DstTy, SrcOp, MRI)) {
         MatchInfo = *MaybeCst;
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchConstantFoldBinOp(MachineInstr& MI,
-    APInt& MatchInfo) const {
+bool CombinerHelper::matchConstantFoldBinOp(MachineInstr& MI, APInt& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     Register Op1 = MI.getOperand(1).getReg();
     Register Op2 = MI.getOperand(2).getReg();
     auto MaybeCst = ConstantFoldBinOp(MI.getOpcode(), Op1, Op2, MRI);
     if (!MaybeCst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MatchInfo = *MaybeCst;
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchConstantFoldFPBinOp(MachineInstr& MI,
-    ConstantFP*& MatchInfo) const {
+bool CombinerHelper::matchConstantFoldFPBinOp(MachineInstr& MI, ConstantFP*& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     Register Op1 = MI.getOperand(1).getReg();
     Register Op2 = MI.getOperand(2).getReg();
     auto MaybeCst = ConstantFoldFPBinOp(MI.getOpcode(), Op1, Op2, MRI);
     if (!MaybeCst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MatchInfo = ConstantFP::get(MI.getMF()->getFunction().getContext(), *MaybeCst);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchConstantFoldFMA(MachineInstr& MI,
-    ConstantFP*& MatchInfo) const {
+bool CombinerHelper::matchConstantFoldFMA(MachineInstr& MI, ConstantFP*& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FMA || MI.getOpcode() == TargetOpcode::G_FMAD);
     auto [_, Op1, Op2, Op3] = MI.getFirst4Regs();
 
     const ConstantFP* Op3Cst = getConstantFPVRegVal(Op3, MRI);
     if (!Op3Cst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     const ConstantFP* Op2Cst = getConstantFPVRegVal(Op2, MRI);
     if (!Op2Cst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     const ConstantFP* Op1Cst = getConstantFPVRegVal(Op1, MRI);
     if (!Op1Cst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     APFloat Op1F = Op1Cst->getValueAPF();
-    Op1F.fusedMultiplyAdd(Op2Cst->getValueAPF(), Op3Cst->getValueAPF(),
-        APFloat::rmNearestTiesToEven);
+    Op1F.fusedMultiplyAdd(Op2Cst->getValueAPF(), Op3Cst->getValueAPF(), APFloat::rmNearestTiesToEven);
     MatchInfo = ConstantFP::get(MI.getMF()->getFunction().getContext(), Op1F);
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchNarrowBinopFeedingAnd(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchNarrowBinopFeedingAnd(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Look for a binop feeding into an AND with a mask:
     //
     // %add = G_ADD %lhs, %rhs
@@ -5806,7 +5636,7 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
     // If the potential binop has more than one use, then it's possible that one
     // of those uses will need its full width.
     if (!WideTy.isScalar() || !MRI.hasOneNonDBGUse(AndLHS)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -5818,13 +5648,13 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
     // add_64(x, y) & 65535 == zext(add_16(trunc(x), trunc(y))) & 65535
     MachineInstr* LHSInst = getDefIgnoringCopies(AndLHS, MRI);
     if (!LHSInst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     unsigned LHSOpc = LHSInst->getOpcode();
     switch (LHSOpc) {
         default:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         case TargetOpcode::G_ADD:
         case TargetOpcode::G_SUB:
@@ -5838,19 +5668,19 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
     // Find the mask on the RHS.
     auto Cst = getIConstantVRegValWithLookThrough(AndRHS, MRI);
     if (!Cst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     auto Mask = Cst->Value;
     if (!Mask.isMask()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // No point in combining if there's nothing to truncate.
     unsigned NarrowWidth = Mask.countr_one();
     if (NarrowWidth == WideTy.getSizeInBits()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     LLT NarrowTy = LLT::scalar(NarrowWidth);
@@ -5860,11 +5690,11 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
     const auto& TLI = getTargetLowering();
     LLVMContext& Ctx = MF.getFunction().getContext();
     if (!TLI.isTruncateFree(WideTy, NarrowTy, Ctx) || !TLI.isZExtFree(NarrowTy, WideTy, Ctx)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_TRUNC, {NarrowTy, WideTy}}) || !isLegalOrBeforeLegalizer({TargetOpcode::G_ZEXT, {WideTy, NarrowTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     Register BinOpLHS = LHSInst->getOperand(1).getReg();
@@ -5879,45 +5709,44 @@ bool CombinerHelper::matchNarrowBinopFeedingAnd(
         Observer.changedInstr(MI);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchMulOBy2(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchMulOBy2(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     unsigned Opc = MI.getOpcode();
     assert(Opc == TargetOpcode::G_UMULO || Opc == TargetOpcode::G_SMULO);
 
     if (!nico::mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(2))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     MatchInfo = [=, &MI](MachineIRBuilder& B) {
         Observer.changingInstr(MI);
-        unsigned NewOpc = Opc == TargetOpcode::G_UMULO ? TargetOpcode::G_UADDO
-                                                       : TargetOpcode::G_SADDO;
+        unsigned NewOpc = Opc == TargetOpcode::G_UMULO ? TargetOpcode::G_UADDO : TargetOpcode::G_SADDO;
         MI.setDesc(Builder.getTII().get(NewOpc));
         MI.getOperand(3).setReg(MI.getOperand(2).getReg());
         Observer.changedInstr(MI);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchMulOBy0(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchMulOBy0(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // (G_*MULO x, 0) -> 0 + no carry out
     assert(MI.getOpcode() == TargetOpcode::G_UMULO || MI.getOpcode() == TargetOpcode::G_SMULO);
     if (!nico::mi_match_wrapper(MI.getOperand(3).getReg(), MRI, m_SpecificICstOrSplat(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     Register Dst = MI.getOperand(0).getReg();
     Register Carry = MI.getOperand(1).getReg();
     if (!isConstantLegalOrBeforeLegalizer(MRI.getType(Dst)) || !isConstantLegalOrBeforeLegalizer(MRI.getType(Carry))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MatchInfo = [=](MachineIRBuilder& B) {
@@ -5925,17 +5754,17 @@ bool CombinerHelper::matchMulOBy0(MachineInstr& MI,
         B.buildConstant(Carry, 0);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchAddEToAddO(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchAddEToAddO(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // (G_*ADDE x, y, 0) -> (G_*ADDO x, y)
     // (G_*SUBE x, y, 0) -> (G_*SUBO x, y)
     assert(MI.getOpcode() == TargetOpcode::G_UADDE || MI.getOpcode() == TargetOpcode::G_SADDE || MI.getOpcode() == TargetOpcode::G_USUBE || MI.getOpcode() == TargetOpcode::G_SSUBE);
     if (!nico::mi_match_wrapper(MI.getOperand(4).getReg(), MRI, m_SpecificICstOrSplat(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     MatchInfo = [&](MachineIRBuilder& B) {
@@ -5960,12 +5789,12 @@ bool CombinerHelper::matchAddEToAddO(MachineInstr& MI,
         Observer.changedInstr(MI);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SUB);
     Register Dst = MI.getOperand(0).getReg();
     // (x + y) - z -> x (if y == z)
@@ -5982,7 +5811,7 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
         if (ReplaceReg) {
             MatchInfo = [=](MachineIRBuilder& B) { B.buildCopy(Dst, ReplaceReg); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
@@ -6003,11 +5832,11 @@ bool CombinerHelper::matchSubAddSameReg(MachineInstr& MI,
                 B.buildSub(Dst, Zero, ReplaceReg);
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -6096,8 +5925,7 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
 
             // UnsignedDivisionByConstantInfo doesn't work correctly if leading zeros
             // in the dividend exceeds the leading zeros for the divisor.
-            UnsignedDivisionByConstantInfo magics = UnsignedDivisionByConstantInfo::get(
-                Divisor, std::min(KnownLeadingZeros, Divisor.countl_zero()));
+            UnsignedDivisionByConstantInfo magics = UnsignedDivisionByConstantInfo::get(Divisor, std::min(KnownLeadingZeros, Divisor.countl_zero()));
 
             Magic = std::move(magics.Magic);
 
@@ -6109,16 +5937,10 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
             SelNPQ = magics.IsAdd;
         }
 
-        PreShifts.push_back(
-            MIB.buildConstant(ScalarShiftAmtTy, PreShift).getReg(0));
+        PreShifts.push_back(MIB.buildConstant(ScalarShiftAmtTy, PreShift).getReg(0));
         MagicFactors.push_back(MIB.buildConstant(ScalarTy, Magic).getReg(0));
-        NPQFactors.push_back(
-            MIB.buildConstant(ScalarTy,
-                   SelNPQ ? APInt::getOneBitSet(EltBits, EltBits - 1)
-                          : APInt::getZero(EltBits))
-                .getReg(0));
-        PostShifts.push_back(
-            MIB.buildConstant(ScalarShiftAmtTy, PostShift).getReg(0));
+        NPQFactors.push_back(MIB.buildConstant(ScalarTy, SelNPQ ? APInt::getOneBitSet(EltBits, EltBits - 1) : APInt::getZero(EltBits)).getReg(0));
+        PostShifts.push_back(MIB.buildConstant(ScalarShiftAmtTy, PostShift).getReg(0));
         UseNPQ |= SelNPQ;
         return true;
     };
@@ -6164,13 +5986,12 @@ MachineInstr* CombinerHelper::buildUDivUsingMul(MachineInstr& MI) const {
 
     Q = MIB.buildLShr(Ty, Q, PostShift).getReg(0);
     auto One = MIB.buildConstant(Ty, 1);
-    auto IsOne = MIB.buildICmp(
-        CmpInst::Predicate::ICMP_EQ,
-        Ty.isScalar() ? LLT::scalar(1) : Ty.changeElementSize(1), RHS, One);
+    auto IsOne = MIB.buildICmp(CmpInst::Predicate::ICMP_EQ, Ty.isScalar() ? LLT::scalar(1) : Ty.changeElementSize(1), RHS, One);
     return MIB.buildSelect(Ty, IsOne, LHS, Q);
 }
 
 bool CombinerHelper::matchUDivByConst(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_UDIV);
     Register Dst = MI.getOperand(0).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -6181,59 +6002,56 @@ bool CombinerHelper::matchUDivByConst(MachineInstr& MI) const {
     const auto& TLI = getTargetLowering();
     LLVMContext& Ctx = MF.getFunction().getContext();
     if (TLI.isIntDivCheap(getApproximateEVTForLLT(DstTy, Ctx), Attr)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Don't do this for minsize because the instruction sequence is usually
     // larger.
     if (MF.getFunction().hasMinSize()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
-    if (MI.getFlag(MachineInstr::MIFlag::IsExact)) { 
+    if (MI.getFlag(MachineInstr::MIFlag::IsExact)) {
         bool status = matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); });
         if (status) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         } else {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         }
         return status;
     }
 
     auto* RHSDef = MRI.getVRegDef(RHS);
     if (!isConstantOrConstantVector(*RHSDef, MRI)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Don't do this if the types are not going to be legal.
     if (LI) {
         if (!isLegalOrBeforeLegalizer({TargetOpcode::G_MUL, {DstTy, DstTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
         if (!isLegalOrBeforeLegalizer({TargetOpcode::G_UMULH, {DstTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
-        if (!isLegalOrBeforeLegalizer(
-                {TargetOpcode::G_ICMP,
-                    {DstTy.isVector() ? DstTy.changeElementSize(1) : LLT::scalar(1),
-                        DstTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        if (!isLegalOrBeforeLegalizer({TargetOpcode::G_ICMP, {DstTy.isVector() ? DstTy.changeElementSize(1) : LLT::scalar(1), DstTy}})) {
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
 
     if (matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); })) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -6243,6 +6061,7 @@ void CombinerHelper::applyUDivByConst(MachineInstr& MI) const {
 }
 
 bool CombinerHelper::matchSDivByConst(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SDIV && "Expected SDIV");
     Register Dst = MI.getOperand(0).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -6253,14 +6072,14 @@ bool CombinerHelper::matchSDivByConst(MachineInstr& MI) const {
     const auto& TLI = getTargetLowering();
     LLVMContext& Ctx = MF.getFunction().getContext();
     if (TLI.isIntDivCheap(getApproximateEVTForLLT(DstTy, Ctx), Attr)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Don't do this for minsize because the instruction sequence is usually
     // larger.
     if (MF.getFunction().hasMinSize()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6268,15 +6087,15 @@ bool CombinerHelper::matchSDivByConst(MachineInstr& MI) const {
     if (MI.getFlag(MachineInstr::MIFlag::IsExact)) {
         if (matchUnaryPredicate(MRI, RHS, [](const Constant* C) { return C && !C->isNullValue(); })) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // Don't support the general case for now.
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -6351,6 +6170,7 @@ MachineInstr* CombinerHelper::buildSDivUsingMul(MachineInstr& MI) const {
 }
 
 bool CombinerHelper::matchDivByPow2(MachineInstr& MI, bool IsSigned) const {
+	NICO_MARKER_LOGGING_START;
     assert((MI.getOpcode() == TargetOpcode::G_SDIV || MI.getOpcode() == TargetOpcode::G_UDIV) && "Expected SDIV or UDIV");
     auto& Div = cast<GenericMachineInstr>(MI);
     Register RHS = Div.getReg(2);
@@ -6360,10 +6180,10 @@ bool CombinerHelper::matchDivByPow2(MachineInstr& MI, bool IsSigned) const {
     };
     if (matchUnaryPredicate(MRI, RHS, MatchPow2, /*AllowUndefs=*/false)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -6399,8 +6219,7 @@ void CombinerHelper::applySDivByPow2(MachineInstr& MI) const {
     auto C1 = Builder.buildCTTZ(ShiftAmtTy, RHS);
     auto Inexact = Builder.buildSub(ShiftAmtTy, Bits, C1);
     // Splat the sign bit into the register
-    auto Sign = Builder.buildAShr(
-        Ty, LHS, Builder.buildConstant(ShiftAmtTy, BitWidth - 1));
+    auto Sign = Builder.buildAShr(Ty, LHS, Builder.buildConstant(ShiftAmtTy, BitWidth - 1));
 
     // Add (LHS < 0) ? abs2 - 1 : 0;
     auto LSrl = Builder.buildLShr(Ty, Sign, Inexact);
@@ -6439,6 +6258,7 @@ void CombinerHelper::applyUDivByPow2(MachineInstr& MI) const {
 }
 
 bool CombinerHelper::matchUMulHToLShr(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_UMULH);
     Register RHS = MI.getOperand(2).getReg();
     Register Dst = MI.getOperand(0).getReg();
@@ -6451,15 +6271,15 @@ bool CombinerHelper::matchUMulHToLShr(MachineInstr& MI) const {
         return false;
     };
     if (!matchUnaryPredicate(MRI, RHS, MatchPow2ExceptOne, false)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (isLegalOrBeforeLegalizer({TargetOpcode::G_LSHR, {Ty, ShiftAmtTy}})) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -6478,8 +6298,8 @@ void CombinerHelper::applyUMulHToLShr(MachineInstr& MI) const {
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     unsigned Opc = MI.getOpcode();
     assert(Opc == TargetOpcode::G_FADD || Opc == TargetOpcode::G_FSUB || Opc == TargetOpcode::G_FMUL || Opc == TargetOpcode::G_FDIV || Opc == TargetOpcode::G_FMAD || Opc == TargetOpcode::G_FMA);
 
@@ -6502,10 +6322,11 @@ bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI,
     // fold (fdiv fneg(x), fneg(y)) -> (fdiv x, y)
     // fold (fmad fneg(x), fneg(y), z) -> (fmad x, y, z)
     // fold (fma fneg(x), fneg(y), z) -> (fma x, y, z)
-    else if ((Opc == TargetOpcode::G_FMUL || Opc == TargetOpcode::G_FDIV || Opc == TargetOpcode::G_FMAD || Opc == TargetOpcode::G_FMA) && nico::mi_match_wrapper(X, MRI, m_GFNeg(m_Reg(X))) && nico::mi_match_wrapper(Y, MRI, m_GFNeg(m_Reg(Y)))) {
+    else if ((Opc == TargetOpcode::G_FMUL || Opc == TargetOpcode::G_FDIV || Opc == TargetOpcode::G_FMAD || Opc == TargetOpcode::G_FMA) && nico::mi_match_wrapper(X, MRI, m_GFNeg(m_Reg(X)))
+        && nico::mi_match_wrapper(Y, MRI, m_GFNeg(m_Reg(Y)))) {
         // no opcode change
     } else {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6517,30 +6338,28 @@ bool CombinerHelper::matchRedundantNegOperands(MachineInstr& MI,
         Observer.changedInstr(MI);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchFsubToFneg(MachineInstr& MI,
-    Register& MatchInfo) const {
+bool CombinerHelper::matchFsubToFneg(MachineInstr& MI, Register& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FSUB);
 
     Register LHS = MI.getOperand(1).getReg();
     MatchInfo = MI.getOperand(2).getReg();
     LLT Ty = MRI.getType(MI.getOperand(0).getReg());
 
-    const auto LHSCst = Ty.isVector()
-        ? getFConstantSplat(LHS, MRI, /* allowUndef */ true)
-        : getFConstantVRegValWithLookThrough(LHS, MRI);
+    const auto LHSCst = Ty.isVector() ? getFConstantSplat(LHS, MRI, /* allowUndef */ true) : getFConstantVRegValWithLookThrough(LHS, MRI);
     if (!LHSCst) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // -0.0 is always allowed
     if (LHSCst->Value.isNegZero()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -6548,21 +6367,19 @@ bool CombinerHelper::matchFsubToFneg(MachineInstr& MI,
     if (LHSCst->Value.isPosZero()) {
         if (MI.getFlag(MachineInstr::FmNsz)) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyFsubToFneg(MachineInstr& MI,
-    Register& MatchInfo) const {
+void CombinerHelper::applyFsubToFneg(MachineInstr& MI, Register& MatchInfo) const {
     Register Dst = MI.getOperand(0).getReg();
-    Builder.buildFNeg(
-        Dst, Builder.buildFCanonicalize(MRI.getType(Dst), MatchInfo).getReg(0));
+    Builder.buildFNeg(Dst, Builder.buildFCanonicalize(MRI.getType(Dst), MatchInfo).getReg(0));
     eraseInst(MI);
 }
 
@@ -6576,17 +6393,12 @@ static bool isContractableFMul(MachineInstr& MI, bool AllowFusionGlobally) {
 }
 
 static bool hasMoreUses(const MachineInstr& MI0, const MachineInstr& MI1, const MachineRegisterInfo& MRI) {
-    return std::distance(MRI.use_instr_nodbg_begin(MI0.getOperand(0).getReg()),
-               MRI.use_instr_nodbg_end())
-        > std::distance(MRI.use_instr_nodbg_begin(MI1.getOperand(0).getReg()),
-            MRI.use_instr_nodbg_end());
+    return std::distance(MRI.use_instr_nodbg_begin(MI0.getOperand(0).getReg()), MRI.use_instr_nodbg_end())
+        > std::distance(MRI.use_instr_nodbg_begin(MI1.getOperand(0).getReg()), MRI.use_instr_nodbg_end());
 }
 
-bool CombinerHelper::canCombineFMadOrFMA(MachineInstr& MI,
-    bool& AllowFusionGlobally,
-    bool& HasFMAD,
-    bool& Aggressive,
-    bool CanReassociate) const {
+bool CombinerHelper::canCombineFMadOrFMA(MachineInstr& MI, bool& AllowFusionGlobally, bool& HasFMAD, bool& Aggressive, bool CanReassociate) const {
+	NICO_MARKER_LOGGING_START;
 
     auto* MF = MI.getMF();
     const auto& TLI = *MF->getSubtarget().getTargetLowering();
@@ -6616,14 +6428,13 @@ bool CombinerHelper::canCombineFMadOrFMA(MachineInstr& MI,
     return true;
 }
 
-bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FADD);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6643,39 +6454,30 @@ bool CombinerHelper::matchCombineFAddFMulToFMadOrFMA(
 
     // fold (fadd (fmul x, y), z) -> (fma x, y, z)
     if (isContractableFMul(*LHS.MI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(LHS.Reg))) {
-        MatchInfo = [=, &MI](MachineIRBuilder& B) {
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {LHS.MI->getOperand(1).getReg(),
-                    LHS.MI->getOperand(2).getReg(), RHS.Reg});
-        };
+        MatchInfo = [=, &MI](MachineIRBuilder& B) { B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {LHS.MI->getOperand(1).getReg(), LHS.MI->getOperand(2).getReg(), RHS.Reg}); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // fold (fadd x, (fmul y, z)) -> (fma y, z, x)
     if (isContractableFMul(*RHS.MI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(RHS.Reg))) {
-        MatchInfo = [=, &MI](MachineIRBuilder& B) {
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {RHS.MI->getOperand(1).getReg(),
-                    RHS.MI->getOperand(2).getReg(), LHS.Reg});
-        };
+        MatchInfo = [=, &MI](MachineIRBuilder& B) { B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {RHS.MI->getOperand(1).getReg(), RHS.MI->getOperand(2).getReg(), LHS.Reg}); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FADD);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6698,43 +6500,42 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMA(
 
     // fold (fadd (fpext (fmul x, y)), z) -> (fma (fpext x), (fpext y), z)
     MachineInstr* FpExtSrc;
-    if (nico::mi_match_wrapper(LHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
+    if (nico::mi_match_wrapper(LHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally)
+        && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             auto FpExtX = B.buildFPExt(DstType, FpExtSrc->getOperand(1).getReg());
             auto FpExtY = B.buildFPExt(DstType, FpExtSrc->getOperand(2).getReg());
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {FpExtX.getReg(0), FpExtY.getReg(0), RHS.Reg});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {FpExtX.getReg(0), FpExtY.getReg(0), RHS.Reg});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // fold (fadd z, (fpext (fmul x, y))) -> (fma (fpext x), (fpext y), z)
     // Note: Commutes FADD operands.
-    if (nico::mi_match_wrapper(RHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
+    if (nico::mi_match_wrapper(RHS.Reg, MRI, m_GFPExt(m_MInstr(FpExtSrc))) && isContractableFMul(*FpExtSrc, AllowFusionGlobally)
+        && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FpExtSrc->getOperand(1).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             auto FpExtX = B.buildFPExt(DstType, FpExtSrc->getOperand(1).getReg());
             auto FpExtY = B.buildFPExt(DstType, FpExtSrc->getOperand(2).getReg());
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {FpExtX.getReg(0), FpExtY.getReg(0), LHS.Reg});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {FpExtX.getReg(0), FpExtY.getReg(0), LHS.Reg});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FADD);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive, true)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6757,12 +6558,14 @@ bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(
     MachineInstr* FMA = nullptr;
     Register Z;
     // fold (fadd (fma x, y, (fmul u, v)), z) -> (fma x, y, (fma u, v, z))
-    if (LHS.MI->getOpcode() == PreferredFusedOpcode && (MRI.getVRegDef(LHS.MI->getOperand(3).getReg())->getOpcode() == TargetOpcode::G_FMUL) && MRI.hasOneNonDBGUse(LHS.MI->getOperand(0).getReg()) && MRI.hasOneNonDBGUse(LHS.MI->getOperand(3).getReg())) {
+    if (LHS.MI->getOpcode() == PreferredFusedOpcode && (MRI.getVRegDef(LHS.MI->getOperand(3).getReg())->getOpcode() == TargetOpcode::G_FMUL) && MRI.hasOneNonDBGUse(LHS.MI->getOperand(0).getReg())
+        && MRI.hasOneNonDBGUse(LHS.MI->getOperand(3).getReg())) {
         FMA = LHS.MI;
         Z = RHS.Reg;
     }
     // fold (fadd z, (fma x, y, (fmul u, v))) -> (fma x, y, (fma u, v, z))
-    else if (RHS.MI->getOpcode() == PreferredFusedOpcode && (MRI.getVRegDef(RHS.MI->getOperand(3).getReg())->getOpcode() == TargetOpcode::G_FMUL) && MRI.hasOneNonDBGUse(RHS.MI->getOperand(0).getReg()) && MRI.hasOneNonDBGUse(RHS.MI->getOperand(3).getReg())) {
+    else if (RHS.MI->getOpcode() == PreferredFusedOpcode && (MRI.getVRegDef(RHS.MI->getOperand(3).getReg())->getOpcode() == TargetOpcode::G_FMUL) && MRI.hasOneNonDBGUse(RHS.MI->getOperand(0).getReg())
+        && MRI.hasOneNonDBGUse(RHS.MI->getOperand(3).getReg())) {
         Z = LHS.Reg;
         FMA = RHS.MI;
     }
@@ -6777,30 +6580,28 @@ bool CombinerHelper::matchCombineFAddFMAFMulToFMadOrFMA(
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register InnerFMA = MRI.createGenericVirtualRegister(DstTy);
             B.buildInstr(PreferredFusedOpcode, {InnerFMA}, {U, V, Z});
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {X, Y, InnerFMA});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {X, Y, InnerFMA});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FADD);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (!Aggressive) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6822,28 +6623,22 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
     }
 
     // Builds: (fma x, y, (fma (fpext u), (fpext v), z))
-    auto buildMatchInfo = [=, &MI](Register U, Register V, Register Z, Register X,
-                              Register Y, MachineIRBuilder& B) {
+    auto buildMatchInfo = [=, &MI](Register U, Register V, Register Z, Register X, Register Y, MachineIRBuilder& B) {
         Register FpExtU = B.buildFPExt(DstType, U).getReg(0);
         Register FpExtV = B.buildFPExt(DstType, V).getReg(0);
-        Register InnerFMA = B.buildInstr(PreferredFusedOpcode, {DstType}, {FpExtU, FpExtV, Z})
-                                .getReg(0);
-        B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-            {X, Y, InnerFMA});
+        Register InnerFMA = B.buildInstr(PreferredFusedOpcode, {DstType}, {FpExtU, FpExtV, Z}).getReg(0);
+        B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {X, Y, InnerFMA});
     };
 
     MachineInstr *FMulMI, *FMAMI;
     // fold (fadd (fma x, y, (fpext (fmul u, v))), z)
     //   -> (fma x, y, (fma (fpext u), (fpext v), z))
-    if (LHS.MI->getOpcode() == PreferredFusedOpcode && nico::mi_match_wrapper(LHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
-        MatchInfo = [=](MachineIRBuilder& B) {
-            buildMatchInfo(FMulMI->getOperand(1).getReg(),
-                FMulMI->getOperand(2).getReg(), RHS.Reg,
-                LHS.MI->getOperand(1).getReg(),
-                LHS.MI->getOperand(2).getReg(), B);
-        };
+    if (LHS.MI->getOpcode() == PreferredFusedOpcode && nico::mi_match_wrapper(LHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally)
+        && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+        MatchInfo
+            = [=](MachineIRBuilder& B) { buildMatchInfo(FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), RHS.Reg, LHS.MI->getOperand(1).getReg(), LHS.MI->getOperand(2).getReg(), B); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -6860,26 +6655,22 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 Register Y = FMAMI->getOperand(2).getReg();
                 X = B.buildFPExt(DstType, X).getReg(0);
                 Y = B.buildFPExt(DstType, Y).getReg(0);
-                buildMatchInfo(FMulMI->getOperand(1).getReg(),
-                    FMulMI->getOperand(2).getReg(), RHS.Reg, X, Y, B);
+                buildMatchInfo(FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), RHS.Reg, X, Y, B);
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
 
     // fold (fadd z, (fma x, y, (fpext (fmul u, v)))
     //   -> (fma x, y, (fma (fpext u), (fpext v), z))
-    if (RHS.MI->getOpcode() == PreferredFusedOpcode && nico::mi_match_wrapper(RHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
-        MatchInfo = [=](MachineIRBuilder& B) {
-            buildMatchInfo(FMulMI->getOperand(1).getReg(),
-                FMulMI->getOperand(2).getReg(), LHS.Reg,
-                RHS.MI->getOperand(1).getReg(),
-                RHS.MI->getOperand(2).getReg(), B);
-        };
+    if (RHS.MI->getOpcode() == PreferredFusedOpcode && nico::mi_match_wrapper(RHS.MI->getOperand(3).getReg(), MRI, m_GFPExt(m_MInstr(FMulMI))) && isContractableFMul(*FMulMI, AllowFusionGlobally)
+        && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstType, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+        MatchInfo
+            = [=](MachineIRBuilder& B) { buildMatchInfo(FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), LHS.Reg, RHS.MI->getOperand(1).getReg(), RHS.MI->getOperand(2).getReg(), B); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -6896,26 +6687,24 @@ bool CombinerHelper::matchCombineFAddFpExtFMulToFMadOrFMAAggressive(
                 Register Y = FMAMI->getOperand(2).getReg();
                 X = B.buildFPExt(DstType, X).getReg(0);
                 Y = B.buildFPExt(DstType, Y).getReg(0);
-                buildMatchInfo(FMulMI->getOperand(1).getReg(),
-                    FMulMI->getOperand(2).getReg(), LHS.Reg, X, Y, B);
+                buildMatchInfo(FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), LHS.Reg, X, Y, B);
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FSUB);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6938,37 +6727,33 @@ bool CombinerHelper::matchCombineFSubFMulToFMadOrFMA(
     if (FirstMulHasFewerUses && (isContractableFMul(*LHS.MI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(LHS.Reg)))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register NegZ = B.buildFNeg(DstTy, RHS.Reg).getReg(0);
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {LHS.MI->getOperand(1).getReg(),
-                    LHS.MI->getOperand(2).getReg(), NegZ});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {LHS.MI->getOperand(1).getReg(), LHS.MI->getOperand(2).getReg(), NegZ});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
     // fold (fsub x, (fmul y, z)) -> (fma -y, z, x)
     else if ((isContractableFMul(*RHS.MI, AllowFusionGlobally) && (Aggressive || MRI.hasOneNonDBGUse(RHS.Reg)))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register NegY = B.buildFNeg(DstTy, RHS.MI->getOperand(1).getReg()).getReg(0);
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {NegY, RHS.MI->getOperand(2).getReg(), LHS.Reg});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {NegY, RHS.MI->getOperand(2).getReg(), LHS.Reg});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FSUB);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -6980,41 +6765,37 @@ bool CombinerHelper::matchCombineFSubFNegFMulToFMadOrFMA(
 
     MachineInstr* FMulMI;
     // fold (fsub (fneg (fmul x, y)), z) -> (fma (fneg x), y, (fneg z))
-    if (nico::mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(LHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg()))) && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
+    if (nico::mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(LHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg())))
+        && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register NegX = B.buildFNeg(DstTy, FMulMI->getOperand(1).getReg()).getReg(0);
             Register NegZ = B.buildFNeg(DstTy, RHSReg).getReg(0);
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {NegX, FMulMI->getOperand(2).getReg(), NegZ});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {NegX, FMulMI->getOperand(2).getReg(), NegZ});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // fold (fsub x, (fneg (fmul, y, z))) -> (fma y, z, x)
-    if (nico::mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(RHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg()))) && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
-        MatchInfo = [=, &MI](MachineIRBuilder& B) {
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {FMulMI->getOperand(1).getReg(),
-                    FMulMI->getOperand(2).getReg(), LHSReg});
-        };
+    if (nico::mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_MInstr(FMulMI))) && (Aggressive || (MRI.hasOneNonDBGUse(RHSReg) && MRI.hasOneNonDBGUse(FMulMI->getOperand(0).getReg())))
+        && isContractableFMul(*FMulMI, AllowFusionGlobally)) {
+        MatchInfo = [=, &MI](MachineIRBuilder& B) { B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), LHSReg}); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FSUB);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -7031,11 +6812,10 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
             Register FpExtX = B.buildFPExt(DstTy, FMulMI->getOperand(1).getReg()).getReg(0);
             Register FpExtY = B.buildFPExt(DstTy, FMulMI->getOperand(2).getReg()).getReg(0);
             Register NegZ = B.buildFNeg(DstTy, RHSReg).getReg(0);
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {FpExtX, FpExtY, NegZ});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {FpExtX, FpExtY, NegZ});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -7045,25 +6825,23 @@ bool CombinerHelper::matchCombineFSubFpExtFMulToFMadOrFMA(
             Register FpExtY = B.buildFPExt(DstTy, FMulMI->getOperand(1).getReg()).getReg(0);
             Register NegY = B.buildFNeg(DstTy, FpExtY).getReg(0);
             Register FpExtZ = B.buildFPExt(DstTy, FMulMI->getOperand(2).getReg()).getReg(0);
-            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()},
-                {NegY, FpExtZ, LHSReg});
+            B.buildInstr(PreferredFusedOpcode, {MI.getOperand(0).getReg()}, {NegY, FpExtZ, LHSReg});
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
-    MachineInstr& MI,
-    std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(MachineInstr& MI, std::function<void(MachineIRBuilder&)>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FSUB);
 
     bool AllowFusionGlobally, HasFMAD, Aggressive;
     if (!canCombineFMadOrFMA(MI, AllowFusionGlobally, HasFMAD, Aggressive)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -7074,8 +6852,7 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
 
     unsigned PreferredFusedOpcode = HasFMAD ? TargetOpcode::G_FMAD : TargetOpcode::G_FMA;
 
-    auto buildMatchInfo = [=](Register Dst, Register X, Register Y, Register Z,
-                              MachineIRBuilder& B) {
+    auto buildMatchInfo = [=](Register Dst, Register X, Register Y, Register Z, MachineIRBuilder& B) {
         Register FpExtX = B.buildFPExt(DstTy, X).getReg(0);
         Register FpExtY = B.buildFPExt(DstTy, Y).getReg(0);
         B.buildInstr(PreferredFusedOpcode, {Dst}, {FpExtX, FpExtY, Z});
@@ -7086,39 +6863,37 @@ bool CombinerHelper::matchCombineFSubFpExtFNegFMulToFMadOrFMA(
     //      (fneg (fma (fpext x), (fpext y), z))
     // fold (fsub (fneg (fpext (fmul x, y))), z) ->
     //      (fneg (fma (fpext x), (fpext y), z))
-    if ((nico::mi_match_wrapper(LHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || nico::mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI))))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+    if ((nico::mi_match_wrapper(LHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || nico::mi_match_wrapper(LHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI)))))
+        && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
         MatchInfo = [=, &MI](MachineIRBuilder& B) {
             Register FMAReg = MRI.createGenericVirtualRegister(DstTy);
-            buildMatchInfo(FMAReg, FMulMI->getOperand(1).getReg(),
-                FMulMI->getOperand(2).getReg(), RHSReg, B);
+            buildMatchInfo(FMAReg, FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), RHSReg, B);
             B.buildFNeg(MI.getOperand(0).getReg(), FMAReg);
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // fold (fsub x, (fpext (fneg (fmul y, z)))) -> (fma (fpext y), (fpext z), x)
     // fold (fsub x, (fneg (fpext (fmul y, z)))) -> (fma (fpext y), (fpext z), x)
-    if ((nico::mi_match_wrapper(RHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || nico::mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI))))) && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
-        MatchInfo = [=, &MI](MachineIRBuilder& B) {
-            buildMatchInfo(MI.getOperand(0).getReg(), FMulMI->getOperand(1).getReg(),
-                FMulMI->getOperand(2).getReg(), LHSReg, B);
-        };
+    if ((nico::mi_match_wrapper(RHSReg, MRI, m_GFPExt(m_GFNeg(m_MInstr(FMulMI)))) || nico::mi_match_wrapper(RHSReg, MRI, m_GFNeg(m_GFPExt(m_MInstr(FMulMI)))))
+        && isContractableFMul(*FMulMI, AllowFusionGlobally) && TLI.isFPExtFoldable(MI, PreferredFusedOpcode, DstTy, MRI.getType(FMulMI->getOperand(0).getReg()))) {
+        MatchInfo = [=, &MI](MachineIRBuilder& B) { buildMatchInfo(MI.getOperand(0).getReg(), FMulMI->getOperand(1).getReg(), FMulMI->getOperand(2).getReg(), LHSReg, B); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchCombineFMinMaxNaN(MachineInstr& MI,
-    unsigned& IdxToPropagate) const {
+bool CombinerHelper::matchCombineFMinMaxNaN(MachineInstr& MI, unsigned& IdxToPropagate) const {
+	NICO_MARKER_LOGGING_START;
     bool PropagateNaN;
     switch (MI.getOpcode()) {
         default:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         case TargetOpcode::G_FMINNUM:
         case TargetOpcode::G_FMAXNUM:
@@ -7142,14 +6917,15 @@ bool CombinerHelper::matchCombineFMinMaxNaN(MachineInstr& MI,
 
     if (MatchNaN(1) || MatchNaN(2)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchAddSubSameReg(MachineInstr& MI, Register& Src) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ADD && "Expected a G_ADD");
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -7163,15 +6939,15 @@ bool CombinerHelper::matchAddSubSameReg(MachineInstr& MI, Register& Src) const {
     };
     if (CheckFold(LHS, RHS) || CheckFold(RHS, LHS)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
-    Register& MatchInfo) const {
+bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI, Register& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // This combine folds the following patterns:
     //
     //  G_BUILD_VECTOR_TRUNC (G_BITCAST(x), G_LSHR(G_BITCAST(x), k))
@@ -7197,78 +6973,71 @@ bool CombinerHelper::matchBuildVectorIdentityFold(MachineInstr& MI,
         MatchInfo = Lo;
         if (MRI.getType(MatchInfo) == DstVecTy) {
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     std::optional<ValueAndVReg> ShiftAmount;
     const auto LoPattern = m_GBitcast(m_Reg(Lo));
     const auto HiPattern = m_GLShr(m_GBitcast(m_Reg(Hi)), m_GCst(ShiftAmount));
-    if (nico::mi_match_wrapper(
-            MI, MRI,
-            m_any_of(m_GBuildVectorTrunc(LoPattern, HiPattern),
-                m_GBuildVector(m_GTrunc(LoPattern), m_GTrunc(HiPattern))))) {
+    if (nico::mi_match_wrapper(MI, MRI, m_any_of(m_GBuildVectorTrunc(LoPattern, HiPattern), m_GBuildVector(m_GTrunc(LoPattern), m_GTrunc(HiPattern))))) {
         if (Lo == Hi && ShiftAmount->Value == DstEltTy.getSizeInBits()) {
             MatchInfo = Lo;
             if (MRI.getType(MatchInfo) == DstVecTy) {
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchTruncBuildVectorFold(MachineInstr& MI,
-    Register& MatchInfo) const {
+bool CombinerHelper::matchTruncBuildVectorFold(MachineInstr& MI, Register& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Replace (G_TRUNC (G_BITCAST (G_BUILD_VECTOR x, y)) with just x
     // if type(x) == type(G_TRUNC)
-    if (!nico::mi_match_wrapper(MI.getOperand(1).getReg(), MRI,
-            m_GBitcast(m_GBuildVector(m_Reg(MatchInfo), m_Reg())))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(MI.getOperand(1).getReg(), MRI, m_GBitcast(m_GBuildVector(m_Reg(MatchInfo), m_Reg())))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (MRI.getType(MatchInfo) == MRI.getType(MI.getOperand(0).getReg())) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchTruncLshrBuildVectorFold(MachineInstr& MI,
-    Register& MatchInfo) const {
+bool CombinerHelper::matchTruncLshrBuildVectorFold(MachineInstr& MI, Register& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Replace (G_TRUNC (G_LSHR (G_BITCAST (G_BUILD_VECTOR x, y)), K)) with
     //    y if K == size of vector element type
     std::optional<ValueAndVReg> ShiftAmt;
-    if (!nico::mi_match_wrapper(MI.getOperand(1).getReg(), MRI,
-            m_GLShr(m_GBitcast(m_GBuildVector(m_Reg(), m_Reg(MatchInfo))),
-                m_GCst(ShiftAmt)))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(MI.getOperand(1).getReg(), MRI, m_GLShr(m_GBitcast(m_GBuildVector(m_Reg(), m_Reg(MatchInfo))), m_GCst(ShiftAmt)))) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     LLT MatchTy = MRI.getType(MatchInfo);
     if (ShiftAmt->Value.getZExtValue() == MatchTy.getSizeInBits() && MatchTy == MRI.getType(MI.getOperand(0).getReg())) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-unsigned CombinerHelper::getFPMinMaxOpcForSelect(
-    CmpInst::Predicate Pred, LLT DstTy, SelectPatternNaNBehaviour VsNaNRetVal) const {
+unsigned CombinerHelper::getFPMinMaxOpcForSelect(CmpInst::Predicate Pred, LLT DstTy, SelectPatternNaNBehaviour VsNaNRetVal) const {
     assert(VsNaNRetVal != SelectPatternNaNBehaviour::NOT_APPLICABLE && "Expected a NaN behaviour?");
     // Choose an opcode based off of legality or the behaviour when one of the
     // LHS/RHS may be NaN.
@@ -7312,8 +7081,7 @@ unsigned CombinerHelper::getFPMinMaxOpcForSelect(
     }
 }
 
-CombinerHelper::SelectPatternNaNBehaviour
-CombinerHelper::computeRetValAgainstNaN(Register LHS, Register RHS, bool IsOrderedComparison) const {
+CombinerHelper::SelectPatternNaNBehaviour CombinerHelper::computeRetValAgainstNaN(Register LHS, Register RHS, bool IsOrderedComparison) const {
     bool LHSSafe = isKnownNeverNaN(LHS, MRI);
     bool RHSSafe = isKnownNeverNaN(RHS, MRI);
     // Completely unsafe.
@@ -7326,39 +7094,35 @@ CombinerHelper::computeRetValAgainstNaN(Register LHS, Register RHS, bool IsOrder
     // An ordered comparison will return false when given a NaN, so it
     // returns the RHS.
     if (IsOrderedComparison) {
-        return LHSSafe ? SelectPatternNaNBehaviour::RETURNS_NAN
-                       : SelectPatternNaNBehaviour::RETURNS_OTHER;
+        return LHSSafe ? SelectPatternNaNBehaviour::RETURNS_NAN : SelectPatternNaNBehaviour::RETURNS_OTHER;
     }
     // An unordered comparison will return true when given a NaN, so it
     // returns the LHS.
-    return LHSSafe ? SelectPatternNaNBehaviour::RETURNS_OTHER
-                   : SelectPatternNaNBehaviour::RETURNS_NAN;
+    return LHSSafe ? SelectPatternNaNBehaviour::RETURNS_OTHER : SelectPatternNaNBehaviour::RETURNS_NAN;
 }
 
 bool CombinerHelper::matchFPSelectToMinMax(Register Dst, Register Cond, Register TrueVal, Register FalseVal, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // Match: select (fcmp cond x, y) x, y
     //        select (fcmp cond x, y) y, x
     // And turn it into fminnum/fmaxnum or fmin/fmax based off of the condition.
     LLT DstTy = MRI.getType(Dst);
     // Bail out early on pointers, since we'll never want to fold to a min/max.
     if (DstTy.isPointer()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Match a floating point compare with a less-than/greater-than predicate.
     // TODO: Allow multiple users of the compare if they are all selects.
     CmpInst::Predicate Pred;
     Register CmpLHS, CmpRHS;
-    if (!nico::mi_match_wrapper(Cond, MRI,
-            m_OneNonDBGUse(
-                m_GFCmp(m_Pred(Pred), m_Reg(CmpLHS), m_Reg(CmpRHS))))
-        || CmpInst::isEquality(Pred)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!nico::mi_match_wrapper(Cond, MRI, m_OneNonDBGUse(m_GFCmp(m_Pred(Pred), m_Reg(CmpLHS), m_Reg(CmpRHS)))) || CmpInst::isEquality(Pred)) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     SelectPatternNaNBehaviour ResWithKnownNaNInfo = computeRetValAgainstNaN(CmpLHS, CmpRHS, CmpInst::isOrdered(Pred));
     if (ResWithKnownNaNInfo == SelectPatternNaNBehaviour::NOT_APPLICABLE) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (TrueVal == CmpRHS && FalseVal == CmpLHS) {
@@ -7371,13 +7135,13 @@ bool CombinerHelper::matchFPSelectToMinMax(Register Dst, Register Cond, Register
         }
     }
     if (TrueVal != CmpLHS || FalseVal != CmpRHS) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Decide what type of max/min this should be based off of the predicate.
     unsigned Opc = getFPMinMaxOpcForSelect(Pred, DstTy, ResWithKnownNaNInfo);
     if (!Opc || !isLegal({Opc, {DstTy}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // Comparisons between signed zero and zero may have different results...
@@ -7390,21 +7154,19 @@ bool CombinerHelper::matchFPSelectToMinMax(Register Dst, Register Cond, Register
         if (!KnownNonZeroSide || !KnownNonZeroSide->Value.isNonZero()) {
             KnownNonZeroSide = getFConstantVRegValWithLookThrough(CmpRHS, MRI);
             if (!KnownNonZeroSide || !KnownNonZeroSide->Value.isNonZero()) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
         }
     }
-    MatchInfo = [=](MachineIRBuilder& B) {
-        B.buildInstr(Opc, {Dst}, {CmpLHS, CmpRHS});
-    };
+    MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(Opc, {Dst}, {CmpLHS, CmpRHS}); };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchSimplifySelectToMinMax(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchSimplifySelectToMinMax(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // TODO: Handle integer cases.
     assert(MI.getOpcode() == TargetOpcode::G_SELECT);
     // Condition may be fed by a truncated compare.
@@ -7418,15 +7180,15 @@ bool CombinerHelper::matchSimplifySelectToMinMax(MachineInstr& MI,
     Register FalseVal = MI.getOperand(3).getReg();
     if (matchFPSelectToMinMax(Dst, Cond, TrueVal, FalseVal, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ICMP);
     // (X + Y) == X --> Y == 0
     // (X + Y) != X --> Y != 0
@@ -7437,20 +7199,17 @@ bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
     Register Dst = MI.getOperand(0).getReg();
     CmpInst::Predicate Pred;
     Register X, Y, OpLHS, OpRHS;
-    bool MatchedSub = nico::mi_match_wrapper(
-        Dst, MRI,
-        m_c_GICmp(m_Pred(Pred), m_Reg(X), m_GSub(m_Reg(OpLHS), m_Reg(Y))));
+    bool MatchedSub = nico::mi_match_wrapper(Dst, MRI, m_c_GICmp(m_Pred(Pred), m_Reg(X), m_GSub(m_Reg(OpLHS), m_Reg(Y))));
     if (MatchedSub && X != OpLHS) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (!MatchedSub) {
-        if (!nico::mi_match_wrapper(Dst, MRI,m_c_GICmp(m_Pred(Pred), m_Reg(X),m_any_of(m_GAdd(m_Reg(OpLHS), m_Reg(OpRHS)),m_GXor(m_Reg(OpLHS), m_Reg(OpRHS)))))) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        if (!nico::mi_match_wrapper(Dst, MRI, m_c_GICmp(m_Pred(Pred), m_Reg(X), m_any_of(m_GAdd(m_Reg(OpLHS), m_Reg(OpRHS)), m_GXor(m_Reg(OpLHS), m_Reg(OpRHS)))))) {
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
-        Y = X == OpLHS ? OpRHS : X == OpRHS ? OpLHS
-                                            : Register();
+        Y = X == OpLHS ? OpRHS : X == OpRHS ? OpLHS : Register();
     }
     MatchInfo = [=](MachineIRBuilder& B) {
         auto Zero = B.buildConstant(MRI.getType(Y), 0);
@@ -7458,17 +7217,16 @@ bool CombinerHelper::matchRedundantBinOpInEquality(MachineInstr& MI,
     };
     if (CmpInst::isEquality(Pred) && Y.isValid()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 /// Return the minimum useless shift amount that results in complete loss of the
 /// source value. Return std::nullopt when it cannot determine a value.
-static std::optional<unsigned>
-getMinUselessShift(KnownBits ValueKB, unsigned Opcode, std::optional<int64_t>& Result) {
+static std::optional<unsigned> getMinUselessShift(KnownBits ValueKB, unsigned Opcode, std::optional<int64_t>& Result) {
     assert(Opcode == TargetOpcode::G_SHL || Opcode == TargetOpcode::G_LSHR || Opcode == TargetOpcode::G_ASHR && "Expect G_SHL, G_LSHR or G_ASHR.");
     auto SignificantBits = 0;
     switch (Opcode) {
@@ -7498,8 +7256,8 @@ getMinUselessShift(KnownBits ValueKB, unsigned Opcode, std::optional<int64_t>& R
     return ValueKB.getBitWidth() - SignificantBits;
 }
 
-bool CombinerHelper::matchShiftsTooBig(
-    MachineInstr& MI, std::optional<int64_t>& MatchInfo) const {
+bool CombinerHelper::matchShiftsTooBig(MachineInstr& MI, std::optional<int64_t>& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     Register ShiftVal = MI.getOperand(1).getReg();
     Register ShiftReg = MI.getOperand(2).getReg();
     LLT ResTy = MRI.getType(MI.getOperand(0).getReg());
@@ -7517,14 +7275,15 @@ bool CombinerHelper::matchShiftsTooBig(
     };
     if (matchUnaryPredicate(MRI, ShiftReg, IsShiftTooBig)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchCommuteConstantToRHS(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     unsigned LHSOpndIdx = 1;
     unsigned RHSOpndIdx = 2;
     switch (MI.getOpcode()) {
@@ -7545,34 +7304,35 @@ bool CombinerHelper::matchCommuteConstantToRHS(MachineInstr& MI) const {
         // G_CONSTANT_FOLD_BARRIER. If so we commute as long as we don't already
         // have a constant on the RHS.
         if (MRI.getVRegDef(LHS)->getOpcode() != TargetOpcode::G_CONSTANT_FOLD_BARRIER) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
     }
     // Commute as long as RHS is not a constant or G_CONSTANT_FOLD_BARRIER.
     if (MRI.getVRegDef(RHS)->getOpcode() != TargetOpcode::G_CONSTANT_FOLD_BARRIER && !getIConstantVRegVal(RHS, MRI)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchCommuteFPConstantToRHS(MachineInstr& MI) const {
+	NICO_MARKER_LOGGING_START;
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
     std::optional<FPValueAndVReg> ValAndVReg;
     if (!nico::mi_match_wrapper(LHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     if (!nico::mi_match_wrapper(RHS, MRI, m_GFCstOrSplat(ValAndVReg))) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -7599,6 +7359,7 @@ void CombinerHelper::applyCommuteBinOpOperands(MachineInstr& MI) const {
 }
 
 bool CombinerHelper::isOneOrOneSplat(Register Src, bool AllowUndefs) const {
+	NICO_MARKER_LOGGING_START;
     LLT SrcTy = MRI.getType(Src);
     if (SrcTy.isFixedVector()) {
         return isConstantSplatVector(Src, 1, AllowUndefs);
@@ -7614,6 +7375,7 @@ bool CombinerHelper::isOneOrOneSplat(Register Src, bool AllowUndefs) const {
 }
 
 bool CombinerHelper::isZeroOrZeroSplat(Register Src, bool AllowUndefs) const {
+	NICO_MARKER_LOGGING_START;
     LLT SrcTy = MRI.getType(Src);
     if (SrcTy.isFixedVector()) {
         return isConstantSplatVector(Src, 0, AllowUndefs);
@@ -7631,6 +7393,7 @@ bool CombinerHelper::isZeroOrZeroSplat(Register Src, bool AllowUndefs) const {
 // Ignores COPYs during conformance checks.
 // FIXME scalable vectors.
 bool CombinerHelper::isConstantSplatVector(Register Src, int64_t SplatValue, bool AllowUndefs) const {
+	NICO_MARKER_LOGGING_START;
     GBuildVector* BuildVector = getOpcodeDef<GBuildVector>(Src, MRI);
     if (!BuildVector) {
         return false;
@@ -7656,8 +7419,7 @@ bool CombinerHelper::isConstantSplatVector(Register Src, int64_t SplatValue, boo
 
 // Ignores COPYs during lookups.
 // FIXME scalable vectors
-std::optional<APInt>
-CombinerHelper::getConstantOrConstantSplatVector(Register Src) const {
+std::optional<APInt> CombinerHelper::getConstantOrConstantSplatVector(Register Src) const {
     auto IConstant = getIConstantVRegValWithLookThrough(Src, MRI);
     if (IConstant) {
         return IConstant->Value;
@@ -7686,6 +7448,7 @@ CombinerHelper::getConstantOrConstantSplatVector(Register Src) const {
 
 // FIXME G_SPLAT_VECTOR
 bool CombinerHelper::isConstantOrConstantVectorI(Register Src) const {
+	NICO_MARKER_LOGGING_START;
     auto IConstant = getIConstantVRegValWithLookThrough(Src, MRI);
     if (IConstant) {
         return true;
@@ -7707,8 +7470,7 @@ bool CombinerHelper::isConstantOrConstantVectorI(Register Src) const {
 }
 
 // TODO: use knownbits to determine zeros
-bool CombinerHelper::tryFoldSelectOfConstants(GSelect* Select,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::tryFoldSelectOfConstants(GSelect* Select, BuildFnTy& MatchInfo) const {
     uint32_t Flags = Select->getFlags();
     Register Dest = Select->getReg(0);
     Register Cond = Select->getCondReg();
@@ -7857,8 +7619,7 @@ bool CombinerHelper::tryFoldSelectOfConstants(GSelect* Select,
 }
 
 // TODO: use knownbits to determine zeros
-bool CombinerHelper::tryFoldBoolSelectToLogic(GSelect* Select,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::tryFoldBoolSelectToLogic(GSelect* Select, BuildFnTy& MatchInfo) const {
     uint32_t Flags = Select->getFlags();
     Register DstReg = Select->getReg(0);
     Register Cond = Select->getCondReg();
@@ -7937,8 +7698,8 @@ bool CombinerHelper::tryFoldBoolSelectToLogic(GSelect* Select,
     return false;
 }
 
-bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GSelect* Select = cast<GSelect>(MRI.getVRegDef(MO.getReg()));
     GICmp* Cmp = cast<GICmp>(MRI.getVRegDef(Select->getCondReg()));
 
@@ -7948,13 +7709,13 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
     LLT DstTy = MRI.getType(DstReg);
 
     if (DstTy.isPointer()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // We want to fold the icmp and replace the select.
     if (!MRI.hasOneNonDBGUse(Cmp->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -7962,7 +7723,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
     // We need a larger or smaller predicate for
     // canonicalization.
     if (CmpInst::isEquality(Pred)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -7979,7 +7740,7 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
     // see matchSelectPattern in ValueTracking.
     // Legality between G_SELECT and integer minmax can differ.
     if (True != CmpLHS || False != CmpRHS) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -7987,56 +7748,56 @@ bool CombinerHelper::matchSelectIMinMax(const MachineOperand& MO,
         case ICmpInst::ICMP_UGT:
         case ICmpInst::ICMP_UGE: {
             if (!isLegalOrBeforeLegalizer({TargetOpcode::G_UMAX, DstTy})) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildUMax(DstReg, True, False); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         case ICmpInst::ICMP_SGT:
         case ICmpInst::ICMP_SGE: {
             if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SMAX, DstTy})) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildSMax(DstReg, True, False); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         case ICmpInst::ICMP_ULT:
         case ICmpInst::ICMP_ULE: {
             if (!isLegalOrBeforeLegalizer({TargetOpcode::G_UMIN, DstTy})) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildUMin(DstReg, True, False); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         case ICmpInst::ICMP_SLT:
         case ICmpInst::ICMP_SLE: {
             if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SMIN, DstTy})) {
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             }
             MatchInfo = [=](MachineIRBuilder& B) { B.buildSMin(DstReg, True, False); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         default:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
     }
 }
 
 // (neg (min/max x, (neg x))) --> (max/min x, (neg x))
-bool CombinerHelper::matchSimplifyNegMinMax(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchSimplifyNegMinMax(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_SUB);
     Register DestReg = MI.getOperand(0).getReg();
     LLT DestTy = MRI.getType(DestReg);
@@ -8044,41 +7805,36 @@ bool CombinerHelper::matchSimplifyNegMinMax(MachineInstr& MI,
     Register X;
     Register Sub0;
     auto NegPattern = m_all_of(m_Neg(m_DeferredReg(X)), m_Reg(Sub0));
-    if (nico::mi_match_wrapper(DestReg, MRI,
-            m_Neg(m_OneUse(m_any_of(m_GSMin(m_Reg(X), NegPattern),
-                m_GSMax(m_Reg(X), NegPattern),
-                m_GUMin(m_Reg(X), NegPattern),
-                m_GUMax(m_Reg(X), NegPattern)))))) {
+    if (nico::mi_match_wrapper(DestReg, MRI, m_Neg(m_OneUse(m_any_of(m_GSMin(m_Reg(X), NegPattern), m_GSMax(m_Reg(X), NegPattern), m_GUMin(m_Reg(X), NegPattern), m_GUMax(m_Reg(X), NegPattern)))))) {
         MachineInstr* MinMaxMI = MRI.getVRegDef(MI.getOperand(2).getReg());
         unsigned NewOpc = getInverseGMinMaxOpcode(MinMaxMI->getOpcode());
         if (isLegal({NewOpc, {DestTy}})) {
-            MatchInfo = [=](MachineIRBuilder& B) {
-                B.buildInstr(NewOpc, {DestReg}, {X, Sub0});
-            };
+            MatchInfo = [=](MachineIRBuilder& B) { B.buildInstr(NewOpc, {DestReg}, {X, Sub0}); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchSelect(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GSelect* Select = cast<GSelect>(&MI);
 
     if (tryFoldSelectOfConstants(Select, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     if (tryFoldBoolSelectToLogic(Select, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
@@ -8086,8 +7842,7 @@ bool CombinerHelper::matchSelect(MachineInstr& MI, BuildFnTy& MatchInfo) const {
 /// or   (icmp Pred1 V1, C1) || (icmp Pred2 V2, C2)
 /// into a single comparison using range-based reasoning.
 /// see InstCombinerImpl::foldAndOrOfICmpsUsingRanges.
-bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
-    GLogicalBinOp* Logic, BuildFnTy& MatchInfo) const {
+bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildFnTy& MatchInfo) const {
     assert(Logic->getOpcode() != TargetOpcode::G_XOR && "unexpected xor");
     bool IsAnd = Logic->getOpcode() == TargetOpcode::G_AND;
     Register DstReg = Logic->getReg(0);
@@ -8098,20 +7853,20 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
     // We need an G_ICMP on the LHS register.
     GICmp* Cmp1 = getOpcodeDef<GICmp>(LHS, MRI);
     if (!Cmp1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // We need an G_ICMP on the RHS register.
     GICmp* Cmp2 = getOpcodeDef<GICmp>(RHS, MRI);
     if (!Cmp2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // We want to fold the icmps.
     if (!MRI.hasOneNonDBGUse(Cmp1->getReg(0)) || !MRI.hasOneNonDBGUse(Cmp2->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8119,14 +7874,14 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
     APInt C2;
     std::optional<ValueAndVReg> MaybeC1 = getIConstantVRegValWithLookThrough(Cmp1->getRHSReg(), MRI);
     if (!MaybeC1) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     C1 = MaybeC1->Value;
 
     std::optional<ValueAndVReg> MaybeC2 = getIConstantVRegValWithLookThrough(Cmp2->getRHSReg(), MRI);
     if (!MaybeC2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     C2 = MaybeC2->Value;
@@ -8139,14 +7894,14 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
     LLT CmpOperandTy = MRI.getType(R1);
 
     if (CmpOperandTy.isPointer()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // We build ands, adds, and constants of type CmpOperandTy.
     // They must be legal to build.
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_AND, CmpOperandTy}) || !isLegalOrBeforeLegalizer({TargetOpcode::G_ADD, CmpOperandTy}) || !isConstantLegalOrBeforeLegalizer(CmpOperandTy)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8172,19 +7927,17 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
     }
 
     if (R1 != R2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // We calculate the icmp ranges including maybe offsets.
-    ConstantRange CR1 = ConstantRange::makeExactICmpRegion(
-        IsAnd ? ICmpInst::getInversePredicate(Pred1) : Pred1, C1);
+    ConstantRange CR1 = ConstantRange::makeExactICmpRegion(IsAnd ? ICmpInst::getInversePredicate(Pred1) : Pred1, C1);
     if (Offset1) {
         CR1 = CR1.subtract(*Offset1);
     }
 
-    ConstantRange CR2 = ConstantRange::makeExactICmpRegion(
-        IsAnd ? ICmpInst::getInversePredicate(Pred2) : Pred2, C2);
+    ConstantRange CR2 = ConstantRange::makeExactICmpRegion(IsAnd ? ICmpInst::getInversePredicate(Pred2) : Pred2, C2);
     if (Offset2) {
         CR2 = CR2.subtract(*Offset2);
     }
@@ -8195,7 +7948,7 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
     if (!CR) {
         // We need non-wrapping ranges.
         if (CR1.isWrappedSet() || CR2.isWrappedSet()) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
@@ -8205,7 +7958,7 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
         APInt UpperDiff = (CR1.getUpper() - 1) ^ (CR2.getUpper() - 1);
         APInt CR1Size = CR1.getUpper() - CR1.getLower();
         if (!LowerDiff.isPowerOf2() || LowerDiff != UpperDiff || CR1Size != CR2.getUpper() - CR2.getLower()) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
@@ -8257,12 +8010,11 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(
             llvm_unreachable("unexpected configuration of CreateMask and Offset");
         }
     };
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::tryFoldLogicOfFCmps(GLogicalBinOp* Logic,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::tryFoldLogicOfFCmps(GLogicalBinOp* Logic, BuildFnTy& MatchInfo) const {
     assert(Logic->getOpcode() != TargetOpcode::G_XOR && "unexpecte xor");
     Register DestReg = Logic->getReg(0);
     Register LHS = Logic->getLHSReg();
@@ -8286,9 +8038,8 @@ bool CombinerHelper::tryFoldLogicOfFCmps(GLogicalBinOp* Logic,
 
     // We build one fcmp, want to fold the fcmps, replace the logic op,
     // and the fcmps must have the same shape.
-    if (!isLegalOrBeforeLegalizer(
-            {TargetOpcode::G_FCMP, {CmpTy, CmpOperandTy}})
-        || !MRI.hasOneNonDBGUse(Logic->getReg(0)) || !MRI.hasOneNonDBGUse(Cmp1->getReg(0)) || !MRI.hasOneNonDBGUse(Cmp2->getReg(0)) || MRI.getType(Cmp1->getLHSReg()) != MRI.getType(Cmp2->getLHSReg())) {
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_FCMP, {CmpTy, CmpOperandTy}}) || !MRI.hasOneNonDBGUse(Logic->getReg(0)) || !MRI.hasOneNonDBGUse(Cmp1->getReg(0))
+        || !MRI.hasOneNonDBGUse(Cmp2->getReg(0)) || MRI.getType(Cmp1->getLHSReg()) != MRI.getType(Cmp2->getLHSReg())) {
         return false;
     }
 
@@ -8332,44 +8083,46 @@ bool CombinerHelper::tryFoldLogicOfFCmps(GLogicalBinOp* Logic,
 }
 
 bool CombinerHelper::matchAnd(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GAnd* And = cast<GAnd>(&MI);
 
     if (tryFoldAndOrOrICmpsUsingRanges(And, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     if (tryFoldLogicOfFCmps(And, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchOr(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GOr* Or = cast<GOr>(&MI);
 
     if (tryFoldAndOrOrICmpsUsingRanges(Or, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     if (tryFoldLogicOfFCmps(Or, MatchInfo)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchAddOverflow(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     GAddCarryOut* Add = cast<GAddCarryOut>(&MI);
 
     // Addo has no flags
@@ -8388,26 +8141,22 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildUndef(Carry);
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
     // Canonicalize constant to RHS.
     if (isConstantOrConstantVectorI(LHS) && !isConstantOrConstantVectorI(RHS)) {
         if (IsSigned) {
-            MatchInfo = [=](MachineIRBuilder& B) {
-                B.buildSAddo(Dst, Carry, RHS, LHS);
-            };
+            MatchInfo = [=](MachineIRBuilder& B) { B.buildSAddo(Dst, Carry, RHS, LHS); };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         // !IsSigned
-        MatchInfo = [=](MachineIRBuilder& B) {
-            B.buildUAddo(Dst, Carry, RHS, LHS);
-        };
+        MatchInfo = [=](MachineIRBuilder& B) { B.buildUAddo(Dst, Carry, RHS, LHS); };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -8417,14 +8166,13 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
     // Fold addo(c1, c2) -> c3, carry.
     if (MaybeLHS && MaybeRHS && isConstantLegalOrBeforeLegalizer(DstTy) && isConstantLegalOrBeforeLegalizer(CarryTy)) {
         bool Overflow;
-        APInt Result = IsSigned ? MaybeLHS->sadd_ov(*MaybeRHS, Overflow)
-                                : MaybeLHS->uadd_ov(*MaybeRHS, Overflow);
+        APInt Result = IsSigned ? MaybeLHS->sadd_ov(*MaybeRHS, Overflow) : MaybeLHS->uadd_ov(*MaybeRHS, Overflow);
         MatchInfo = [=](MachineIRBuilder& B) {
             B.buildConstant(Dst, Result);
             B.buildConstant(Carry, Overflow);
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -8435,7 +8183,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildConstant(Carry, 0);
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -8447,8 +8195,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
         std::optional<APInt> MaybeAddRHS = getConstantOrConstantSplatVector(AddLHS->getRHSReg());
         if (MaybeAddRHS) {
             bool Overflow;
-            APInt NewC = IsSigned ? MaybeAddRHS->sadd_ov(*MaybeRHS, Overflow)
-                                  : MaybeAddRHS->uadd_ov(*MaybeRHS, Overflow);
+            APInt NewC = IsSigned ? MaybeAddRHS->sadd_ov(*MaybeRHS, Overflow) : MaybeAddRHS->uadd_ov(*MaybeRHS, Overflow);
             if (!Overflow && isConstantLegalOrBeforeLegalizer(DstTy)) {
                 if (IsSigned) {
                     MatchInfo = [=](MachineIRBuilder& B) {
@@ -8456,7 +8203,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                         B.buildSAddo(Dst, Carry, AddLHS->getLHSReg(), ConstRHS);
                     };
                     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                     return true;
                 }
                 // !IsSigned
@@ -8465,7 +8212,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildUAddo(Dst, Carry, AddLHS->getLHSReg(), ConstRHS);
                 };
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
         }
@@ -8473,7 +8220,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
 
     // We try to combine addo to non-overflowing add.
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_ADD, {DstTy}}) || !isConstantLegalOrBeforeLegalizer(CarryTy)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8484,7 +8231,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
 
         switch (CRLHS.unsignedAddMayOverflow(CRRHS)) {
             case ConstantRange::OverflowResult::MayOverflow:
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             case ConstantRange::OverflowResult::NeverOverflows: {
                 MatchInfo = [=](MachineIRBuilder& B) {
@@ -8492,7 +8239,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildConstant(Carry, 0);
                 };
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
             case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8502,11 +8249,11 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                     B.buildConstant(Carry, 1);
                 };
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8520,7 +8267,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
             B.buildConstant(Carry, 0);
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
 
@@ -8529,7 +8276,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
 
     switch (CRLHS.signedAddMayOverflow(CRRHS)) {
         case ConstantRange::OverflowResult::MayOverflow:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         case ConstantRange::OverflowResult::NeverOverflows: {
             MatchInfo = [=](MachineIRBuilder& B) {
@@ -8537,7 +8284,7 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                 B.buildConstant(Carry, 0);
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         case ConstantRange::OverflowResult::AlwaysOverflowsLow:
@@ -8547,35 +8294,33 @@ bool CombinerHelper::matchAddOverflow(MachineInstr& MI,
                 B.buildConstant(Carry, 1);
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyBuildFnMO(const MachineOperand& MO,
-    BuildFnTy& MatchInfo) const {
+void CombinerHelper::applyBuildFnMO(const MachineOperand& MO, BuildFnTy& MatchInfo) const {
     MachineInstr* Root = getDefIgnoringCopies(MO.getReg(), MRI);
     MatchInfo(Builder);
     Root->eraseFromParent();
 }
 
-bool CombinerHelper::matchFPowIExpansion(MachineInstr& MI,
-    int64_t Exponent) const {
+bool CombinerHelper::matchFPowIExpansion(MachineInstr& MI, int64_t Exponent) const {
+	NICO_MARKER_LOGGING_START;
     bool OptForSize = MI.getMF()->getFunction().hasOptSize();
     if (getTargetLowering().isBeneficialToExpandPowI(Exponent, OptForSize)) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
-void CombinerHelper::applyExpandFPowI(MachineInstr& MI,
-    int64_t Exponent) const {
+void CombinerHelper::applyExpandFPowI(MachineInstr& MI, int64_t Exponent) const {
     auto [Dst, Base] = MI.getFirst2Regs();
     LLT Ty = MRI.getType(Dst);
     int64_t ExpVal = Exponent;
@@ -8613,22 +8358,21 @@ void CombinerHelper::applyExpandFPowI(MachineInstr& MI,
     // If the original exponent was negative, invert the result, producing
     // 1/(x*x*x).
     if (Exponent < 0) {
-        Res = Builder.buildFDiv(Ty, Builder.buildFConstant(Ty, 1.0), *Res,
-            MI.getFlags());
+        Res = Builder.buildFDiv(Ty, Builder.buildFConstant(Ty, 1.0), *Res, MI.getFlags());
     }
 
     Builder.buildCopy(Dst, *Res);
     MI.eraseFromParent();
 }
 
-bool CombinerHelper::matchFoldAPlusC1MinusC2(const MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchFoldAPlusC1MinusC2(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // fold (A+C1)-C2 -> A+(C1-C2)
     const GSub* Sub = cast<GSub>(&MI);
     GAdd* Add = cast<GAdd>(MRI.getVRegDef(Sub->getLHSReg()));
 
     if (!MRI.hasOneNonDBGUse(Add->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8643,18 +8387,18 @@ bool CombinerHelper::matchFoldAPlusC1MinusC2(const MachineInstr& MI,
         B.buildAdd(Dst, Add->getLHSReg(), Const);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchFoldC2MinusAPlusC1(const MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchFoldC2MinusAPlusC1(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // fold C2-(A+C1) -> (C2-C1)-A
     const GSub* Sub = cast<GSub>(&MI);
     GAdd* Add = cast<GAdd>(MRI.getVRegDef(Sub->getRHSReg()));
 
     if (!MRI.hasOneNonDBGUse(Add->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8669,18 +8413,18 @@ bool CombinerHelper::matchFoldC2MinusAPlusC1(const MachineInstr& MI,
         B.buildSub(Dst, Const, Add->getLHSReg());
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchFoldAMinusC1MinusC2(const MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchFoldAMinusC1MinusC2(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // fold (A-C1)-C2 -> A-(C1+C2)
     const GSub* Sub1 = cast<GSub>(&MI);
     GSub* Sub2 = cast<GSub>(MRI.getVRegDef(Sub1->getLHSReg()));
 
     if (!MRI.hasOneNonDBGUse(Sub2->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8695,18 +8439,18 @@ bool CombinerHelper::matchFoldAMinusC1MinusC2(const MachineInstr& MI,
         B.buildSub(Dst, Sub2->getLHSReg(), Const);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchFoldC1Minus2MinusC2(const MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchFoldC1Minus2MinusC2(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // fold (C1-A)-C2 -> (C1-C2)-A
     const GSub* Sub1 = cast<GSub>(&MI);
     GSub* Sub2 = cast<GSub>(MRI.getVRegDef(Sub1->getLHSReg()));
 
     if (!MRI.hasOneNonDBGUse(Sub2->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8721,18 +8465,18 @@ bool CombinerHelper::matchFoldC1Minus2MinusC2(const MachineInstr& MI,
         B.buildSub(Dst, Const, Sub2->getRHSReg());
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchFoldAMinusC1PlusC2(const MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchFoldAMinusC1PlusC2(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     // fold ((A-C1)+C2) -> (A+(C2-C1))
     const GAdd* Add = cast<GAdd>(&MI);
     GSub* Sub = cast<GSub>(MRI.getVRegDef(Add->getLHSReg()));
 
     if (!MRI.hasOneNonDBGUse(Sub->getReg(0))) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8747,16 +8491,16 @@ bool CombinerHelper::matchFoldAMinusC1PlusC2(const MachineInstr& MI,
         B.buildAdd(Dst, Sub->getLHSReg(), Const);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
-    const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     const GUnmerge* Unmerge = cast<GUnmerge>(&MI);
 
     if (!MRI.hasOneNonDBGUse(Unmerge->getSourceReg())) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8783,13 +8527,13 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
 
     // We want to unmerge into vectors.
     if (!DstTy.isFixedVector()) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     const GAnyExt* Any = dyn_cast<GAnyExt>(Source);
     if (!Any) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8799,13 +8543,13 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
         // G_UNMERGE_VALUES G_ANYEXT G_BUILD_VECTOR
 
         if (!MRI.hasOneNonDBGUse(BV->getReg(0))) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
         // FIXME: check element types?
         if (BV->getNumSources() % Unmerge->getNumDefs() != 0) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
@@ -8813,17 +8557,14 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
         LLT SmallBvTy = DstTy;
         LLT SmallBvElemenTy = SmallBvTy.getElementType();
 
-        if (!isLegalOrBeforeLegalizer(
-                {TargetOpcode::G_BUILD_VECTOR, {SmallBvTy, SmallBvElemenTy}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        if (!isLegalOrBeforeLegalizer({TargetOpcode::G_BUILD_VECTOR, {SmallBvTy, SmallBvElemenTy}})) {
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
         // We check the legality of scalar anyext.
-        if (!isLegalOrBeforeLegalizer(
-                {TargetOpcode::G_ANYEXT,
-                    {SmallBvElemenTy, BigBvTy.getElementType()}})) {
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        if (!isLegalOrBeforeLegalizer({TargetOpcode::G_ANYEXT, {SmallBvElemenTy, BigBvTy.getElementType()}})) {
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         }
 
@@ -8841,14 +8582,15 @@ bool CombinerHelper::matchUnmergeValuesAnyExtBuildVector(
             };
         };
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
         return true;
     };
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
 
 bool CombinerHelper::matchShuffleUndefRHS(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
 
     bool Changed = false;
     auto& Shuffle = cast<GShuffleVector>(MI);
@@ -8867,16 +8609,13 @@ bool CombinerHelper::matchShuffleUndefRHS(MachineInstr& MI, BuildFnTy& MatchInfo
     }
 
     if (!Changed) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
-    MatchInfo = [&, NewMask = std::move(NewMask)](MachineIRBuilder& B) {
-        B.buildShuffleVector(MI.getOperand(0), MI.getOperand(1), MI.getOperand(2),
-            std::move(NewMask));
-    };
+    MatchInfo = [&, NewMask = std::move(NewMask)](MachineIRBuilder& B) { B.buildShuffleVector(MI.getOperand(0), MI.getOperand(1), MI.getOperand(2), std::move(NewMask)); };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
@@ -8896,27 +8635,26 @@ static void commuteMask(MutableArrayRef<int> Mask, const unsigned NumElems) {
     }
 }
 
-bool CombinerHelper::matchShuffleDisjointMask(MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchShuffleDisjointMask(MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
 
     auto& Shuffle = cast<GShuffleVector>(MI);
     // If any of the two inputs is already undef, don't check the mask again to
     // prevent infinite loop
     if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, Shuffle.getSrc1Reg(), MRI)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     if (getOpcodeDef(TargetOpcode::G_IMPLICIT_DEF, Shuffle.getSrc2Reg(), MRI)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     const LLT DstTy = MRI.getType(Shuffle.getReg(0));
     const LLT Src1Ty = MRI.getType(Shuffle.getSrc1Reg());
-    if (!isLegalOrBeforeLegalizer(
-            {TargetOpcode::G_SHUFFLE_VECTOR, {DstTy, Src1Ty}})) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SHUFFLE_VECTOR, {DstTy, Src1Ty}})) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8939,7 +8677,7 @@ bool CombinerHelper::matchShuffleDisjointMask(MachineInstr& MI,
     }
 
     if (TouchesSrc1 == TouchesSrc2) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8955,12 +8693,12 @@ bool CombinerHelper::matchShuffleDisjointMask(MachineInstr& MI,
         B.buildShuffleVector(Shuffle.getReg(0), NewSrc1, Undef, NewMask);
     };
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
     return true;
 }
 
-bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
-    BuildFnTy& MatchInfo) const {
+bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI, BuildFnTy& MatchInfo) const {
+	NICO_MARKER_LOGGING_START;
     const GSubCarryOut* Subo = cast<GSubCarryOut>(&MI);
 
     Register Dst = Subo->getReg(0);
@@ -8972,7 +8710,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
 
     // Check legality before known bits.
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_SUB, {DstTy}}) || !isConstantLegalOrBeforeLegalizer(CarryTy)) {
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
@@ -8985,7 +8723,7 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
         // G_SSUBO
         switch (KBLHS.signedSubMayOverflow(KBRHS)) {
             case ConstantRange::OverflowResult::MayOverflow:
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
                 return false;
             case ConstantRange::OverflowResult::NeverOverflows: {
                 MatchInfo = [=](MachineIRBuilder& B) {
@@ -8993,30 +8731,31 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                     B.buildConstant(Carry, 0);
                 };
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
             case ConstantRange::OverflowResult::AlwaysOverflowsLow:
             case ConstantRange::OverflowResult::AlwaysOverflowsHigh: {
                 MatchInfo = [=](MachineIRBuilder& B) {
                     B.buildSub(Dst, LHS, RHS);
-                    B.buildConstant(Carry, getICmpTrueVal(getTargetLowering(),
-                                               /*isVector=*/CarryTy.isVector(),
-                                               /*isFP=*/false));
+                    B.buildConstant(Carry,
+                        getICmpTrueVal(getTargetLowering(),
+                            /*isVector=*/CarryTy.isVector(),
+                            /*isFP=*/false));
                 };
                 outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+                nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
                 return true;
             }
         }
-        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
 
     // G_USUBO
     switch (KBLHS.unsignedSubMayOverflow(KBRHS)) {
         case ConstantRange::OverflowResult::MayOverflow:
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
             return false;
         case ConstantRange::OverflowResult::NeverOverflows: {
             MatchInfo = [=](MachineIRBuilder& B) {
@@ -9024,22 +8763,23 @@ bool CombinerHelper::matchSuboCarryOut(const MachineInstr& MI,
                 B.buildConstant(Carry, 0);
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
         case ConstantRange::OverflowResult::AlwaysOverflowsLow:
         case ConstantRange::OverflowResult::AlwaysOverflowsHigh: {
             MatchInfo = [=](MachineIRBuilder& B) {
                 B.buildSub(Dst, LHS, RHS);
-                B.buildConstant(Carry, getICmpTrueVal(getTargetLowering(),
-                                           /*isVector=*/CarryTy.isVector(),
-                                           /*isFP=*/false));
+                B.buildConstant(Carry,
+                    getICmpTrueVal(getTargetLowering(),
+                        /*isVector=*/CarryTy.isVector(),
+                        /*isFP=*/false));
             };
             outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> true (" + std::to_string(__LINE__) + ")");
+            nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true (" + std::to_string(__LINE__) + ")");
             return true;
         }
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
+    nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false (" + std::to_string(__LINE__) + ")");
     return false;
 }
