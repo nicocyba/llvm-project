@@ -111,7 +111,7 @@ public:
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
-    nico::DeletedInstrsNico.insert(formatv("{0} // idx: {1}, mbb: {2}", nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+    nico::DeletedInstrsNico.insert(std::make_tuple(nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
     nico::CreatedInstrsNico.erase(&MI);
 
     CreatedInstrs.remove(&MI);

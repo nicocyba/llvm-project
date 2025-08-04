@@ -238,7 +238,7 @@ inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data
 
 // datastructure for each globalisel pattern (deleted before/after each pattern)
 inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
-inline thread_local std::set<std::string> DeletedInstrsNico;
+inline thread_local std::set<std::tuple<std::string, unsigned, unsigned>> DeletedInstrsNico;
 inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
 
 // datastructure to collect all globalisel patterns and pass it to client
@@ -272,9 +272,7 @@ inline void reset_observerdata_success(const std::string& filename, const std::s
 
     // deleted
     for (auto& C : nico::DeletedInstrsNico)
-        total_data.back().deleted.push_back(
-            std::make_tuple(C, -1, -1)
-        );
+        total_data.back().deleted.push_back(C);
 
     // std::string temp_after;
     // for (const auto &C : MIs)
