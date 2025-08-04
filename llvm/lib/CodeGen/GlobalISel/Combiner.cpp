@@ -113,7 +113,7 @@ public:
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
     nico::total_data.back().logs.push_back("\t\t\t\t\t\tErasing: " + nico::MI2String(MI));
     nico::DeletedInstrsNico.insert(std::make_tuple(nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
-    nico::CreatedInstrsNico.erase(&MI);
+    // nico::CreatedInstrsNico.erase(&MI);
 
     CreatedInstrs.remove(&MI);
     WorkList.remove(&MI);
@@ -125,8 +125,11 @@ public:
 
   void createdInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Creating: " << MI; 
-    nico::total_data.back().logs.push_back("\t\t\t\t\t\tCreating: " + nico::MI2String(MI));
-    nico::CreatedInstrsNico.insert(&MI);
+    
+    if (!nico::CreatedInstrsNico.count(&MI)) {
+      nico::total_data.back().logs.push_back("\t\t\t\t\t\tCreating: " + nico::MI2String(MI));
+      nico::CreatedInstrsNico.insert(&MI);
+    }
 
     CreatedInstrs.insert(&MI);
     if constexpr (Lvl == Level::Basic)
