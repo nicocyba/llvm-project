@@ -78,13 +78,15 @@ AArch64O0PreLegalizerCombinerImpl::AArch64O0PreLegalizerCombinerImpl(
 }
 
 bool AArch64O0PreLegalizerCombinerImpl::tryCombineAll(MachineInstr& MI) const {
-    // outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << "MI: " << nico::MI2String(MI) << "\n";
-    
+    unsigned idxdata = nico::total_data.back().logs.size();
+    nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
+
     if (tryCombineAllImpl(MI)) {
-        nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> true");
+        nico::total_data.back().logs[idxdata] += " --> true";
         return true;
     }
-    nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__) + " --> false");
+    nico::total_data.back().logs[idxdata] += " --> false";
+    
     unsigned Opc = MI.getOpcode();
     switch (Opc) {
         case TargetOpcode::G_SHUFFLE_VECTOR:
