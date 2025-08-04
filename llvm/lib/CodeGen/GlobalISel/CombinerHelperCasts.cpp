@@ -169,21 +169,21 @@ bool CombinerHelper::isCastFree(unsigned Opcode, LLT ToTy, LLT FromTy) const {
     switch (Opcode) {
         case TargetOpcode::G_ANYEXT:
         case TargetOpcode::G_ZEXT:
-            bool status = TLI.isZExtFree(FromTy, ToTy, Ctx);
-            if (status) {
+            bool status1 = TLI.isZExtFree(FromTy, ToTy, Ctx);
+            if (status1) {
                 NICO_MARKER_LOGGING_APPEND_TRUE;
             } else {
                 NICO_MARKER_LOGGING_APPEND_FALSE;
             }
-            return status;
+            return status1;
         case TargetOpcode::G_TRUNC:
-            bool status = TLI.isTruncateFree(FromTy, ToTy, Ctx);
-            if (status) {
+            bool status2 = TLI.isTruncateFree(FromTy, ToTy, Ctx);
+            if (status2) {
                 NICO_MARKER_LOGGING_APPEND_TRUE;
             } else {
                 NICO_MARKER_LOGGING_APPEND_FALSE;
             }
-            return status;
+            return status2;
         default:
             NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
