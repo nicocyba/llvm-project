@@ -7982,7 +7982,6 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
     // We need an G_ICMP on the LHS register.
     GICmp* Cmp1 = getOpcodeDef<GICmp>(LHS, MRI);
     if (!Cmp1) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
