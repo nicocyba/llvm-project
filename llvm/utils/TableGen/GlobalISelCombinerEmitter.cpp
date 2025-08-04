@@ -1925,12 +1925,12 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
             std::string contentmatch = R"(
 }()) {
   outs() << "\t\t\t\t\t\t-> Match failed\n";
-  nico::total_data.back().logs[idxdata] += " --> Match failed ({2}) ";
+  nico::total_data.back().logs[idxdata] += " --> status: false ({2}) ";
 //   nico::total_data.back().logs.push_back("\t\t\t\t\t\t{2}");
   nico::reset_observerdata_failed(__FILE__, __FUNCTION__, "{0}", {1});
   return false;
 }
-nico::total_data.back().logs[idxdata] += " --> Match success ({2}) ";
+nico::total_data.back().logs[idxdata] += " --> status: true ({2}) ";
 // nico::total_data.back().logs.push_back("\t\t\t\t\t{2}");
 )";
             // Escape the codestring before inserting into formatv
