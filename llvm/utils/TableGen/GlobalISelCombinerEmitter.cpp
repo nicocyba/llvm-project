@@ -1926,8 +1926,8 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
 }()) {
   outs() << "\t\t\t\t\t\t-> Match failed\n";
   nico::total_data.back().logs[idxdata] += " --> Match failed";
-  nico::total_data.back().logs.push_back("\t\t\t\t\t\t" + codestring);
-  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, {0}, {1});
+  nico::total_data.back().logs.push_back("\t\t\t\t\t\t{2}");
+  nico::reset_observerdata_failed(__FILE__, __FUNCTION__, "{0}", {1});
   return false;
 }
 nico::total_data.back().logs[idxdata] += " --> Match success";
