@@ -781,8 +781,7 @@ static unsigned getExtLoadOpcForExtend(unsigned ExtOpc) {
     return CandidateLoadOpc;
 }
 
-bool CombinerHelper::matchCombineExtendingLoads(
-    MachineInstr& MI, PreferredTuple& Preferred) const {
+bool CombinerHelper::matchCombineExtendingLoads(MachineInstr& MI, PreferredTuple& Preferred) const {
     // We match the loads and follow the uses to the extend instead of matching
     // the extends and following the def to the load. This is because the load
     // must remain in the same position for correctness (unless we also add code
@@ -856,6 +855,7 @@ bool CombinerHelper::matchCombineExtendingLoads(
 
     // There were no extends
     if (!Preferred.MI) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t" + nico::getFunctionName(__PRETTY_FUNCTION__)+" --> false (" + std::to_string(__LINE__) + ")");
         return false;
     }
     // It should be impossible to chose an extend without selecting a different
