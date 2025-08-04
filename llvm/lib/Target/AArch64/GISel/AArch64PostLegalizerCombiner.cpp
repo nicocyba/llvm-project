@@ -64,6 +64,7 @@ namespace {
 ///   (s32 (g_fadd (g_extract_vector_elt (vXs32 Other) 0)
 ///              (g_extract_vector_elt (vXs32 Other) 1))
 bool matchExtractVecEltPairwiseAdd(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<unsigned, LLT, Register>& MatchInfo) {
+    NICO_MARKER_LOGGING_START;
     Register Src1 = MI.getOperand(1).getReg();
     Register Src2 = MI.getOperand(2).getReg();
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
@@ -127,6 +128,7 @@ void applyExtractVecEltPairwiseAdd(MachineInstr& MI, MachineRegisterInfo& MRI, M
 
 bool isSignExtended(Register R, MachineRegisterInfo& MRI) {
     // TODO: check if extended build vector as well.
+    NICO_MARKER_LOGGING_START;
     unsigned Opc = MRI.getVRegDef(R)->getOpcode();
     bool status = Opc == TargetOpcode::G_SEXT || Opc == TargetOpcode::G_SEXT_INREG;
     if (status) {
@@ -138,6 +140,7 @@ bool isSignExtended(Register R, MachineRegisterInfo& MRI) {
 }
 
 bool isZeroExtended(Register R, MachineRegisterInfo& MRI) {
+    NICO_MARKER_LOGGING_START;
     // TODO: check if extended build vector as well.
     bool status = MRI.getVRegDef(R)->getOpcode() == TargetOpcode::G_ZEXT;
     if (status) {
@@ -149,6 +152,7 @@ bool isZeroExtended(Register R, MachineRegisterInfo& MRI) {
 }
 
 bool matchAArch64MulConstCombine(MachineInstr& MI, MachineRegisterInfo& MRI, std::function<void(MachineIRBuilder& B, Register DstReg)>& ApplyFn) {
+    NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_MUL);
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -279,6 +283,7 @@ void applyAArch64MulConstCombine(MachineInstr& MI, MachineRegisterInfo& MRI, Mac
 /// Try to fold a G_MERGE_VALUES of 2 s32 sources, where the second source
 /// is a zero, into a G_ZEXT of the first.
 bool matchFoldMergeToZext(MachineInstr& MI, MachineRegisterInfo& MRI) {
+    NICO_MARKER_LOGGING_START;
     auto& Merge = cast<GMerge>(MI);
     LLT SrcTy = MRI.getType(Merge.getSourceReg(0));
     if (SrcTy != LLT::scalar(32) || Merge.getNumSources() != 2) {
@@ -307,6 +312,7 @@ void applyFoldMergeToZext(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRB
 /// \returns True if a G_ANYEXT instruction \p MI should be mutated to a G_ZEXT
 /// instruction.
 bool matchMutateAnyExtToZExt(MachineInstr& MI, MachineRegisterInfo& MRI) {
+    NICO_MARKER_LOGGING_START;
     // If this is coming from a scalar compare then we can use a G_ZEXT instead of
     // a G_ANYEXT:
     //
@@ -335,6 +341,7 @@ void applyMutateAnyExtToZExt(MachineInstr& MI, MachineRegisterInfo& MRI, Machine
 /// Match a 128b store of zero and split it into two 64 bit stores, for
 /// size/performance reasons.
 bool matchSplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI) {
+    NICO_MARKER_LOGGING_START;
     GStore& Store = cast<GStore>(MI);
     if (!Store.isSimple()) {
         NICO_MARKER_LOGGING_APPEND_FALSE;
@@ -384,6 +391,7 @@ void applySplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI, MachineI
 }
 
 bool matchOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Register, Register, Register>& MatchInfo) {
+    NICO_MARKER_LOGGING_START;
     const LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
     if (!DstTy.isVector()) {
         NICO_MARKER_LOGGING_APPEND_FALSE;
@@ -426,6 +434,7 @@ void applyOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& 
 
 // Combines Mul(And(Srl(X, 15), 0x10001), 0xffff) into CMLTz
 bool matchCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, Register& SrcReg) {
+    NICO_MARKER_LOGGING_START;
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
 
     if (DstTy != LLT::fixed_vector(2, 64) && DstTy != LLT::fixed_vector(2, 32) && DstTy != LLT::fixed_vector(4, 32) && DstTy != LLT::fixed_vector(4, 16) && DstTy != LLT::fixed_vector(8, 16)) {
