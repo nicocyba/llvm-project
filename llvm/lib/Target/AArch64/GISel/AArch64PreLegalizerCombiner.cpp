@@ -78,19 +78,19 @@ void applyFConstantToConstant(MachineInstr& MI) {
 /// are sign bits. In this case, we can transform the G_ICMP to directly compare
 /// the wide value with a zero.
 bool matchICmpRedundantTrunc(MachineInstr& MI, MachineRegisterInfo& MRI, GISelKnownBits* KB, Register& MatchInfo) {
-    NICO_MARKER_MATCH_BEGIN;
+    NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_ICMP && KB);
 
     auto Pred = (CmpInst::Predicate)MI.getOperand(1).getPredicate();
     if (!ICmpInst::isEquality(Pred)) {
-        NICO_MARKER_MATCH_FALSE;
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     Register LHS = MI.getOperand(2).getReg();
     LLT LHSTy = MRI.getType(LHS);
     if (!LHSTy.isScalar()) {
-        NICO_MARKER_MATCH_FALSE;
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -98,19 +98,19 @@ bool matchICmpRedundantTrunc(MachineInstr& MI, MachineRegisterInfo& MRI, GISelKn
     Register WideReg;
 
     if (!mi_match(LHS, MRI, m_GTrunc(m_Reg(WideReg))) || !mi_match(RHS, MRI, m_SpecificICst(0))) {
-        NICO_MARKER_MATCH_FALSE;
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     LLT WideTy = MRI.getType(WideReg);
     if (KB->computeNumSignBits(WideReg) <= WideTy.getSizeInBits() - LHSTy.getSizeInBits()) {
-        NICO_MARKER_MATCH_FALSE;
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     MatchInfo = WideReg;
     outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    NICO_MARKER_MATCH_TRUE;
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
