@@ -7989,13 +7989,11 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
     // We need an G_ICMP on the RHS register.
     GICmp* Cmp2 = getOpcodeDef<GICmp>(RHS, MRI);
     if (!Cmp2) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     // We want to fold the icmps.
     if (!MRI.hasOneNonDBGUse(Cmp1->getReg(0)) || !MRI.hasOneNonDBGUse(Cmp2->getReg(0))) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -8003,14 +8001,12 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
     APInt C2;
     std::optional<ValueAndVReg> MaybeC1 = getIConstantVRegValWithLookThrough(Cmp1->getRHSReg(), MRI);
     if (!MaybeC1) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     C1 = MaybeC1->Value;
 
     std::optional<ValueAndVReg> MaybeC2 = getIConstantVRegValWithLookThrough(Cmp2->getRHSReg(), MRI);
     if (!MaybeC2) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     C2 = MaybeC2->Value;
@@ -8023,14 +8019,12 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
     LLT CmpOperandTy = MRI.getType(R1);
 
     if (CmpOperandTy.isPointer()) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     // We build ands, adds, and constants of type CmpOperandTy.
     // They must be legal to build.
     if (!isLegalOrBeforeLegalizer({TargetOpcode::G_AND, CmpOperandTy}) || !isLegalOrBeforeLegalizer({TargetOpcode::G_ADD, CmpOperandTy}) || !isConstantLegalOrBeforeLegalizer(CmpOperandTy)) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -8056,7 +8050,6 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
     }
 
     if (R1 != R2) {
-        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -8077,7 +8070,6 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
     if (!CR) {
         // We need non-wrapping ranges.
         if (CR1.isWrappedSet() || CR2.isWrappedSet()) {
-            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
 
@@ -8087,7 +8079,6 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
         APInt UpperDiff = (CR1.getUpper() - 1) ^ (CR2.getUpper() - 1);
         APInt CR1Size = CR1.getUpper() - CR1.getLower();
         if (!LowerDiff.isPowerOf2() || LowerDiff != UpperDiff || CR1Size != CR2.getUpper() - CR2.getLower()) {
-            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
 
@@ -8139,7 +8130,6 @@ bool CombinerHelper::tryFoldAndOrOrICmpsUsingRanges(GLogicalBinOp* Logic, BuildF
             llvm_unreachable("unexpected configuration of CreateMask and Offset");
         }
     };
-    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 

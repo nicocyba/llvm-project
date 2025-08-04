@@ -47,10 +47,12 @@ namespace {
 /// Return true if a G_FCONSTANT instruction is known to be better-represented
 /// as a G_CONSTANT.
 bool matchFConstantToConstant(MachineInstr& MI, MachineRegisterInfo& MRI) {
+    NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_FCONSTANT);
     Register DstReg = MI.getOperand(0).getReg();
     const unsigned DstSize = MRI.getType(DstReg).getSizeInBits();
     if (DstSize != 32 && DstSize != 64) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -60,8 +62,10 @@ bool matchFConstantToConstant(MachineInstr& MI, MachineRegisterInfo& MRI) {
     if (all_of(MRI.use_nodbg_instructions(DstReg),
             [](const MachineInstr& Use) { return Use.mayStore(); })) {
         // outs\(\) << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
@@ -134,11 +138,13 @@ void applyICmpRedundantTrunc(MachineInstr& MI, MachineRegisterInfo& MRI, Machine
 ///
 /// %g = G_GLOBAL_VALUE @x -> %g = G_GLOBAL_VALUE @x + cst
 bool matchFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair<uint64_t, uint64_t>& MatchInfo) {
+    NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_GLOBAL_VALUE);
     MachineFunction& MF = *MI.getMF();
     auto& GlobalOp = MI.getOperand(1);
     auto* GV = GlobalOp.getGlobal();
     if (GV->isThreadLocal()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -146,6 +152,7 @@ bool matchFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     if (MF.getSubtarget<AArch64Subtarget>().ClassifyGlobalReference(
             GV, MF.getTarget())
         != AArch64II::MO_NO_FLAG) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -167,11 +174,13 @@ bool matchFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     uint64_t MinOffset = -1ull;
     for (auto& UseInstr : MRI.use_nodbg_instructions(Dst)) {
         if (UseInstr.getOpcode() != TargetOpcode::G_PTR_ADD) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
         auto Cst = getIConstantVRegValWithLookThrough(
             UseInstr.getOperand(2).getReg(), MRI);
         if (!Cst) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
         MinOffset = std::min(MinOffset, Cst->Value.getZExtValue());
@@ -182,6 +191,7 @@ bool matchFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     uint64_t CurrOffset = GlobalOp.getOffset();
     uint64_t NewOffset = MinOffset + CurrOffset;
     if (NewOffset <= CurrOffset) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -195,14 +205,17 @@ bool matchFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     // up being treated in the same way as large positive ones. They could also
     // cause code model violations, and aren't really common enough to matter.
     if (NewOffset >= (1 << 20)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     Type* T = GV->getValueType();
     if (!T->isSized() || NewOffset > GV->getDataLayout().getTypeAllocSize(T)) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     MatchInfo = std::make_pair(NewOffset, MinOffset);
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     // outs\(\) << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
@@ -248,6 +261,7 @@ void applyFoldGlobalOffset(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIR
 // Or vecreduce_add(ext(x)) -> vecreduce_add(udot(x, 1))
 // Similar to performVecReduceAddCombine in SelectionDAG
 bool matchExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, const AArch64Subtarget& STI, std::tuple<Register, Register, bool>& MatchInfo) {
+    NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_VECREDUCE_ADD && "Expected a G_VECREDUCE_ADD instruction");
     assert(STI.hasDotProd() && "Target should have Dot Product feature");
 
@@ -257,6 +271,7 @@ bool matchExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, const AA
     LLT DstTy = MRI.getType(DstReg);
     LLT MidTy = MRI.getType(MidReg);
     if (DstTy.getScalarSizeInBits() != 32 || MidTy.getScalarSizeInBits() != 32) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -266,6 +281,7 @@ bool matchExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, const AA
         // If result of this has more than 1 use, then there is no point in creating
         // udot instruction
         if (!MRI.hasOneNonDBGUse(MidReg)) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
 
@@ -275,6 +291,7 @@ bool matchExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, const AA
         LLT Ext2DstTy = MRI.getType(ExtMI2->getOperand(0).getReg());
 
         if (ExtMI1->getOpcode() != ExtMI2->getOpcode() || Ext1DstTy != Ext2DstTy) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
         I1Opc = ExtMI1->getOpcode();
@@ -292,14 +309,17 @@ bool matchExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, const AA
     } else if (I1Opc == TargetOpcode::G_SEXT) {
         std::get<2>(MatchInfo) = 1;
     } else {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     if (SrcTy.getScalarSizeInBits() != 8 || SrcTy.getNumElements() % 8 != 0) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     // outs\(\) << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
@@ -423,6 +443,7 @@ void applyExtAddvToUdotAddv(MachineInstr& MI, MachineRegisterInfo& MRI, MachineI
 // Matches {U/S}ADDV(ext(x)) => {U/S}ADDLV(x)
 // Ensure that the type coming from the extend instruction is the right size
 bool matchExtUaddvToUaddlv(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair<Register, bool>& MatchInfo) {
+    NICO_MARKER_LOGGING_START;
     assert(MI.getOpcode() == TargetOpcode::G_VECREDUCE_ADD && "Expected G_VECREDUCE_ADD Opcode");
 
     // Check if the last instruction is an extend
@@ -434,6 +455,7 @@ bool matchExtUaddvToUaddlv(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     } else if (ExtOpc == TargetOpcode::G_SEXT) {
         std::get<1>(MatchInfo) = 1;
     } else {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -444,8 +466,10 @@ bool matchExtUaddvToUaddlv(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair
     if ((DstTy.getScalarSizeInBits() == 16 && ExtSrcTy.getNumElements() % 8 == 0 && ExtSrcTy.getNumElements() < 256) || (DstTy.getScalarSizeInBits() == 32 && ExtSrcTy.getNumElements() % 4 == 0) || (DstTy.getScalarSizeInBits() == 64 && ExtSrcTy.getNumElements() % 4 == 0)) {
         std::get<0>(MatchInfo) = ExtSrcReg;
         // outs\(\) << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
@@ -556,11 +580,13 @@ void applyExtUaddvToUaddlv(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIR
 
 // i32 add(i32 ext i8, i32 ext i8) => i32 ext(i16 add(i16 ext i8, i16 ext i8))
 bool matchPushAddSubExt(MachineInstr& MI, MachineRegisterInfo& MRI, Register DstReg, Register SrcReg1, Register SrcReg2) {
+    NICO_MARKER_LOGGING_START;
     assert((MI.getOpcode() == TargetOpcode::G_ADD || MI.getOpcode() == TargetOpcode::G_SUB) && "Expected a G_ADD or G_SUB instruction\n");
 
     // Deal with vector types only
     LLT DstTy = MRI.getType(DstReg);
     if (!DstTy.isVector()) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -572,9 +598,10 @@ bool matchPushAddSubExt(MachineInstr& MI, MachineRegisterInfo& MRI, Register Dst
     unsigned Ext1SrcScal = Ext1SrcTy.getScalarSizeInBits();
     if (((Ext1SrcScal == 8 && ExtDstScal == 32) || ((Ext1SrcScal == 8 || Ext1SrcScal == 16) && ExtDstScal == 64)) && Ext1SrcTy == Ext2SrcTy) {
         // outs\(\) << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
+        return true;
     }
-    return true;
-
+    NICO_MARKER_LOGGING_APPEND_FALSE;
     return false;
 }
 
