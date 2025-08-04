@@ -139,6 +139,7 @@ static std::optional<bool> isBigEndian(const SmallDenseMap<int64_t, int64_t, 8>&
 }
 
 bool CombinerHelper::isPreLegalize() const { 
+    NICO_MARKER_LOGGING_START;
     if (IsPreLegalize) {
         NICO_MARKER_LOGGING_APPEND_TRUE;
     } else {
@@ -160,6 +161,7 @@ bool CombinerHelper::isLegal(const LegalityQuery& Query) const {
 }
 
 bool CombinerHelper::isLegalOrBeforeLegalizer(const LegalityQuery& Query) const { 
+    NICO_MARKER_LOGGING_START;
     bool status = isPreLegalize() || isLegal(Query); 
     if (status) {
         NICO_MARKER_LOGGING_APPEND_TRUE;

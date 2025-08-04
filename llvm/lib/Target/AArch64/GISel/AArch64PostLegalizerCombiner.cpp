@@ -63,14 +63,14 @@ namespace {
 /// ->
 ///   (s32 (g_fadd (g_extract_vector_elt (vXs32 Other) 0)
 ///              (g_extract_vector_elt (vXs32 Other) 1))
-bool matchExtractVecEltPairwiseAdd(
-    MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<unsigned, LLT, Register>& MatchInfo) {
+bool matchExtractVecEltPairwiseAdd(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<unsigned, LLT, Register>& MatchInfo) {
     Register Src1 = MI.getOperand(1).getReg();
     Register Src2 = MI.getOperand(2).getReg();
     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
 
     auto Cst = getIConstantVRegValWithLookThrough(Src2, MRI);
     if (!Cst || Cst->Value != 0) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     // SDAG also checks for FullFP16, but this looks to be beneficial anyway.
@@ -78,12 +78,14 @@ bool matchExtractVecEltPairwiseAdd(
     // Now check for an fadd operation. TODO: expand this for integer add?
     auto* FAddMI = getOpcodeDef(TargetOpcode::G_FADD, Src1, MRI);
     if (!FAddMI) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
     // If we add support for integer add, must restrict these types to just s64.
     unsigned DstSize = DstTy.getSizeInBits();
     if (DstSize != 16 && DstSize != 32 && DstSize != 64) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -101,14 +103,15 @@ bool matchExtractVecEltPairwiseAdd(
         std::get<0>(MatchInfo) = TargetOpcode::G_FADD;
         std::get<1>(MatchInfo) = DstTy;
         std::get<2>(MatchInfo) = Other->getOperand(0).getReg();
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
+    NICO_MARKER_LOGGING_APPEND_FALSE
     return false;
 }
 
-void applyExtractVecEltPairwiseAdd(
-    MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& B, std::tuple<unsigned, LLT, Register>& MatchInfo) {
+void applyExtractVecEltPairwiseAdd(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& B, std::tuple<unsigned, LLT, Register>& MatchInfo) {
     unsigned Opc = std::get<0>(MatchInfo);
     assert(Opc == TargetOpcode::G_FADD && "Unexpected opcode!");
     // We want to generate two extracts of elements 0 and 1, and add them.
@@ -125,16 +128,27 @@ void applyExtractVecEltPairwiseAdd(
 bool isSignExtended(Register R, MachineRegisterInfo& MRI) {
     // TODO: check if extended build vector as well.
     unsigned Opc = MRI.getVRegDef(R)->getOpcode();
-    return Opc == TargetOpcode::G_SEXT || Opc == TargetOpcode::G_SEXT_INREG;
+    bool status = Opc == TargetOpcode::G_SEXT || Opc == TargetOpcode::G_SEXT_INREG;
+    if (status) {
+        NICO_MARKER_LOGGING_APPEND_TRUE;
+    } else {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
+    }
+    return status;
 }
 
 bool isZeroExtended(Register R, MachineRegisterInfo& MRI) {
     // TODO: check if extended build vector as well.
-    return MRI.getVRegDef(R)->getOpcode() == TargetOpcode::G_ZEXT;
+    bool status = MRI.getVRegDef(R)->getOpcode() == TargetOpcode::G_ZEXT;
+    if (status) {
+        NICO_MARKER_LOGGING_APPEND_TRUE;
+    } else {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
+    }
+    return status;
 }
 
-bool matchAArch64MulConstCombine(
-    MachineInstr& MI, MachineRegisterInfo& MRI, std::function<void(MachineIRBuilder& B, Register DstReg)>& ApplyFn) {
+bool matchAArch64MulConstCombine(MachineInstr& MI, MachineRegisterInfo& MRI, std::function<void(MachineIRBuilder& B, Register DstReg)>& ApplyFn) {
     assert(MI.getOpcode() == TargetOpcode::G_MUL);
     Register LHS = MI.getOperand(1).getReg();
     Register RHS = MI.getOperand(2).getReg();
@@ -144,6 +158,7 @@ bool matchAArch64MulConstCombine(
     // The below optimizations require a constant RHS.
     auto Const = getIConstantVRegValWithLookThrough(RHS, MRI);
     if (!Const) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -166,6 +181,7 @@ bool matchAArch64MulConstCombine(
         // Conservatively do not lower to shift+add+shift if the mul might be
         // folded into smul or umul.
         if (MRI.hasOneNonDBGUse(LHS) && (isSignExtended(LHS, MRI) || isZeroExtended(LHS, MRI))) {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
         // Conservatively do not lower to shift+add+shift if the mul might be
@@ -174,6 +190,7 @@ bool matchAArch64MulConstCombine(
             MachineInstr& UseMI = *MRI.use_instr_begin(Dst);
             unsigned UseOpc = UseMI.getOpcode();
             if (UseOpc == TargetOpcode::G_ADD || UseOpc == TargetOpcode::G_PTR_ADD || UseOpc == TargetOpcode::G_SUB) {
+                NICO_MARKER_LOGGING_APPEND_FALSE;
                 return false;
             }
         }
@@ -201,6 +218,7 @@ bool matchAArch64MulConstCombine(
             ShiftAmt = CVPlus1.logBase2();
             AddSubOpc = TargetOpcode::G_SUB;
         } else {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
     } else {
@@ -217,11 +235,13 @@ bool matchAArch64MulConstCombine(
             AddSubOpc = TargetOpcode::G_ADD;
             NegateResult = true;
         } else {
+            NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
         }
     }
 
     if (NegateResult && TrailingZeroes) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
 
@@ -245,12 +265,12 @@ bool matchAArch64MulConstCombine(
         }
         B.buildCopy(DstReg, Res.getReg(0));
     };
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    NICO_MARKER_LOGGING_APPEND_TRUE;
     return true;
 }
 
-void applyAArch64MulConstCombine(
-    MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& B, std::function<void(MachineIRBuilder& B, Register DstReg)>& ApplyFn) {
+void applyAArch64MulConstCombine(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& B, std::function<void(MachineIRBuilder& B, Register DstReg)>& ApplyFn) {
     B.setInstrAndDebugLoc(MI);
     ApplyFn(B, MI.getOperand(0).getReg());
     MI.eraseFromParent();
@@ -262,12 +282,15 @@ bool matchFoldMergeToZext(MachineInstr& MI, MachineRegisterInfo& MRI) {
     auto& Merge = cast<GMerge>(MI);
     LLT SrcTy = MRI.getType(Merge.getSourceReg(0));
     if (SrcTy != LLT::scalar(32) || Merge.getNumSources() != 2) {
+        NICO_MARKER_LOGGING_APPEND_FALSE;
         return false;
     }
     if (mi_match(Merge.getSourceReg(1), MRI, m_SpecificICst(0))) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        NICO_MARKER_LOGGING_APPEND_TRUE;
         return true;
     }
+    NICO_MARKER_LOGGING_APPEND_FALSE
     return false;
 }
 
@@ -327,8 +350,7 @@ bool matchSplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI) {
     if (!MRI.hasOneNonDBGUse(Store.getValueReg())) {
         return false;
     }
-    auto MaybeCst = isConstantOrConstantSplatVector(
-        *MRI.getVRegDef(Store.getValueReg()), MRI);
+    auto MaybeCst = isConstantOrConstantSplatVector(*MRI.getVRegDef(Store.getValueReg()), MRI);
     if (MaybeCst && MaybeCst->isZero()) {
         outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
@@ -343,8 +365,7 @@ void applySplitStoreZero128(MachineInstr& MI, MachineRegisterInfo& MRI, MachineI
     LLT NewTy = LLT::scalar(64);
     Register PtrReg = Store.getPointerReg();
     auto Zero = B.buildConstant(NewTy, 0);
-    auto HighPtr = B.buildPtrAdd(MRI.getType(PtrReg), PtrReg,
-        B.buildConstant(LLT::scalar(64), 8));
+    auto HighPtr = B.buildPtrAdd(MRI.getType(PtrReg), PtrReg, B.buildConstant(LLT::scalar(64), 8));
     auto& MF = *MI.getMF();
     auto* LowMMO = MF.getMachineMemOperand(&Store.getMMO(), 0, NewTy);
     auto* HighMMO = MF.getMachineMemOperand(&Store.getMMO(), 8, NewTy);
@@ -360,9 +381,7 @@ bool matchOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Registe
     }
 
     Register AO1, AO2, BVO1, BVO2;
-    if (!mi_match(MI, MRI,
-            m_GOr(m_GAnd(m_Reg(AO1), m_Reg(BVO1)),
-                m_GAnd(m_Reg(AO2), m_Reg(BVO2))))) {
+    if (!mi_match(MI, MRI, m_GOr(m_GAnd(m_Reg(AO1), m_Reg(BVO1)), m_GAnd(m_Reg(AO2), m_Reg(BVO2))))) {
         return false;
     }
 
@@ -387,9 +406,7 @@ bool matchOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Registe
 
 void applyOrToBSP(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& B, std::tuple<Register, Register, Register>& MatchInfo) {
     B.setInstrAndDebugLoc(MI);
-    B.buildInstr(
-        AArch64::G_BSP, {MI.getOperand(0).getReg()},
-        {std::get<2>(MatchInfo), std::get<0>(MatchInfo), std::get<1>(MatchInfo)});
+    B.buildInstr(AArch64::G_BSP, {MI.getOperand(0).getReg()}, {std::get<2>(MatchInfo), std::get<0>(MatchInfo), std::get<1>(MatchInfo)});
     MI.eraseFromParent();
 }
 
@@ -411,12 +428,9 @@ bool matchCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, Register& S
     }
 
     // Check the constant splat values
-    auto V1 = isConstantOrConstantSplatVector(
-        *MRI.getVRegDef(MI.getOperand(2).getReg()), MRI);
-    auto V2 = isConstantOrConstantSplatVector(
-        *MRI.getVRegDef(AndMI->getOperand(2).getReg()), MRI);
-    auto V3 = isConstantOrConstantSplatVector(
-        *MRI.getVRegDef(LShrMI->getOperand(2).getReg()), MRI);
+    auto V1 = isConstantOrConstantSplatVector(*MRI.getVRegDef(MI.getOperand(2).getReg()), MRI);
+    auto V2 = isConstantOrConstantSplatVector(*MRI.getVRegDef(AndMI->getOperand(2).getReg()), MRI);
+    auto V3 = isConstantOrConstantSplatVector(*MRI.getVRegDef(LShrMI->getOperand(2).getReg()), MRI);
     if (!V1.has_value() || !V2.has_value() || !V3.has_value()) {
         return false;
     }
@@ -434,13 +448,11 @@ bool matchCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, Register& S
 void applyCombineMulCMLT(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRBuilder& B, Register& SrcReg) {
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
-    LLT HalfTy = DstTy.changeElementCount(DstTy.getElementCount().multiplyCoefficientBy(2))
-                     .changeElementSize(DstTy.getScalarSizeInBits() / 2);
+    LLT HalfTy = DstTy.changeElementCount(DstTy.getElementCount().multiplyCoefficientBy(2)).changeElementSize(DstTy.getScalarSizeInBits() / 2);
 
     Register ZeroVec = B.buildConstant(HalfTy, 0).getReg(0);
     Register CastReg = B.buildInstr(TargetOpcode::G_BITCAST, {HalfTy}, {SrcReg}).getReg(0);
-    Register CMLTReg = B.buildICmp(CmpInst::Predicate::ICMP_SLT, HalfTy, CastReg, ZeroVec)
-                           .getReg(0);
+    Register CMLTReg = B.buildICmp(CmpInst::Predicate::ICMP_SLT, HalfTy, CastReg, ZeroVec).getReg(0);
 
     B.buildInstr(TargetOpcode::G_BITCAST, {DstReg}, {CMLTReg}).getReg(0);
     MI.eraseFromParent();
@@ -453,8 +465,15 @@ protected:
     const AArch64Subtarget& STI;
 
 public:
-    AArch64PostLegalizerCombinerImpl(
-        MachineFunction& MF, CombinerInfo& CInfo, const TargetPassConfig* TPC, GISelKnownBits& KB, GISelCSEInfo* CSEInfo, const AArch64PostLegalizerCombinerImplRuleConfig& RuleConfig, const AArch64Subtarget& STI, MachineDominatorTree* MDT, const LegalizerInfo* LI);
+    AArch64PostLegalizerCombinerImpl(MachineFunction& MF,
+        CombinerInfo& CInfo,
+        const TargetPassConfig* TPC,
+        GISelKnownBits& KB,
+        GISelCSEInfo* CSEInfo,
+        const AArch64PostLegalizerCombinerImplRuleConfig& RuleConfig,
+        const AArch64Subtarget& STI,
+        MachineDominatorTree* MDT,
+        const LegalizerInfo* LI);
 
     static const char* getName() { return "AArch64PostLegalizerCombiner"; }
 
@@ -470,11 +489,16 @@ private:
 #include "AArch64GenPostLegalizeGICombiner.inc"
 #undef GET_GICOMBINER_IMPL
 
-AArch64PostLegalizerCombinerImpl::AArch64PostLegalizerCombinerImpl(
-    MachineFunction& MF, CombinerInfo& CInfo, const TargetPassConfig* TPC, GISelKnownBits& KB, GISelCSEInfo* CSEInfo, const AArch64PostLegalizerCombinerImplRuleConfig& RuleConfig, const AArch64Subtarget& STI, MachineDominatorTree* MDT, const LegalizerInfo* LI)
-    : Combiner(MF, CInfo, TPC, &KB, CSEInfo),
-      Helper(Observer, B, /*IsPreLegalize*/ false, &KB, MDT, LI),
-      RuleConfig(RuleConfig), STI(STI),
+AArch64PostLegalizerCombinerImpl::AArch64PostLegalizerCombinerImpl(MachineFunction& MF,
+    CombinerInfo& CInfo,
+    const TargetPassConfig* TPC,
+    GISelKnownBits& KB,
+    GISelCSEInfo* CSEInfo,
+    const AArch64PostLegalizerCombinerImplRuleConfig& RuleConfig,
+    const AArch64Subtarget& STI,
+    MachineDominatorTree* MDT,
+    const LegalizerInfo* LI)
+    : Combiner(MF, CInfo, TPC, &KB, CSEInfo), Helper(Observer, B, /*IsPreLegalize*/ false, &KB, MDT, LI), RuleConfig(RuleConfig), STI(STI),
 #define GET_GICOMBINER_CONSTRUCTOR_INITS
 #include "AArch64GenPostLegalizeGICombiner.inc"
 #undef GET_GICOMBINER_CONSTRUCTOR_INITS
@@ -489,9 +513,7 @@ public:
 
     AArch64PostLegalizerCombiner(bool IsOptNone = false);
 
-    StringRef getPassName() const override {
-        return "AArch64PostLegalizerCombiner";
-    }
+    StringRef getPassName() const override { return "AArch64PostLegalizerCombiner"; }
 
     bool runOnMachineFunction(MachineFunction& MF) override;
     void getAnalysisUsage(AnalysisUsage& AU) const override;
@@ -509,11 +531,9 @@ private:
         int64_t Offset = 0;
         LLT StoredType;
     };
-    bool tryOptimizeConsecStores(SmallVectorImpl<StoreInfo>& Stores,
-        CSEMIRBuilder& MIB);
+    bool tryOptimizeConsecStores(SmallVectorImpl<StoreInfo>& Stores, CSEMIRBuilder& MIB);
 
-    bool optimizeConsecutiveMemOpAddressing(MachineFunction& MF,
-        CSEMIRBuilder& MIB);
+    bool optimizeConsecutiveMemOpAddressing(MachineFunction& MF, CSEMIRBuilder& MIB);
 };
 } // end anonymous namespace
 
@@ -532,8 +552,7 @@ void AArch64PostLegalizerCombiner::getAnalysisUsage(AnalysisUsage& AU) const {
     MachineFunctionPass::getAnalysisUsage(AU);
 }
 
-AArch64PostLegalizerCombiner::AArch64PostLegalizerCombiner(bool IsOptNone)
-    : MachineFunctionPass(ID), IsOptNone(IsOptNone) {
+AArch64PostLegalizerCombiner::AArch64PostLegalizerCombiner(bool IsOptNone) : MachineFunctionPass(ID), IsOptNone(IsOptNone) {
     initializeAArch64PostLegalizerCombinerPass(*PassRegistry::getPassRegistry());
 
     if (!RuleConfig.parseCommandLineOption()) {
@@ -542,18 +561,15 @@ AArch64PostLegalizerCombiner::AArch64PostLegalizerCombiner(bool IsOptNone)
 }
 
 bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
-    if (MF.getProperties().hasProperty(
-            MachineFunctionProperties::Property::FailedISel)) {
+    if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
 
     outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
-    
+
     nico::current_stage = nico::CurrentBackendStage::POSTLEGALIZERCOMBINER;
 
-    assert(MF.getProperties().hasProperty(
-               MachineFunctionProperties::Property::Legalized)
-        && "Expected a legalized function?");
+    assert(MF.getProperties().hasProperty(MachineFunctionProperties::Property::Legalized) && "Expected a legalized function?");
     auto* TPC = &getAnalysis<TargetPassConfig>();
     const Function& F = MF.getFunction();
     bool EnableOpt = MF.getTarget().getOptLevel() != CodeGenOptLevel::None && !skipFunction(F);
@@ -562,21 +578,18 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     const auto* LI = ST.getLegalizerInfo();
 
     GISelKnownBits* KB = &getAnalysis<GISelKnownBitsAnalysis>().get(MF);
-    MachineDominatorTree* MDT = IsOptNone ? nullptr
-                                          : &getAnalysis<MachineDominatorTreeWrapperPass>().getDomTree();
+    MachineDominatorTree* MDT = IsOptNone ? nullptr : &getAnalysis<MachineDominatorTreeWrapperPass>().getDomTree();
     GISelCSEAnalysisWrapper& Wrapper = getAnalysis<GISelCSEAnalysisWrapperPass>().getCSEWrapper();
     auto* CSEInfo = &Wrapper.get(TPC->getCSEConfig());
 
     CombinerInfo CInfo(/*AllowIllegalOps*/ true, /*ShouldLegalizeIllegal*/ false,
-        /*LegalizerInfo*/ nullptr, EnableOpt, F.hasOptSize(),
-        F.hasMinSize());
+        /*LegalizerInfo*/ nullptr, EnableOpt, F.hasOptSize(), F.hasMinSize());
     // Disable fixed-point iteration to reduce compile-time
     CInfo.MaxIterations = 1;
     CInfo.ObserverLvl = CombinerInfo::ObserverLevel::SinglePass;
     // Legalizer performs DCE, so a full DCE pass is unnecessary.
     CInfo.EnableFullDCE = false;
-    AArch64PostLegalizerCombinerImpl Impl(MF, CInfo, TPC, *KB, CSEInfo,
-        RuleConfig, ST, MDT, LI);
+    AArch64PostLegalizerCombinerImpl Impl(MF, CInfo, TPC, *KB, CSEInfo, RuleConfig, ST, MDT, LI);
     bool Changed = Impl.combineMachineInstrs();
 
     auto MIB = CSEMIRBuilder(MF);
@@ -587,8 +600,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     return Changed;
 }
 
-bool AArch64PostLegalizerCombiner::tryOptimizeConsecStores(
-    SmallVectorImpl<StoreInfo>& Stores, CSEMIRBuilder& MIB) {
+bool AArch64PostLegalizerCombiner::tryOptimizeConsecStores(SmallVectorImpl<StoreInfo>& Stores, CSEMIRBuilder& MIB) {
     if (Stores.size() <= 2) {
         return false;
     }
@@ -617,8 +629,7 @@ bool AArch64PostLegalizerCombiner::tryOptimizeConsecStores(
         // Compute a new pointer with the new base ptr and adjusted offset.
         MIB.setInstrAndDebugLoc(*SInfo.St);
         auto NewOff = MIB.buildConstant(LLT::scalar(64), SInfo.Offset - BaseOffset);
-        auto NewPtr = MIB.buildPtrAdd(MRI.getType(SInfo.St->getPointerReg()),
-            NewBase, NewOff);
+        auto NewPtr = MIB.buildPtrAdd(MRI.getType(SInfo.St->getPointerReg()), NewBase, NewOff);
         if (MIB.getObserver()) {
             MIB.getObserver()->changingInstr(*SInfo.St);
         }
@@ -627,20 +638,17 @@ bool AArch64PostLegalizerCombiner::tryOptimizeConsecStores(
             MIB.getObserver()->changedInstr(*SInfo.St);
         }
     }
-    LLVM_DEBUG(dbgs() << "Split a series of " << Stores.size()
-                      << " stores into a base pointer and offsets.\n");
+    LLVM_DEBUG(dbgs() << "Split a series of " << Stores.size() << " stores into a base pointer and offsets.\n");
     return true;
 }
 
-static cl::opt<bool>
-    EnableConsecutiveMemOpOpt("aarch64-postlegalizer-consecutive-memops",
-        cl::init(true),
-        cl::Hidden,
-        cl::desc("Enable consecutive memop optimization "
-                 "in AArch64PostLegalizerCombiner"));
+static cl::opt<bool> EnableConsecutiveMemOpOpt("aarch64-postlegalizer-consecutive-memops",
+    cl::init(true),
+    cl::Hidden,
+    cl::desc("Enable consecutive memop optimization "
+             "in AArch64PostLegalizerCombiner"));
 
-bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
-    MachineFunction& MF, CSEMIRBuilder& MIB) {
+bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(MachineFunction& MF, CSEMIRBuilder& MIB) {
     // This combine needs to run after all reassociations/folds on pointer
     // addressing have been done, specifically those that combine two G_PTR_ADDs
     // with constant offsets into a single G_PTR_ADD with a combined offset.
@@ -688,9 +696,7 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
 
         // Check if this store is using a load result that appears after the
         // last store. If so, bail out.
-        if (any_of(LoadValsSinceLastStore, [&](Register LoadVal) {
-                return New.St->getValueReg() == LoadVal;
-            })) {
+        if (any_of(LoadValsSinceLastStore, [&](Register LoadVal) { return New.St->getValueReg() == LoadVal; })) {
             return false;
         }
 
@@ -730,8 +736,7 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
         resetState();
         for (auto& MI : MBB) {
             // Skip for scalable vectors
-            if (auto* LdSt = dyn_cast<GLoadStore>(&MI);
-                LdSt && MRI.getType(LdSt->getOperand(0).getReg()).isScalableVector()) {
+            if (auto* LdSt = dyn_cast<GLoadStore>(&MI); LdSt && MRI.getType(LdSt->getOperand(0).getReg()).isScalableVector()) {
                 continue;
             }
 
@@ -745,9 +750,7 @@ bool AArch64PostLegalizerCombiner::optimizeConsecutiveMemOpAddressing(
                 }
 
                 Register PtrReg = St->getPointerReg();
-                if (mi_match(
-                        PtrReg, MRI,
-                        m_OneNonDBGUse(m_GPtrAdd(m_Reg(PtrBaseReg), m_ICst(Offset))))) {
+                if (mi_match(PtrReg, MRI, m_OneNonDBGUse(m_GPtrAdd(m_Reg(PtrBaseReg), m_ICst(Offset))))) {
                     GPtrAdd* PtrAdd = cast<GPtrAdd>(MRI.getVRegDef(PtrReg));
                     StoreInfo New = {St, PtrAdd, Offset.getSExtValue(), StoredValTy};
 
@@ -787,7 +790,5 @@ INITIALIZE_PASS_DEPENDENCY(GISelKnownBitsAnalysis)
 INITIALIZE_PASS_END(AArch64PostLegalizerCombiner, DEBUG_TYPE, "Combine AArch64 MachineInstrs after legalization", false, false)
 
 namespace llvm {
-FunctionPass* createAArch64PostLegalizerCombiner(bool IsOptNone) {
-    return new AArch64PostLegalizerCombiner(IsOptNone);
-}
+FunctionPass* createAArch64PostLegalizerCombiner(bool IsOptNone) { return new AArch64PostLegalizerCombiner(IsOptNone); }
 } // end namespace llvm
