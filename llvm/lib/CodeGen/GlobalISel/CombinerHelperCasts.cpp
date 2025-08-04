@@ -165,25 +165,25 @@ bool CombinerHelper::isCastFree(unsigned Opcode, LLT ToTy, LLT FromTy) const {
     NICO_MARKER_LOGGING_START;
     const TargetLowering& TLI = getTargetLowering();
     LLVMContext& Ctx = getContext();
-
+    bool status; 
     switch (Opcode) {
         case TargetOpcode::G_ANYEXT:
         case TargetOpcode::G_ZEXT:
-            bool status1 = TLI.isZExtFree(FromTy, ToTy, Ctx);
-            if (status1) {
+            status = TLI.isZExtFree(FromTy, ToTy, Ctx);
+            if (status) {
                 NICO_MARKER_LOGGING_APPEND_TRUE;
             } else {
                 NICO_MARKER_LOGGING_APPEND_FALSE;
             }
-            return status1;
+            return status;
         case TargetOpcode::G_TRUNC:
-            bool status2 = TLI.isTruncateFree(FromTy, ToTy, Ctx);
-            if (status2) {
+            status = TLI.isTruncateFree(FromTy, ToTy, Ctx);
+            if (status) {
                 NICO_MARKER_LOGGING_APPEND_TRUE;
             } else {
                 NICO_MARKER_LOGGING_APPEND_FALSE;
             }
-            return status2;
+            return status;
         default:
             NICO_MARKER_LOGGING_APPEND_FALSE;
             return false;
