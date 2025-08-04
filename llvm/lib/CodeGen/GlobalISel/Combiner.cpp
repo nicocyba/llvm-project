@@ -111,6 +111,7 @@ public:
   void erasingInstr(MachineInstr &MI) override {
     // MI will become dangling, remove it from all lists.
     // llvm::outs() << "Combiner.cpp - Erasing: " << MI; 
+    nico::total_data.back().logs.push_back("\t\t\t\t\t\tErasing: " + nico::MI2String(MI));
     nico::DeletedInstrsNico.insert(std::make_tuple(nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
     nico::CreatedInstrsNico.erase(&MI);
 
@@ -124,6 +125,7 @@ public:
 
   void createdInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Creating: " << MI; 
+    nico::total_data.back().logs.push_back("\t\t\t\t\t\tCreating: " + nico::MI2String(MI));
     nico::CreatedInstrsNico.insert(&MI);
 
     CreatedInstrs.insert(&MI);
@@ -148,6 +150,7 @@ public:
 
   void changedInstr(MachineInstr &MI) override {
     // llvm::outs() << "Combiner.cpp - Changed: " << MI;
+    nico::total_data.back().logs.push_back("\t\t\t\t\t\tChanged: " + nico::MI2String(MI));
     nico::ChangedInstrsNico.insert(&MI);
 
     if constexpr (Lvl == Level::Basic)
