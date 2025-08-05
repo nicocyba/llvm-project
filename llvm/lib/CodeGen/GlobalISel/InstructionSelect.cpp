@@ -134,6 +134,7 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
     }
     nico::current_stage = nico::CurrentBackendStage::INSTRUCTIONSELECT;
     outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    nico::last_mibs.clear();
 
     ISel = MF.getSubtarget().getInstructionSelector();
     ISel->TPC = &getAnalysis<TargetPassConfig>();
