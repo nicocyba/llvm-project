@@ -1042,7 +1042,7 @@ MachineInstr* AArch64InstructionSelector::emitSelect(Register Dst, Register True
         // Into:
         // %select = CSNEG %reg, %x, cc
         Register MatchReg;
-        if (mi_match_wrapper(Reg, MRI, m_Neg(m_Reg(MatchReg)))) {
+        if (nico::mi_match_wrapper(Reg, MRI, m_Neg(m_Reg(MatchReg)))) {
             Opc = Is32Bit ? AArch64::CSNEGWr : AArch64::CSNEGXr;
             Reg = MatchReg;
             if (Invert) {
@@ -1059,7 +1059,7 @@ MachineInstr* AArch64InstructionSelector::emitSelect(Register Dst, Register True
         //
         // Into:
         // %select = CSINV %reg, %x, cc
-        if (mi_match_wrapper(Reg, MRI, m_Not(m_Reg(MatchReg)))) {
+        if (nico::mi_match_wrapper(Reg, MRI, m_Not(m_Reg(MatchReg)))) {
             Opc = Is32Bit ? AArch64::CSINVWr : AArch64::CSINVXr;
             Reg = MatchReg;
             if (Invert) {
@@ -1076,7 +1076,7 @@ MachineInstr* AArch64InstructionSelector::emitSelect(Register Dst, Register True
         //
         // Into:
         // %select = CSINC %reg, %x, cc
-        if (mi_match_wrapper(Reg, MRI, m_any_of(m_GAdd(m_Reg(MatchReg), m_SpecificICst(1)), m_GPtrAdd(m_Reg(MatchReg), m_SpecificICst(1))))) {
+        if (nico::mi_match_wrapper(Reg, MRI, m_any_of(m_GAdd(m_Reg(MatchReg), m_SpecificICst(1)), m_GPtrAdd(m_Reg(MatchReg), m_SpecificICst(1))))) {
             Opc = Is32Bit ? AArch64::CSINCWr : AArch64::CSINCXr;
             Reg = MatchReg;
             if (Invert) {
@@ -2076,7 +2076,7 @@ bool AArch64InstructionSelector::convertPtrAddToAdd(MachineInstr& I, MachineRegi
     // Also take the opportunity here to try to do some optimization.
     // Try to convert this into a G_SUB if the offset is a 0-x negate idiom.
     Register NegatedReg;
-    if (!mi_match_wrapper(I.getOperand(2).getReg(), MRI, m_Neg(m_Reg(NegatedReg)))) {
+    if (!nico::mi_match_wrapper(I.getOperand(2).getReg(), MRI, m_Neg(m_Reg(NegatedReg)))) {
         return true;
     }
     I.getOperand(2).setReg(NegatedReg);
@@ -2265,7 +2265,7 @@ bool AArch64InstructionSelector::earlySelect(MachineInstr& I) {
                 // We model scalar compares using 32-bit destinations right now.
                 // If it's a 64-bit compare, it'll have 64-bit sources.
                 Register ZExt;
-                if (!mi_match_wrapper(Reg, MRI, m_OneNonDBGUse(m_GZExt(m_OneNonDBGUse(m_Reg(ZExt)))))) {
+                if (!nico::mi_match_wrapper(Reg, MRI, m_OneNonDBGUse(m_GZExt(m_OneNonDBGUse(m_Reg(ZExt)))))) {
                     return nullptr;
                 }
                 auto* Cmp = getOpcodeDef(TargetOpcode::G_ICMP, ZExt, MRI);
@@ -2315,7 +2315,7 @@ bool AArch64InstructionSelector::earlySelect(MachineInstr& I) {
             int64_t ShiftImm;
             Register MaskSrc;
             int64_t MaskImm;
-            if (!mi_match_wrapper(Dst, MRI, m_GOr(m_OneNonDBGUse(m_GShl(m_Reg(ShiftSrc), m_ICst(ShiftImm))), m_OneNonDBGUse(m_GAnd(m_Reg(MaskSrc), m_ICst(MaskImm)))))) {
+            if (!nico::mi_match_wrapper(Dst, MRI, m_GOr(m_OneNonDBGUse(m_GShl(m_Reg(ShiftSrc), m_ICst(ShiftImm))), m_OneNonDBGUse(m_GAnd(m_Reg(MaskSrc), m_ICst(MaskImm)))))) {
                 return false;
             }
 
@@ -4877,7 +4877,7 @@ bool AArch64InstructionSelector::selectUSMovFromExtend(MachineInstr& MI, Machine
 
     MachineInstr* Extract = getOpcodeDef(TargetOpcode::G_EXTRACT_VECTOR_ELT, MI.getOperand(1).getReg(), MRI);
     int64_t Lane;
-    if (!Extract || !mi_match_wrapper(Extract->getOperand(2).getReg(), MRI, m_ICst(Lane))) {
+    if (!Extract || !nico::mi_match_wrapper(Extract->getOperand(2).getReg(), MRI, m_ICst(Lane))) {
         return false;
     }
     Register Src0 = Extract->getOperand(1).getReg();
