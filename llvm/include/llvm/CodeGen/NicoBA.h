@@ -228,9 +228,10 @@ struct GlobalISelDataVector : public std::vector<T> {
         this->clear();
     }
 };
+inline thread_local  std::vector<MachineInstrBuilder> last_mibs;
 
 // variable to save current sŧage of the backend
-inline thread_local nico::CurrentBackendStage current_stage = INIT;
+nico::CurrentBackendStage current_stage = INIT;
 
 // datastructure to collect data for machinecombiner
 inline thread_local nico::MachineCombinerDataVector data_machinecombiner;

@@ -22,6 +22,8 @@
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Module.h"
 
+#include "llvm/CodeGen/NicoBA.h"
+
 namespace llvm {
 
 // Forward declarations.
@@ -250,12 +252,15 @@ protected:
                         const LLT Op1Ty);
 
   void recordInsertion(MachineInstr *InsertedInstr) const {
-    if (State.Observer)
+    if (State.Observer) {
+      nico::total_data.back().logs.push_back("\t\t\t\t\t\trecordInsertion: " + nico::MI2String(*InsertedInstr));
       State.Observer->createdInstr(*InsertedInstr);
+    }
+      
   }
 
 public:
-  std::vector<MachineInstrBuilder> last_mibs;
+  
   /// Some constructors for easy use.
   MachineIRBuilder() = default;
   MachineIRBuilder(MachineFunction &MF) { setMF(MF); }
