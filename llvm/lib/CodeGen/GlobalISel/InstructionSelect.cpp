@@ -237,10 +237,12 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 
                 // if MI wasnt deleted, get inst, index, mbb number
                 if (MI.getParent() != nullptr) {
-                    nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+                    // nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
                     if (mi_after != mi_before) {
                         nico::total_data.back().changed.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
                     }
+                } else {
+                    nico::total_data.back().state_after.push_back(std::make_tuple("DELETED", 0, 0));
                 }
                 
                 nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
@@ -359,18 +361,14 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
     auto& TLI = *MF.getSubtarget().getTargetLowering();
     TLI.finalizeLowering(MF);
 
-    // LLVM_DEBUG({
-    //     dbgs() << "Rules covered by selecting function: " << MF.getName() << ":";
-    //     for (auto RuleID : CoverageInfo.covered()) {
-    //         dbgs() << " id" << RuleID;
-    //     }
-    //     dbgs() << "\n\n";
-    // });
-    // outs() << "Rules covered by selecting function: " << MF.getName() << ":";
-    // for (auto RuleID : CoverageInfo.covered()) {
-    //     outs() << " id" << RuleID;
-    // }
-    // outs() << "\n\n";
+    LLVM_DEBUG({
+        dbgs() << "Rules covered by selecting function: " << MF.getName() << ":";
+        for (auto RuleID : CoverageInfo.covered()) {
+            dbgs() << " id" << RuleID;
+        }
+        dbgs() << "\n\n";
+    });
+    
     CoverageInfo.emit(CoveragePrefix, TLI.getTargetMachine().getTarget().getBackendName());
 
     // If we successfully selected the function nothing is going to use the vreg

@@ -2462,10 +2462,10 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     if (selectImpl(I, *CoverageInfo)) {
         outs() << "\t\t\tselectImpl\n";
         nico::total_data.back().logs[idxdata] += " --> selectImpl";
-        for (const auto& cov : CoverageInfo->covered()) {
-            outs() << "\t\t\t\tcoverage: " << cov << "\n";
-        }
         nico::total_data.back().status = true;
+        for (const auto& C : State.MIs) {
+            nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber()));
+        }
         return true;
     }
 
