@@ -215,12 +215,24 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 ++MIIMaintainer.MII;
 
                 LLVM_DEBUG(dbgs() << "\nSelect:  " << MI);
+
                 nico::reset_observerdata();
+                std::string mi_before = nico::MI2String(MI);
                 if (!selectInstr(MI)) {
+                    nico::reset_observerdata_failed(__FILE__, MF.getName().str(), "pattern_not_used", 0);
+                    // nico::total_data.back().state_after.push_back(nico::MI2String(MI));
                     LLVM_DEBUG(dbgs() << "Selection failed!\n"; MIIMaintainer.reportFullyCreatedInstrs());
                     reportGISelFailure(MF, TPC, MORE, "gisel-select", "cannot select", MI);
                     return false;
                 }
+                nico::total_data.back().state_before.push_back(mi_before);
+                nico::total_data.back().state_after.push_back(nico::MI2String(MI));
+
+                std::string mi_after = nico::MI2String(MI);
+                nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
+                    "pattern_not_used", 0);
+
+                // nico::total_data.back().state_after.push_back(nico::MI2String(MI));
                 LLVM_DEBUG(MIIMaintainer.reportFullyCreatedInstrs());
             }
         }
@@ -366,6 +378,7 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
     nico::total_data.back().stage = nico::to_string(nico::current_stage);
     nico::total_data.back().mf = MI.getMF()->getName().str();
     nico::total_data.back().mi = nico::MI2String(MI);
+    nico::total_data.back().state_before.push_back(nico::MI2String(MI));
     unsigned idxdata = nico::total_data.back().logs.size();
     nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__));
 
