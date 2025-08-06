@@ -222,14 +222,14 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
           llvm::outs() << "Lower - idx: " << Step.TypeIdx << ", type: " << Step.NewType << "\n";
         }
 
-        data.mi_after = nico::MI2String(MI);
-        if (data.mi_after.find("UNKNOWN") != std::string::npos){
-          data.mi_after = "";
-          for (const auto& i : MIRBuilder.last_mibs) {
-            data.mi_after += nico::MI2String(*i.getInstr()) + " ; ";
-          }
-        }
-        MIRBuilder.last_mibs.clear();
+        // data.mi_after = nico::MI2String(MI);
+        // if (data.mi_after.find("UNKNOWN") != std::string::npos){
+        //   data.mi_after = "";
+        //   for (const auto& i : MIRBuilder.last_mibs) {
+        //     data.mi_after += nico::MI2String(*i.getInstr()) + " ; ";
+        //   }
+        // }
+        // MIRBuilder.last_mibs.clear();
         // LocObserver.log2Nico(std::move(data));
         
     }
