@@ -2467,7 +2467,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
             if (C->getParent() != nullptr) {
                 nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), C->getParent() != nullptr?nico::get_index_of_mi(C->getParent(), C):0, C->getParent()->getNumber()));
             } else {
-                nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), 0, 0));
+                nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));
             }
         }
         return true;
@@ -2476,7 +2476,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         if (C->getParent() != nullptr) {
             nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), C->getParent() != nullptr?nico::get_index_of_mi(C->getParent(), C):0, C->getParent()->getNumber()));
         } else {
-            nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), 0, 0));
+            nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));
         }
     }
 
