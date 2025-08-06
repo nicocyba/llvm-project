@@ -235,7 +235,6 @@ inline thread_local nico::CurrentBackendStage current_stage = INIT;
 
 // datastructure to collect data for machinecombiner
 inline thread_local nico::MachineCombinerDataVector data_machinecombiner;
-inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data_globalisel_patterns;
 
 // datastructure for each globalisel pattern (deleted before/after each pattern)
 inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
@@ -244,6 +243,15 @@ inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
 
 // datastructure to collect all globalisel patterns and pass it to client
 inline thread_local std::vector<GlobalISelDataInstruction> total_data;
+
+inline void reset_all() {
+    data_machinecombiner.clear();
+    last_mibs.clear();
+    total_data.clear();
+    CreatedInstrsNico.clear();
+    DeletedInstrsNico.clear();
+    ChangedInstrsNico.clear();
+}
 
 inline void reset_observerdata() {
     CreatedInstrsNico.clear();
@@ -724,13 +732,6 @@ inline std::string to_string(nico::AArch64MachineCombinerPattern2 pattern) {
     }
 }
 
-
-auto log_backend_event = [](auto&&... args) {
-    data_globalisel_patterns.emplace_back(nico::GlobalISelDataPattern{std::forward<decltype(args)>(args)...});
-};
-
-
-
 inline std::string to_string(nico::CurrentBackendStage stage) {
     switch (stage) {
         case INIT: return "init";
@@ -841,7 +842,7 @@ inline bool mi_match_wrapper(T1&& a, T2&& b, T3&& c, const char* caller = __buil
 
   // call original function
   bool result = llvm::MIPatternMatch::mi_match(std::forward<T1>(a), std::forward<T2>(b), std::forward<T3>(c));
-  nico::log_backend_event(nico::to_string(nico::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
+//   nico::log_backend_event(nico::to_string(nico::current_stage), file_cleaned, caller, pattern, "mbb_name_placeholder", result? true : false);
   llvm::outs() << "\t\t\t\t\t" << __func__ << ": " << caller << " | " << pattern << " | " << (is_T1_MachineInstr? "MachineInstr" : "Register") << " | status: " << (result ? "Success" : "Failure") << " (" << file_cleaned << ":" << line << ")\n";
   nico::total_data.back().logs.push_back("\t\t\t\t\t\t" + std::string(__func__) + " | " + pattern + " --> " + (result ? "true" : "false"));
   return result;

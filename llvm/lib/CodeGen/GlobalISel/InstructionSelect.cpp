@@ -215,7 +215,8 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 ++MIIMaintainer.MII;
 
                 LLVM_DEBUG(dbgs() << "\nSelect:  " << MI);
-
+                unsigned num = MI.getDebugInstrNum(MF);
+                
                 std::string mi_before = nico::MI2String(MI);
                 nico::reset_observerdata();
                 nico::total_data.push_back(nico::GlobalISelDataInstruction());
@@ -242,7 +243,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                         nico::total_data.back().changed.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
                     }
                 } else {
-                    nico::total_data.back().state_after.push_back(std::make_tuple("DELETED", -1, -1));
+                    nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, -1, -1));
                 }
                 
                 nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
