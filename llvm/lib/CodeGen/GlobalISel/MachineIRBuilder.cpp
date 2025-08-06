@@ -1361,7 +1361,10 @@ MachineIRBuilder::buildInstr(unsigned Opc, ArrayRef<DstOp> DstOps, ArrayRef<SrcO
     if (Flags) {
         MIB->setFlags(*Flags);
     }
-    nico::total_data.back().logs.push_back("\t\t\t\t\t\tbuildInstr: " + nico::MI2String(*MIB));
-    nico::last_mibs.push_back(MIB);
+    if (nico::current_stage == nico::CurrentBackendStage::INSTRUCTIONSELECT) {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t\tbuildInstr: " + nico::MI2String(*MIB));
+        nico::last_mibs.push_back(MIB);
+    }
+    
     return MIB;
 }
