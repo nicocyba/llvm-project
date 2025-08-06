@@ -275,17 +275,6 @@ inline void reset_observerdata_success(const std::string& filename, const std::s
     for (auto& C : nico::DeletedInstrsNico)
         total_data.back().deleted.push_back(C);
 
-    // std::string temp_after;
-    // for (const auto &C : MIs)
-    //     temp_after += formatv("{0} | ", nico::MI2String(*C));
-    // if (!temp_after.empty() && temp_after.size() >= 3)
-    //     temp_after.erase(temp_after.size() - 3);
-
-    // llvm::log_backend_event(
-    //     llvm::to_string(llvm::current_stage), filename, function_name,
-    //     formatv("{0}###{1}###{2} -> {3}###{4}###{5}###{6}",
-    //         static_cast<unsigned>({0}), StringRef("{1}"), temp_before, temp_after, obs_created, obs_changed, obs_deleted), nico::getUnixTimestampStringChrono(), true
-    // );
 
     // clear the thread local data
     CreatedInstrsNico.clear();

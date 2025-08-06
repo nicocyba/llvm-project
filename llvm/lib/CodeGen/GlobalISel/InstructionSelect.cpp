@@ -242,7 +242,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                         nico::total_data.back().changed.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
                     }
                 } else {
-                    nico::total_data.back().state_after.push_back(std::make_tuple("DELETED", 0, 0));
+                    nico::total_data.back().state_after.push_back(std::make_tuple("DELETED", -1, -1));
                 }
                 
                 nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
