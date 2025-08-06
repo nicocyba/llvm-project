@@ -216,8 +216,16 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 
                 LLVM_DEBUG(dbgs() << "\nSelect:  " << MI);
 
-                nico::reset_observerdata();
                 std::string mi_before = nico::MI2String(MI);
+                nico::reset_observerdata();
+
+                
+                nico::total_data.push_back(nico::GlobalISelDataInstruction());
+                nico::total_data.back().stage = nico::to_string(nico::current_stage);
+                nico::total_data.back().mf = MI.getMF()->getName().str();
+                nico::total_data.back().mi = mi_before;
+                nico::total_data.back().state_before.push_back(mi_before, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber());
+
                 if (!selectInstr(MI)) {
                     nico::reset_observerdata_failed(__FILE__, MF.getName().str(), "pattern_not_used", 0);
                     // nico::total_data.back().state_after.push_back(nico::MI2String(MI));
@@ -225,14 +233,18 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                     reportGISelFailure(MF, TPC, MORE, "gisel-select", "cannot select", MI);
                     return false;
                 }
-                nico::total_data.back().state_before.push_back(mi_before);
-                nico::total_data.back().state_after.push_back(nico::MI2String(MI));
-
-                std::string mi_after = nico::MI2String(MI);
+                nico::total_data.back().status = true;
+                // nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
+                
+                // if MI wasnt deleted, get inst, index, mbb number
+                if (MI.getParent() != nullptr) {
+                    nico::total_data.back().state_after.push_back(nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber());
+                }
+                
                 nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
                     "pattern_not_used", 0);
 
-                // nico::total_data.back().state_after.push_back(nico::MI2String(MI));
+                    
                 LLVM_DEBUG(MIIMaintainer.reportFullyCreatedInstrs());
             }
         }
@@ -374,11 +386,6 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
 
     outs() << "\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << nico::MI2String(MI) << "\n";
 
-    nico::total_data.push_back(nico::GlobalISelDataInstruction());
-    nico::total_data.back().stage = nico::to_string(nico::current_stage);
-    nico::total_data.back().mf = MI.getMF()->getName().str();
-    nico::total_data.back().mi = nico::MI2String(MI);
-    nico::total_data.back().state_before.push_back(nico::MI2String(MI));
     unsigned idxdata = nico::total_data.back().logs.size();
     nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__));
 
@@ -388,7 +395,6 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         LLVM_DEBUG(dbgs() << "Is dead.\n");
         salvageDebugInfo(MRI, MI);
         MI.eraseFromParent();
-        nico::total_data.back().status = true;
         nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
         return true;
     }
@@ -408,20 +414,17 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         assert(canReplaceReg(DstReg, SrcReg, MRI) && "Must be able to replace dst with src!");
         MI.eraseFromParent();
         MRI.replaceRegWith(DstReg, SrcReg);
-        nico::total_data.back().status = true;
         nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
         return true;
     }
 
     if (MI.getOpcode() == TargetOpcode::G_INVOKE_REGION_START) {
         MI.eraseFromParent();
-        nico::total_data.back().status = true;
         nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
         return true;
     }
     bool status = ISel->select(MI);
     outs() << "\t--> status = " << status << "\n";
-    nico::total_data.back().status = status;
     nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(status);
     // outs() << "\t\tStatus: " << (status ? "Success" : "Failure") << " | " << MI2String(MI) << "\n";
     return status;
