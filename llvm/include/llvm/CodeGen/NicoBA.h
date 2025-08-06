@@ -197,11 +197,11 @@ struct GlobalISelDataInstruction {
     std::string mi; // mi name
     std::vector<std::string> logs;
     std::vector<std::tuple<std::string, unsigned, bool, std::string>> patterns; // name, id, status, timestamp 
-    std::vector<std::tuple<std::string, unsigned, unsigned>> state_before;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> state_after;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> created;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> changed;
-    std::vector<std::tuple<std::string, unsigned, unsigned>> deleted;
+    std::vector<std::tuple<std::string, int, int>> state_before;
+    std::vector<std::tuple<std::string, int, int>> state_after;
+    std::vector<std::tuple<std::string, int, int>> created;
+    std::vector<std::tuple<std::string, int, int>> changed;
+    std::vector<std::tuple<std::string, int, int>> deleted;
     bool status;
 };
 
@@ -239,7 +239,7 @@ inline thread_local nico::GlobalISelDataVector<nico::GlobalISelDataPattern> data
 
 // datastructure for each globalisel pattern (deleted before/after each pattern)
 inline thread_local std::set<const llvm::MachineInstr*> CreatedInstrsNico;
-inline thread_local std::set<std::tuple<std::string, unsigned, unsigned>> DeletedInstrsNico;
+inline thread_local std::set<std::tuple<std::string, int, int>> DeletedInstrsNico;
 inline thread_local std::set<const llvm::MachineInstr*> ChangedInstrsNico;
 
 // datastructure to collect all globalisel patterns and pass it to client
