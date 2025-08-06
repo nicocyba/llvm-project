@@ -231,12 +231,16 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                     reportGISelFailure(MF, TPC, MORE, "gisel-select", "cannot select", MI);
                     return false;
                 }
+                std::string mi_after = nico::MI2String(MI);
                 nico::total_data.back().status = true;
                 // nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
 
                 // if MI wasnt deleted, get inst, index, mbb number
                 if (MI.getParent() != nullptr) {
-                    nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+                    nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+                    if (mi_after != mi_before) {
+                        nico::total_data.back().changed.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+                    }
                 }
                 
                 nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
