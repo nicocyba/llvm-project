@@ -215,7 +215,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 ++MIIMaintainer.MII;
 
                 LLVM_DEBUG(dbgs() << "\nSelect:  " << MI);
-                unsigned num = MI.getDebugInstrNum(MF);
+                // unsigned num = MI.getDebugInstrNum(MF);
                 
                 std::string mi_before = nico::MI2String(MI);
                 nico::reset_observerdata();
