@@ -44,9 +44,10 @@ using namespace llvm;
 DEBUG_COUNTER(GlobalISelCounter, "globalisel", "Controls whether to select function with GlobalISel");
 
 #ifdef LLVM_GISEL_COV_PREFIX
-static cl::opt<std::string>
-    CoveragePrefix("gisel-coverage-prefix", cl::init(LLVM_GISEL_COV_PREFIX), cl::desc("Record GlobalISel rule coverage files of this "
-                                                                                      "prefix if instrumentation was generated"));
+static cl::opt<std::string> CoveragePrefix("gisel-coverage-prefix",
+    cl::init(LLVM_GISEL_COV_PREFIX),
+    cl::desc("Record GlobalISel rule coverage files of this "
+             "prefix if instrumentation was generated"));
 #else
 static const std::string CoveragePrefix;
 #endif
@@ -59,8 +60,7 @@ INITIALIZE_PASS_DEPENDENCY(ProfileSummaryInfoWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(LazyBlockFrequencyInfoPass)
 INITIALIZE_PASS_END(InstructionSelect, DEBUG_TYPE, "Select target instructions out of generic instructions", false, false)
 
-InstructionSelect::InstructionSelect(CodeGenOptLevel OL, char& PassID)
-    : MachineFunctionPass(PassID), OptLevel(OL) {}
+InstructionSelect::InstructionSelect(CodeGenOptLevel OL, char& PassID) : MachineFunctionPass(PassID), OptLevel(OL) {}
 
 /// This class observes instruction insertions/removals.
 /// InstructionSelect stores an iterator of the instruction prior to the one
@@ -77,18 +77,18 @@ class InstructionSelect::MIIteratorMaintainer : public GISelChangeObserver {
 public:
     MachineBasicBlock::reverse_iterator MII;
 
-    void changingInstr(MachineInstr& MI) override {
-        llvm_unreachable("InstructionSelect does not track changed instructions!");
-    }
-    void changedInstr(MachineInstr& MI) override {
-        llvm_unreachable("InstructionSelect does not track changed instructions!");
-    }
+    void changingInstr(MachineInstr& MI) override { llvm_unreachable("InstructionSelect does not track changed instructions!"); }
+    void changedInstr(MachineInstr& MI) override { llvm_unreachable("InstructionSelect does not track changed instructions!"); }
 
     void createdInstr(MachineInstr& MI) override {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t\tCreating: " + nico::MI2String(MI));
+        nico::CreatedInstrsNico.insert(&MI);
         LLVM_DEBUG(dbgs() << "Creating:  " << MI; CreatedInstrs.insert(&MI));
     }
 
     void erasingInstr(MachineInstr& MI) override {
+        nico::total_data.back().logs.push_back("\t\t\t\t\t\tErasing: " + nico::MI2String(MI));
+        nico::DeletedInstrsNico.insert(std::make_tuple(nico::MI2String(MI), nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
         LLVM_DEBUG(dbgs() << "Erasing:   " << MI; CreatedInstrs.remove(&MI));
         if (MII.getInstrIterator().getNodePtr() == &MI) {
             // If the iterator points to the MI that will be erased (i.e. the MI prior
@@ -142,8 +142,7 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
     // FIXME: Properly override OptLevel in TargetMachine. See OptLevelChanger
     CodeGenOptLevel OldOptLevel = OptLevel;
     auto RestoreOptLevel = make_scope_exit([=]() { OptLevel = OldOptLevel; });
-    OptLevel = MF.getFunction().hasOptNone() ? CodeGenOptLevel::None
-                                             : MF.getTarget().getOptLevel();
+    OptLevel = MF.getFunction().hasOptNone() ? CodeGenOptLevel::None : MF.getTarget().getOptLevel();
 
     KB = &getAnalysis<GISelKnownBitsAnalysis>().get(MF);
     if (OptLevel != CodeGenOptLevel::None) {
@@ -181,8 +180,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
     // property check already is.
     if (!DisableGISelLegalityCheck) {
         if (const MachineInstr* MI = machineFunctionIsIllegal(MF)) {
-            reportGISelFailure(MF, TPC, MORE, "gisel-select",
-                "instruction is not legal", *MI);
+            reportGISelFailure(MF, TPC, MORE, "gisel-select", "instruction is not legal", *MI);
             return false;
         }
     }
@@ -217,9 +215,9 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 ++MIIMaintainer.MII;
 
                 LLVM_DEBUG(dbgs() << "\nSelect:  " << MI);
+                nico::reset_observerdata();
                 if (!selectInstr(MI)) {
-                    LLVM_DEBUG(dbgs() << "Selection failed!\n";
-                        MIIMaintainer.reportFullyCreatedInstrs());
+                    LLVM_DEBUG(dbgs() << "Selection failed!\n"; MIIMaintainer.reportFullyCreatedInstrs());
                     reportGISelFailure(MF, TPC, MORE, "gisel-select", "cannot select", MI);
                     return false;
                 }
@@ -287,23 +285,19 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 
         const TargetRegisterClass* RC = MRI.getRegClassOrNull(VReg);
         if (!RC) {
-            reportGISelFailure(MF, TPC, MORE, "gisel-select",
-                "VReg has no regclass after selection", *MI);
+            reportGISelFailure(MF, TPC, MORE, "gisel-select", "VReg has no regclass after selection", *MI);
             return false;
         }
 
         const LLT Ty = MRI.getType(VReg);
         if (Ty.isValid() && TypeSize::isKnownGT(Ty.getSizeInBits(), TRI.getRegSizeInBits(*RC))) {
-            reportGISelFailure(
-                MF, TPC, MORE, "gisel-select",
-                "VReg's low-level type and register class have different sizes", *MI);
+            reportGISelFailure(MF, TPC, MORE, "gisel-select", "VReg's low-level type and register class have different sizes", *MI);
             return false;
         }
     }
 
     if (MF.size() != NumBlocks) {
-        MachineOptimizationRemarkMissed R("gisel-select", "GISelFailure",
-            MF.getFunction().getSubprogram(),
+        MachineOptimizationRemarkMissed R("gisel-select", "GISelFailure", MF.getFunction().getSubprogram(),
             /*MBB=*/nullptr);
         R << "inserting blocks is not supported yet";
         reportGISelFailure(MF, TPC, MORE, R);
@@ -382,7 +376,7 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         salvageDebugInfo(MRI, MI);
         MI.eraseFromParent();
         nico::total_data.back().status = true;
-        nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(true);
+        nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
         return true;
     }
 
@@ -401,21 +395,21 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         assert(canReplaceReg(DstReg, SrcReg, MRI) && "Must be able to replace dst with src!");
         MI.eraseFromParent();
         MRI.replaceRegWith(DstReg, SrcReg);
-        nico::total_data.back().status = true; 
-        nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(true);
+        nico::total_data.back().status = true;
+        nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
         return true;
     }
 
     if (MI.getOpcode() == TargetOpcode::G_INVOKE_REGION_START) {
         MI.eraseFromParent();
         nico::total_data.back().status = true;
-        nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(true);
+        nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
         return true;
     }
     bool status = ISel->select(MI);
     outs() << "\t--> status = " << status << "\n";
     nico::total_data.back().status = status;
-    nico::total_data.back().logs[idxdata] += " --> status = "+ std::to_string(status);
+    nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(status);
     // outs() << "\t\tStatus: " << (status ? "Success" : "Failure") << " | " << MI2String(MI) << "\n";
     return status;
 }
