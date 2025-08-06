@@ -2464,9 +2464,20 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
         nico::total_data.back().logs[idxdata] += " --> selectImpl";
         nico::total_data.back().status = true;
         for (const auto& C : State.MIs) {
-            nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber()));
+            if (C->getParent() != nullptr) {
+                nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), C->getParent() != nullptr?nico::get_index_of_mi(C->getParent(), C):0, C->getParent()->getNumber()));
+            } else {
+                nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), 0, 0));
+            }
         }
         return true;
+    }
+    for (const auto& C : State.MIs) {
+        if (C->getParent() != nullptr) {
+            nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), C->getParent() != nullptr?nico::get_index_of_mi(C->getParent(), C):0, C->getParent()->getNumber()));
+        } else {
+            nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), 0, 0));
+        }
     }
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
