@@ -259,12 +259,10 @@ inline void reset_observerdata() {
     ChangedInstrsNico.clear();
 }
 
-inline void reset_observerdata_success(const std::string& filename, const std::string& function_name, 
-    const std::vector<std::tuple<std::string, int, int>>& state_before_loc, const std::vector<std::tuple<std::string, int, int>>& state_after_loc,
-    const std::string& pattern_name, unsigned pattern_id
+inline void reset_observerdata_success(const std::string& filename, const std::string& function_name, const std::string& pattern_name, unsigned pattern_id
 ) {
-    total_data.back().state_before = std::move(state_before_loc);
-    total_data.back().state_after = std::move(state_after_loc);
+    // total_data.back().state_before = std::move(state_before_loc);
+    // total_data.back().state_after = std::move(state_after_loc);
     total_data.back().patterns.push_back(std::make_tuple(pattern_name, pattern_id, true, nico::getUnixTimestampStringChrono()));
 
     // created

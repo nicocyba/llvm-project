@@ -1953,13 +1953,13 @@ nico::total_data.back().logs[idxdata] += " --> status: true ({2}) ";
         }
     }
 
-    std::string content1 = R"(
-std::vector<std::tuple<std::string, int, int>> temp_before;
-for (const auto& C : State.MIs) { 
-    temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 
-}
-)";
-OS << content1;
+//     std::string content1 = R"(
+// std::vector<std::tuple<std::string, int, int>> temp_before;
+// for (const auto& C : State.MIs) { 
+//     temp_before.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber())); 
+// }
+// )";
+// OS << content1;
     // OS << "std::string temp_before = \"\";\n";
     // OS << "for (const auto& C : State.MIs) { temp_before += nico::MI2String(*C) + \" // idx: \" + std::to_string(nico::get_index_of_mi(C->getParent(), C)) + \", mbb: \" + std::to_string(C->getParent()->getNumber()) + \" | \"; }\n";
     // OS << "if (!temp_before.empty() && temp_before.size() >= 3) temp_before.erase(temp_before.size() - 3);\n";
@@ -1976,10 +1976,10 @@ OS << content1;
 
     // NICO
     std::string content = R"(
-std::vector<std::tuple<std::string, int, int>> temp_after;
-for (const auto& C : State.MIs) temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));
-;
-nico::reset_observerdata_success(__FILE__, __FUNCTION__, temp_before, temp_after, "{0}", {1});
+// std::vector<std::tuple<std::string, int, int>> temp_after;
+// for (const auto& C : State.MIs) temp_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));
+// ;
+nico::reset_observerdata_success(__FILE__, __FUNCTION__, "{0}", {1});
 )";
 
     OS << formatv(content.c_str(), RuleDef.getName(), RuleID);
@@ -2600,19 +2600,32 @@ void GICombinerEmitter::emitRuleConfigImpl(raw_ostream& OS) {
 }
 
 void GICombinerEmitter::emitAdditionalImpl(raw_ostream& OS) {
-    OS << "bool " << getClassName() << "::" << getCombineAllMethodName()
-       << "(MachineInstr &I) const {\n"
+    OS << "bool " << getClassName() << "::" << getCombineAllMethodName() << "(MachineInstr &I) const {\n"
        << "  const TargetSubtargetInfo &ST = MF.getSubtarget();\n"
        << "  const PredicateBitset AvailableFeatures = getAvailableFeatures();\n"
        << "  B.setInstrAndDebugLoc(I);\n"
        << "  nico::total_data.back().logs.push_back(\"\\t\\t\" + nico::getFunctionName(__PRETTY_FUNCTION__));\n"
-       << "  outs() << \"\\t\\t\\t\\t\" << nico::getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << nico::MI2String(I) << \"\\n\";\n"
+       << "  // outs() << \"\\t\\t\\t\\t\" << nico::getFunctionName(__PRETTY_FUNCTION__) << \" - \" << \"MI: \" << nico::MI2String(I) << \"\\n\";\n"
        << "  State.MIs.clear();\n"
        << "  State.MIs.push_back(&I);\n"
-       << "  if (executeMatchTable(*this, State, ExecInfo, B, getMatchTable(), *ST.getInstrInfo(), MRI, *MRI.getTargetRegisterInfo(), *ST.getRegBankInfo(), AvailableFeatures"
-       << ", /*CoverageInfo*/ nullptr)) {\n"
+       << "  nico::total_data.back().state_before.push_back(std::make_tuple(nico::MI2String(I), nico::get_index_of_mi(I.getParent(), I), I.getParent()->getNumber()));\n"
+       << "  if (executeMatchTable(*this, State, ExecInfo, B, getMatchTable(), *ST.getInstrInfo(), MRI, *MRI.getTargetRegisterInfo(), *ST.getRegBankInfo(), AvailableFeatures, /*CoverageInfo*/ nullptr)) {\n"
+       << "      for (const auto& C : State.MIs) {\n"
+       << "          if (C->getParent() != nullptr) {\n"
+       << "              nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber()));\n"
+       << "          } else {\n"
+       << "              nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));\n"
+       << "          }\n"
+       << "  }\n"
        << "    return true;\n"
        << "  }\n\n"
+       << "  for (const auto& C : State.MIs) {\n"
+       << "      if (C->getParent() != nullptr) {\n"
+       << "          nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), nico::get_index_of_mi(C->getParent(), C), C->getParent()->getNumber()));\n"
+       << "      } else {\n"
+       << "          nico::total_data.back().state_after.push_back(std::make_tuple(nico::MI2String(*C), -1, -1));\n"
+       << "      }\n"
+       << "  }\n"
        << "  return false;\n"
        << "}\n\n";
 }

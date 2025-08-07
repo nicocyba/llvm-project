@@ -223,7 +223,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 nico::total_data.back().stage = nico::to_string(nico::current_stage);
                 nico::total_data.back().mf = MI.getMF()->getName().str();
                 nico::total_data.back().mi = mi_before;
-                nico::total_data.back().state_before.push_back(std::make_tuple(mi_before, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+                // nico::total_data.back().state_before.push_back(std::make_tuple(mi_before, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
 
                 if (!selectInstr(MI)) {
                     nico::reset_observerdata_failed(__FILE__, MF.getName().str(), "pattern_not_used", 0);
@@ -237,11 +237,10 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 // nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(true);
 
                 // if MI wasnt deleted, get inst, index, mbb number
-                if (MI.getParent() != nullptr) {
+                if (MI.getParent() != nullptr && mi_after != mi_before) {
                     // nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
-                    if (mi_after != mi_before) {
-                        nico::total_data.back().changed.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
-                    }
+                    nico::total_data.back().changed.push_back(std::make_tuple(mi_after, nico::get_index_of_mi(MI.getParent(), &MI), MI.getParent()->getNumber()));
+                    
                 }
                 //  else {
                 //     nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, -1, -1));
