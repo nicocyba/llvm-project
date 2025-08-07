@@ -2372,7 +2372,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // G_PHI requires same handling as PHI
     if (!I.isPreISelOpcode() || Opcode == TargetOpcode::G_PHI) {
         // Certain non-generic instructions also need some special handling.
-        outs() << "\t\t\t!isPreISelOpcode " << Opcode << "\n";
+        // outs() << "\t\t\t!isPreISelOpcode " << Opcode << "\n";
         nico::total_data.back().logs[idxdata] += " --> !isPreISelOpcode || G_PHI";
         if (Opcode == TargetOpcode::LOAD_STACK_GUARD) {
             bool status = constrainSelectedInstRegOperands(I, TII, TRI, RBI);
@@ -2443,7 +2443,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // lowerings are purely transformations on the input G_MIR and so selection
     // must continue after any modification of the instruction.
     if (preISelLower(I)) {
-        outs() << "\t\t\tpreISelLower\n";
+        // outs() << "\t\t\tpreISelLower\n";
         Opcode = I.getOpcode(); // The opcode may have been modified, refresh it.
     }
 
@@ -2454,13 +2454,13 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // over the imported ones.
     if (earlySelect(I)) {
         nico::total_data.back().logs[idxdata] += " --> earlySelect";
-        outs() << "\t\t\tearlySelect\n";
+        // outs() << "\t\t\tearlySelect\n";
         nico::total_data.back().status = true;
         return true;
     }
 
     if (selectImpl(I, *CoverageInfo)) {
-        outs() << "\t\t\tselectImpl\n";
+        //outs() << "\t\t\tselectImpl\n";
         nico::total_data.back().logs[idxdata] += " --> selectImpl";
         nico::total_data.back().status = true;
         // for (const auto& C : State.MIs) {
@@ -2481,7 +2481,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     // }
 
     LLT Ty = I.getOperand(0).isReg() ? MRI.getType(I.getOperand(0).getReg()) : LLT{};
-    outs() << "\t\t\tswitch\n";
+    //outs() << "\t\t\tswitch\n";
     nico::total_data.back().logs[idxdata] += " --> switch";
     switch (Opcode) {
         case TargetOpcode::G_SBFX:

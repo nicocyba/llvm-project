@@ -137,7 +137,7 @@ bool GIMatchTableExecutor::executeMatchTable(
         if (Observer) {
             Observer->erasingInstr(*MI);
         }
-        nico::DeletedInstrsNico.insert(std::make_tuple(nico::MI2String(*MI), -1, -1));
+        nico::DeletedInstrsNico.insert(std::make_tuple(nico::MI2String(*MI), nico::get_index_of_mi(MI->getParent(), MI), MI->getParent()->getNumber()));
         MI->eraseFromParent();
     };
 
