@@ -246,8 +246,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
                 //     nico::total_data.back().state_after.push_back(std::make_tuple(mi_after, -1, -1));
                 // }
                 
-                nico::reset_observerdata_success(__FILE__, MF.getName().str(), nico::total_data.back().state_before, nico::total_data.back().state_after, 
-                    "pattern_not_used", 0);
+                nico::reset_observerdata_success(__FILE__, MF.getName().str(), "pattern_not_used", 0);
 
                     
                 LLVM_DEBUG(MIIMaintainer.reportFullyCreatedInstrs());
