@@ -218,9 +218,9 @@ LegalizerHelper::LegalizeResult LegalizerHelper::legalizeInstrStep(MachineInstr&
                 break;
         }
 
-        if (actionToStr(Step.Action) == "Lower") {
-          llvm::outs() << "Lower - idx: " << Step.TypeIdx << ", type: " << Step.NewType << "\n";
-        }
+        // if (actionToStr(Step.Action) == "Lower") {
+        //   llvm::outs() << "Lower - idx: " << Step.TypeIdx << ", type: " << Step.NewType << "\n";
+        // }
 
         // data.mi_after = nico::MI2String(MI);
         // if (data.mi_after.find("UNKNOWN") != std::string::npos){

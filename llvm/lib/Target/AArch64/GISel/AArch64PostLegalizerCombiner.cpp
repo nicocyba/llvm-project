@@ -594,7 +594,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
 
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
     nico::current_stage = nico::CurrentBackendStage::POSTLEGALIZERCOMBINER;
 
@@ -624,7 +624,7 @@ bool AArch64PostLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     auto MIB = CSEMIRBuilder(MF);
     MIB.setCSEInfo(CSEInfo);
     Changed |= optimizeConsecutiveMemOpAddressing(MF, MIB);
-    outs() << "--> status = " << Changed << "\n";
+    // outs() << "--> status = " << Changed << "\n";
 
     return Changed;
 }

@@ -391,7 +391,7 @@ bool Combiner::combineMachineInstrs() {
     }
   }
 #endif
-  outs() << "\t\t\tIterations - Iteration: " << Iteration <<  "\n";
+  // outs() << "\t\t\tIterations - Iteration: " << Iteration <<  "\n";
   nico::total_data.back().logs.push_back("--> iterations = " + std::to_string(Iteration));
   // outs() << "\t\t\tIterations - NumOneIteration: " << NumOneIteration <<  "\n";
   // outs() << "\t\t\tIterations - NumTwoIterations: " << NumTwoIterations <<  "\n";

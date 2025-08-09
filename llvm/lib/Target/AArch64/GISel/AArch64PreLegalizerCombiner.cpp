@@ -865,7 +865,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     if (MF.getProperties().hasProperty(MachineFunctionProperties::Property::FailedISel)) {
         return false;
     }
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
     nico::current_stage = nico::CurrentBackendStage::PRELEGALIZERCOMBINER;
 
@@ -896,7 +896,7 @@ bool AArch64PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     AArch64PreLegalizerCombinerImpl Impl(MF, CInfo, &TPC, *KB, CSEInfo, RuleConfig, ST, MDT, LI);
 
     bool status = Impl.combineMachineInstrs();
-    outs() << "--> status = " << status << "\n";
+    // outs() << "--> status = " << status << "\n";
 
     return status;
 }

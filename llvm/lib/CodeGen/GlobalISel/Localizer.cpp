@@ -209,7 +209,7 @@ bool Localizer::runOnMachineFunction(MachineFunction &MF) {
           MachineFunctionProperties::Property::FailedISel))
     return false;
 
-  outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
   // Don't run the pass if the target asked so.
   if (DoNotRunPass(MF))
     return false;

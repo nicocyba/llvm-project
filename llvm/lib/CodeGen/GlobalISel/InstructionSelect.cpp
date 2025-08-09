@@ -133,7 +133,7 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
     nico::current_stage = nico::CurrentBackendStage::INSTRUCTIONSELECT;
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     nico::last_mibs.clear();
 
     ISel = MF.getSubtarget().getInstructionSelector();
@@ -153,7 +153,7 @@ bool InstructionSelect::runOnMachineFunction(MachineFunction& MF) {
     }
 
     bool status = selectMachineFunction(MF);
-    outs() << "--> status = " << status << "\n";
+    // outs() << "--> status = " << status << "\n";
 
     return status;
 }
@@ -384,7 +384,7 @@ bool InstructionSelect::selectMachineFunction(MachineFunction& MF) {
 bool InstructionSelect::selectInstr(MachineInstr& MI) {
     MachineRegisterInfo& MRI = ISel->MF->getRegInfo();
 
-    outs() << "\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << nico::MI2String(MI) << "\n";
+    // outs() << "\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << nico::MI2String(MI) << "\n";
 
     unsigned idxdata = nico::total_data.back().logs.size();
     nico::total_data.back().logs.push_back(nico::getFunctionName(__PRETTY_FUNCTION__));
@@ -424,7 +424,7 @@ bool InstructionSelect::selectInstr(MachineInstr& MI) {
         return true;
     }
     bool status = ISel->select(MI);
-    outs() << "\t--> status = " << status << "\n";
+    // outs() << "\t--> status = " << status << "\n";
     nico::total_data.back().logs[idxdata] += " --> status = " + std::to_string(status);
     // outs() << "\t\tStatus: " << (status ? "Success" : "Failure") << " | " << MI2String(MI) << "\n";
     return status;

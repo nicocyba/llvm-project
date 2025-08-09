@@ -184,7 +184,7 @@ bool matchREV(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
             }
 
             MatchInfo = ShuffleVectorPseudo(Opcode, Dst, {Src});
-            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -207,7 +207,7 @@ bool matchTRN(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
     Register V1 = MI.getOperand(1).getReg();
     Register V2 = MI.getOperand(2).getReg();
     MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -229,7 +229,7 @@ bool matchUZP(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
     Register V1 = MI.getOperand(1).getReg();
     Register V2 = MI.getOperand(2).getReg();
     MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -246,7 +246,7 @@ bool matchZip(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
     Register V1 = MI.getOperand(1).getReg();
     Register V2 = MI.getOperand(2).getReg();
     MatchInfo = ShuffleVectorPseudo(Opc, Dst, {V1, V2});
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -289,7 +289,7 @@ bool matchDupFromInsertVectorElt(int Lane, MachineInstr& MI, MachineRegisterInfo
 
     MatchInfo = ShuffleVectorPseudo(AArch64::G_DUP, MI.getOperand(0).getReg(),
         {InsMI->getOperand(2).getReg()});
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -311,7 +311,7 @@ bool matchDupFromBuildVector(int Lane, MachineInstr& MI, MachineRegisterInfo& MR
     }
     Register Reg = BuildVecMI->getOperand(Lane + 1).getReg();
     MatchInfo = ShuffleVectorPseudo(AArch64::G_DUP, MI.getOperand(0).getReg(), {Reg});
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -327,12 +327,12 @@ bool matchDup(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
         Lane = 0;
     }
     if (matchDupFromInsertVectorElt(Lane, MI, MRI, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
 
     if (matchDupFromBuildVector(Lane, MI, MRI, MatchInfo)) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -389,7 +389,7 @@ bool matchEXT(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
 
         Imm = Mask[0] * ExtFactor;
         MatchInfo = ShuffleVectorPseudo(AArch64::G_EXT, Dst, {V1, V1, Imm});
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     bool ReverseExt;
@@ -399,7 +399,7 @@ bool matchEXT(MachineInstr& MI, MachineRegisterInfo& MRI, ShuffleVectorPseudo& M
     }
     Imm *= ExtFactor;
     MatchInfo = ShuffleVectorPseudo(AArch64::G_EXT, Dst, {V1, V2, Imm});
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -445,7 +445,7 @@ bool matchNonConstInsert(MachineInstr& MI, MachineRegisterInfo& MRI) {
 
     auto ValAndVReg = getIConstantVRegValWithLookThrough(MI.getOperand(3).getReg(), MRI);
     if (!ValAndVReg) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -528,7 +528,7 @@ bool matchINS(MachineInstr& MI, MachineRegisterInfo& MRI, std::tuple<Register, i
     }
 
     MatchInfo = std::make_tuple(DstVec, DstLane, SrcVec, SrcLane);
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -569,7 +569,7 @@ bool matchVAshrLshrImm(MachineInstr& MI, MachineRegisterInfo& MRI, int64_t& Imm)
         return false;
     }
     if (isVShiftRImm(MI.getOperand(2).getReg(), MRI, Ty, Imm)) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -713,7 +713,7 @@ bool matchAdjustICmpImmAndPred(
     auto Pred = static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate());
     if (auto MaybeNewImmAndPred = tryAdjustICmpImmAndPred(RHS, Pred, MRI)) {
         MatchInfo = *MaybeNewImmAndPred;
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -792,7 +792,7 @@ bool matchDupLane(MachineInstr& MI, MachineRegisterInfo& MRI, std::pair<unsigned
 
     MatchInfo.first = Opc;
     MatchInfo.second = *LaneIdx;
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -825,7 +825,7 @@ bool matchScalarizeVectorUnmerge(MachineInstr& MI, MachineRegisterInfo& MRI) {
         return false;
     }
     if (SrcTy.isVector() && !SrcTy.isScalable() && Unmerge.getNumOperands() == (unsigned)SrcTy.getNumElements() + 1) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -850,7 +850,7 @@ bool matchBuildVectorToDup(MachineInstr& MI, MachineRegisterInfo& MRI) {
         return false;
     }
     if (Splat->isReg()) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     // Later, during selection, we'll try to match imported patterns using
@@ -858,7 +858,7 @@ bool matchBuildVectorToDup(MachineInstr& MI, MachineRegisterInfo& MRI) {
     // G_BUILD_VECTORs which could match those patterns.
     int64_t Cst = Splat->getCst();
     if (Cst != 0 && Cst != -1) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -1055,7 +1055,7 @@ bool matchLowerVectorFCMP(MachineInstr& MI, MachineRegisterInfo& MRI, MachineIRB
         return false;
     }
 
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1124,7 +1124,7 @@ bool matchLowerBuildToInsertVecElt(MachineInstr& MI, MachineRegisterInfo& MRI) {
         auto ConstVal = getAnyConstantVRegValWithLookThrough(GBuildVec->getSourceReg(I), MRI);
 
         if (!ConstVal.has_value()) {
-            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -1161,7 +1161,7 @@ bool matchFormTruncstore(MachineInstr& MI, MachineRegisterInfo& MRI, Register& S
     }
     // Only form truncstores for value types of max 64b.
     if (MRI.getType(SrcReg).getSizeInBits() <= 64) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -1182,7 +1182,7 @@ bool matchVectorSextInReg(MachineInstr& MI, MachineRegisterInfo& MRI) {
     Register DstReg = MI.getOperand(0).getReg();
     LLT DstTy = MRI.getType(DstReg);
     if (DstTy.isVector()) {
-        outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+        // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
         return true;
     }
     return false;
@@ -1228,7 +1228,7 @@ bool matchUnmergeExtToUnmerge(MachineInstr& MI, MachineRegisterInfo& MRI, Regist
     }
 
     MatchInfo = ExtSrc1;
-    outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     return true;
 }
 
@@ -1258,12 +1258,12 @@ bool matchExtMulToMULL(MachineInstr& MI, MachineRegisterInfo& MRI) {
         unsigned I1Opc = I1->getOpcode();
         unsigned I2Opc = I2->getOpcode();
         if (((I1Opc == TargetOpcode::G_ZEXT && I2Opc == TargetOpcode::G_ZEXT) || (I1Opc == TargetOpcode::G_SEXT && I2Opc == TargetOpcode::G_SEXT)) && (MRI.getType(I1->getOperand(0).getReg()).getScalarSizeInBits() == MRI.getType(I1->getOperand(1).getReg()).getScalarSizeInBits() * 2) && (MRI.getType(I2->getOperand(0).getReg()).getScalarSizeInBits() == MRI.getType(I2->getOperand(1).getReg()).getScalarSizeInBits() * 2)) {
-            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
         // If result type is v2s64, scalarise the instruction
         else if (DstTy == LLT::fixed_vector(2, 64)) {
-            outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+            // outs() << "\t\t\t\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
             return true;
         }
     }
@@ -1375,7 +1375,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
 
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     nico::current_stage = nico::CurrentBackendStage::POSTLEGALIZERLOWERING;
 
     assert(MF.getProperties().hasProperty(
@@ -1396,7 +1396,7 @@ bool AArch64PostLegalizerLowering::runOnMachineFunction(MachineFunction& MF) {
     AArch64PostLegalizerLoweringImpl Impl(MF, CInfo, TPC, /*CSEInfo*/ nullptr,
         RuleConfig, ST);
     bool status = Impl.combineMachineInstrs();
-    outs() << "--> status = " << status << "\n";
+    // outs() << "--> status = " << status << "\n";
  
     return status;
 }

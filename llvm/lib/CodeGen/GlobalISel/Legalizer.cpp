@@ -302,7 +302,7 @@ bool Legalizer::runOnMachineFunction(MachineFunction& MF) {
     }
 
     nico::current_stage = nico::CurrentBackendStage::LEGALIZER;
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
     LLVM_DEBUG(dbgs() << "Legalize Machine IR for: " << MF.getName() << '\n');
     init(MF);

@@ -157,9 +157,9 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
         return false;
     }
 
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
-    outs() << "\tBefore Instructions: " << MF.getInstructionCount() << "\n";
-    nico::current_stage = nico::CurrentBackendStage::PRELEGALIZERCOMBINERO0;
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << " - " << MF.getName() << "\n";
+    // outs() << "\tBefore Instructions: " << MF.getInstructionCount() << "\n";
+    // nico::current_stage = nico::CurrentBackendStage::PRELEGALIZERCOMBINERO0;
     auto& TPC = getAnalysis<TargetPassConfig>();
 
     const Function& F = MF.getFunction();
@@ -176,7 +176,7 @@ bool AArch64O0PreLegalizerCombiner::runOnMachineFunction(MachineFunction& MF) {
     AArch64O0PreLegalizerCombinerImpl Impl(MF, CInfo, &TPC, *KB, /*CSEInfo*/ nullptr, RuleConfig, ST);
     
     bool status = Impl.combineMachineInstrs();
-    outs() << "--> status = " << status << "\n";
+    // outs() << "--> status = " << status << "\n";
 
     return status;
 }

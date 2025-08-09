@@ -4033,8 +4033,8 @@ static bool checkForMustTailInVarArgFn(bool IsVarArg, const BasicBlock& BB) {
 
 bool IRTranslator::runOnMachineFunction(MachineFunction& CurMF) {
     nico::current_stage = nico::CurrentBackendStage::IRTRANSLATOR;
-    outs() << "\n------------------------------------\n" << CurMF.getName() << "\n------------------------------------\n";
-    outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\n------------------------------------\n" << CurMF.getName() << "\n------------------------------------\n";
+    // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
     MF = &CurMF;
     const Function& F = MF->getFunction();

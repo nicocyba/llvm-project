@@ -2348,7 +2348,7 @@ bool AArch64InstructionSelector::select(MachineInstr& I) {
     assert(I.getParent() && "Instruction should be in a basic block!");
     assert(I.getParent()->getParent() && "Instruction should be in a function!");
 
-    outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+    // outs() << "\t\t" << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
     unsigned idxdata = nico::total_data.back().logs.size();
     nico::total_data.back().logs.push_back("\t" + nico::getFunctionName(__PRETTY_FUNCTION__));
 

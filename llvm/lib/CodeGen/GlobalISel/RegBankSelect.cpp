@@ -740,7 +740,7 @@ bool RegBankSelect::runOnMachineFunction(MachineFunction &MF) {
     return false;
 
   nico::current_stage = nico::CurrentBackendStage::REGBANKSELECT;
-  outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
+  // outs() << nico::getFunctionName(__PRETTY_FUNCTION__) << "\n";
 
   LLVM_DEBUG(dbgs() << "Assign register banks for: " << MF.getName() << '\n');
   const Function &F = MF.getFunction();
