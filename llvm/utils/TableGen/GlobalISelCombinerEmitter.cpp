@@ -1901,7 +1901,7 @@ bool CombineRuleBuilder::emitCXXMatchApply(CodeExpansions& CE, RuleMatcher& M, A
     raw_string_ostream OS(CodeStr);
     //OS << "outs() << \"\\t\\t\\t\\t\\tC++ Match/Apply for rule '" << RuleDef.getName() << "'\\n\";\n";
     std::string content0 = R"(
-outs() << formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
+// outs() << formatv("\t\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}\n", static_cast<unsigned>({0}), StringRef("{1}"));
 nico::reset_observerdata();
 unsigned idxdata = nico::total_data.back().logs.size();
 nico::total_data.back().logs.push_back(formatv("\t\t\t\tC++ Match/Apply for rule #{{0}: {{1}", static_cast<unsigned>({0}), StringRef("{1}")));
@@ -1924,7 +1924,7 @@ OS << formatv(content0.c_str(), RuleID, RuleDef.getName());
             OS << OS2.str() << "\n";
             std::string contentmatch = R"(
 }()) {
-  outs() << "\t\t\t\t\t\t-> Match failed\n";
+  //outs() << "\t\t\t\t\t\t-> Match failed\n";
   nico::total_data.back().logs[idxdata] += " --> status: false ({2}) ";
 
   nico::reset_observerdata_failed(__FILE__, __FUNCTION__, "{0}", {1});
