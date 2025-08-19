@@ -90,6 +90,10 @@ enum {
     ///        failed match.
     GIM_Try,
 
+    /// Nico: Add hook to intercept rule id, ...
+    /// - RuleID(4)
+    GIM_Hook,
+
     /// Switch over the opcode on the specified instruction
     /// - InsnID(ULEB128) - Instruction ID
     /// - LowerBound(2) - numerically minimum opcode supported

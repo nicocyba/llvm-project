@@ -39,6 +39,8 @@
 #include <cstddef>
 #include <cstdint>
 
+// #include "llvm/CodeGen/NicoBA.h"
+
 namespace llvm {
 
 template <class TgtExecutor, class PredicateBitset, class ComplexMatcherMemFn, class CustomRendererFn>
@@ -153,7 +155,14 @@ bool GIMatchTableExecutor::executeMatchTable(
                 OnFailResumeAt.push_back(readU32());
                 break;
             }
-
+            
+            // Nico: Implementation of hook to intercept e.g. rule id
+            case GIM_Hook: {
+                unsigned RuleID = readU32();
+                total_data.back().rules.push_back(std::make_tuple("unknown", static_cast<unsigned>(RuleID), nico::getUnixTimestampStringChrono()));
+                break;
+            }
+                
             case GIM_RecordInsn:
             case GIM_RecordInsnIgnoreCopies: {
                 uint64_t NewInsnID = readULEB();

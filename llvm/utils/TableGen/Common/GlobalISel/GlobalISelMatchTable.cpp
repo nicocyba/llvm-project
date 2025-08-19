@@ -937,6 +937,12 @@ void RuleMatcher::emit(MatchTable &Table) {
         << MatchTable::Comment(("Rule ID " + Twine(RuleID) + " //").str())
         << MatchTable::LineBreak;
 
+
+  // Nico: Add marker so that we can intercept the Rule ID
+  Table << MatchTable::Opcode("GIM_Hook")
+        << MatchTable::IntValue(4, RuleID) << MatchTable::LineBreak;
+
+
   if (!RequiredFeatures.empty() || HwModeIdx >= 0) {
     Table << MatchTable::Opcode("GIM_CheckFeatures")
           << MatchTable::NamedValue(

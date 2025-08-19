@@ -196,7 +196,8 @@ struct GlobalISelDataInstruction {
     std::string mf; // mf name
     std::string mi; // mi name
     std::vector<std::string> logs;
-    std::vector<std::tuple<std::string, unsigned, bool, std::string>> patterns; // name, id, status, timestamp 
+    std::vector<std::tuple<std::string, unsigned, bool, std::string, unsigned>> patterns; // name, id, status, timestamp, ruleid
+    std::vector<std::tuple<std::string, unsigned, std::string>> rules; // name, id, timestamp 
     std::vector<std::tuple<std::string, int, int>> state_before;
     std::vector<std::tuple<std::string, int, int>> state_after;
     std::vector<std::tuple<std::string, int, int>> created;
@@ -263,7 +264,8 @@ inline void reset_observerdata_success(const std::string& filename, const std::s
 ) {
     // total_data.back().state_before = std::move(state_before_loc);
     // total_data.back().state_after = std::move(state_after_loc);
-    total_data.back().patterns.push_back(std::make_tuple(pattern_name, pattern_id, true, nico::getUnixTimestampStringChrono()));
+    unsigned ruleid = std::get<1>(total_data.back().rules.back());
+    total_data.back().patterns.push_back(std::make_tuple(pattern_name, pattern_id, true, nico::getUnixTimestampStringChrono(), ruleid));
 
     // created
     for (const auto &C : nico::CreatedInstrsNico)
@@ -290,7 +292,8 @@ inline void reset_observerdata_success(const std::string& filename, const std::s
 
 
 inline void reset_observerdata_failed(const std::string& filename, const std::string& function_name, const std::string& pattern_name, unsigned pattern_id) {
-    total_data.back().patterns.push_back(std::make_tuple(pattern_name, pattern_id, false, nico::getUnixTimestampStringChrono()));
+    unsigned ruleid = std::get<1>(total_data.back().rules.back());
+    total_data.back().patterns.push_back(std::make_tuple(pattern_name, pattern_id, false, nico::getUnixTimestampStringChrono(), ruleid));
 
     // clear the thread local data
     CreatedInstrsNico.clear();
