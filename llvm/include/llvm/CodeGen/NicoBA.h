@@ -266,7 +266,7 @@ inline void reset_observerdata_success(const std::string& filename, const std::s
     // total_data.back().state_after = std::move(state_after_loc);
     unsigned ruleid;
     if (total_data.back().rules.empty()) {
-        ruleid = 99999;
+        ruleid = 999999;
         // llvm::outs() << "reset_observerdata_success - rules empty --> stage: " << current_stage << "\n";
     } else {
         ruleid = std::get<1>(total_data.back().rules.back());
