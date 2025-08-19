@@ -940,7 +940,8 @@ void RuleMatcher::emit(MatchTable &Table) {
 
   // Nico: Add marker so that we can intercept the Rule ID
   Table << MatchTable::Opcode("GIM_Hook")
-        << MatchTable::IntValue(4, RuleID) << MatchTable::LineBreak;
+        << MatchTable::IntValue(4, RuleID) 
+        << MatchTable::LineBreak;
 
 
   if (!RequiredFeatures.empty() || HwModeIdx >= 0) {

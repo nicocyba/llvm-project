@@ -159,6 +159,7 @@ bool GIMatchTableExecutor::executeMatchTable(
             // Nico: Implementation of hook to intercept e.g. rule id
             case GIM_Hook: {
                 unsigned RuleID = readU32();
+                outs() << "GIM_Hook - ruleid: " << RuleID << "\n";
                 nico::total_data.back().rules.push_back(std::make_tuple("unknown", static_cast<unsigned>(RuleID), nico::getUnixTimestampStringChrono()));
                 break;
             }

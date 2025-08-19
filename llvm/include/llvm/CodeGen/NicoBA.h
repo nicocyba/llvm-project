@@ -264,7 +264,14 @@ inline void reset_observerdata_success(const std::string& filename, const std::s
 ) {
     // total_data.back().state_before = std::move(state_before_loc);
     // total_data.back().state_after = std::move(state_after_loc);
-    unsigned ruleid = std::get<1>(total_data.back().rules.back());
+    unsigned ruleid;
+    if (total_data.back().rules.empty()) {
+        ruleid = 0;
+        outs() << "reset_observerdata_success - rules empty --> stage: " << current_stage << "\n";
+    } else {
+        ruleid = std::get<1>(total_data.back().rules.back());
+    }
+    
     total_data.back().patterns.push_back(std::make_tuple(pattern_name, pattern_id, true, nico::getUnixTimestampStringChrono(), ruleid));
 
     // created
