@@ -1911,7 +1911,7 @@ Expected<RuleMatcher> GlobalISelEmitter::runOnPattern(const PatternToMatch& P) {
 
     // NICO - InstructionSelection DEBUG
     std::ofstream outfile;
-    outfile.open("nico_instructionselect.txt", std::ios::app);
+    outfile.open("/libraries/llvm/nico_instructionselect.txt", std::ios::app);
 
     if (outfile.is_open()) {
         outfile << "Score=" << Score << " | getSrcRecordName=" << P.getSrcRecord()->getName().str() << " | RuleID=" << M.getRuleID() << " | comment=" << llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()) << "\n";
