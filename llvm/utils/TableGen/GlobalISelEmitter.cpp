@@ -49,6 +49,8 @@
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/TableGenBackend.h"
 #include <string>
+#include <iostream>
+#include <fstream>
 
 using namespace llvm;
 using namespace llvm::gi;
@@ -1907,6 +1909,18 @@ Expected<RuleMatcher> GlobalISelEmitter::runOnPattern(const PatternToMatch& P) {
     RuleMatcherScores[M.getRuleID()] = Score;
     M.addAction<DebugCommentAction>(llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()));
 
+    // NICO - InstructionSelection DEBUG
+    std::ofstream outfile;
+    outfile.open("nico_instructionselect.txt", std::ios::app);
+
+    if (outfile.is_open()) {
+        outfile << "Score=" << Score << " | getSrcRecordName=" << P.getSrcRecord()->getName().str() << " | RuleID=" << M.getRuleID() << " | comment=" << llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()) << "\n";
+        outfile.close(); // Close the file stream.
+    } else {
+        std::cout << "Unable to open file";
+    }
+
+    //
     SmallVector<const Record*, 4> Predicates;
     P.getPredicateRecords(Predicates);
     if (auto Error = importRulePredicates(M, Predicates)) {
