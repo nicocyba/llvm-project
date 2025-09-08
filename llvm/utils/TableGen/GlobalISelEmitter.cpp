@@ -1910,6 +1910,7 @@ Expected<RuleMatcher> GlobalISelEmitter::runOnPattern(const PatternToMatch& P) {
     M.addAction<DebugCommentAction>(llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()));
 
     // NICO - InstructionSelection DEBUG
+    std::cout << "NICO DEBUG!!!!!!!!!!!!!!!!\n";
     std::ofstream outfile;
     outfile.open("/libraries/llvm/nico_instructionselect.txt", std::ios::app);
 
@@ -1917,7 +1918,7 @@ Expected<RuleMatcher> GlobalISelEmitter::runOnPattern(const PatternToMatch& P) {
         outfile << "Score=" << Score << " | getSrcRecordName=" << P.getSrcRecord()->getName().str() << " | RuleID=" << M.getRuleID() << " | comment=" << llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()) << "\n";
         outfile.close(); // Close the file stream.
     } else {
-        std::cout << "Unable to open file";
+        std::cout << "Unable to open file\n";
     }
 
     //
