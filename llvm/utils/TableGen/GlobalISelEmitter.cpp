@@ -1912,24 +1912,28 @@ Expected<RuleMatcher> GlobalISelEmitter::runOnPattern(const PatternToMatch& P) {
     RuleMatcherScores[M.getRuleID()] = Score;
     M.addAction<DebugCommentAction>(llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()));
 
+
     // NICO - InstructionSelection DEBUG
-    std::cout << "NICO DEBUG!!!!!!!!!!!!!!!!\n";
-    std::ofstream outfile;
-    // Get the current path.
-    std::filesystem::path currentPath = std::filesystem::current_path();
+    std::cout << "NICO DEBUG!!!!!!!!!!!!!!!!" << Target.getName().str() << "\n";
+    if (Target.getName().str() == "AArch64") {
+        std::ofstream outfile;
+        // Get the current path.
+        std::filesystem::path currentPath = std::filesystem::current_path();
 
-    // The path object can be directly streamed to std::cout.
-    std::cout << "Current working directory: " << currentPath << "\n";
-    const char* filepath = "/libraries/llvm/nico_instructionselect.txt";
-    outfile.open(filepath, std::ios::app);
+        // The path object can be directly streamed to std::cout.
+        std::cout << "Current working directory: " << currentPath << "\n";
+        const char* filepath = "/libraries/llvm/nico_instructionselect.txt";
+        outfile.open(filepath, std::ios::app);
 
-    if (outfile.is_open()) {
-        outfile << "Score=" << Score << " | getSrcRecordName=" << P.getSrcRecord()->getName().str() << " | RuleID=" << M.getRuleID() << " | comment=" << llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()) << "\n";
-        outfile.close(); // Close the file stream.
-    } else {
-        std::cerr << "Error: Unable to open file '" << filepath << "'.\n";
-        std::cerr << "Reason: " << strerror(errno) << std::endl;
+        if (outfile.is_open()) {
+            outfile << "Score=" << Score << " | getSrcRecordName=" << P.getSrcRecord()->getName().str() << " | RuleID=" << M.getRuleID() << " | comment=" << llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()) << "\n";
+            outfile.close(); // Close the file stream.
+        } else {
+            std::cerr << "Error: Unable to open file '" << filepath << "'.\n";
+            std::cerr << "Reason: " << strerror(errno) << std::endl;
+        }
     }
+    
 
     //
     SmallVector<const Record*, 4> Predicates;
