@@ -51,6 +51,9 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cerrno> // Required for errno
+#include <cstring> // Required for strerror
+#include <filesystem>
 
 using namespace llvm;
 using namespace llvm::gi;
@@ -1912,13 +1915,20 @@ Expected<RuleMatcher> GlobalISelEmitter::runOnPattern(const PatternToMatch& P) {
     // NICO - InstructionSelection DEBUG
     std::cout << "NICO DEBUG!!!!!!!!!!!!!!!!\n";
     std::ofstream outfile;
-    outfile.open("/libraries/llvm/nico_instructionselect.txt", std::ios::app);
+    // Get the current path.
+    std::filesystem::path currentPath = std::filesystem::current_path();
+
+    // The path object can be directly streamed to std::cout.
+    std::cout << "Current working directory: " << currentPath << "\n";
+    const char* filepath = "/libraries/llvm/nico_instructionselect.txt";
+    outfile.open(filepath, std::ios::app);
 
     if (outfile.is_open()) {
         outfile << "Score=" << Score << " | getSrcRecordName=" << P.getSrcRecord()->getName().str() << " | RuleID=" << M.getRuleID() << " | comment=" << llvm::to_string(P.getSrcPattern()) + "  =>  " + llvm::to_string(P.getDstPattern()) << "\n";
         outfile.close(); // Close the file stream.
     } else {
-        std::cout << "Unable to open file\n";
+        std::cerr << "Error: Unable to open file '" << filepath << "'.\n";
+        std::cerr << "Reason: " << strerror(errno) << std::endl;
     }
 
     //
